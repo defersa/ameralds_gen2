@@ -7,7 +7,7 @@ import { process } from "@am/core/declare/process";
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: `env/.${process.env.NODE_ENV}.env`
+            envFilePath: `env/.${process.env.NODE_ENV ?? 'dev'}.env`
         }),
     ],
 })
