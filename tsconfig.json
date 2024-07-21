@@ -19,7 +19,8 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@am/core/*": ["src/core/*"],
-      "@am/db/*": ["src/db/*"]
+      "@am/db/entities": ["src/db/entities"],
+      "@am/db/service/*": ["src/db/services/*"]
     }
   }
 }

@@ -18,8 +18,10 @@
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
-        "typeorm": "typeorm-ts-node-commonjs",
-        "typeorm:migration:generate": "typeorm migration:generate database/migrations/manual-migration -d database/options.mjs"
+        "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+        "typeorm:migration:generate": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:generate  -d database/options.mjs database/migrations/manual-migration",
+        "typeorm:migration:run": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:run  -d database/options.mjs",
+        "typeorm:migration:revert": "node --require ts-node/register ./node_modules/typeorm/cli.js migration:revert  -d database/options.mjs"
     },
     "dependencies": {
         "@nestjs/common": "^10.0.0",
@@ -29,11 +31,12 @@
         "@nestjs/platform-express": "^10.0.0",
         "@nestjs/typeorm": "^10.0.2",
         "bcrypt": "^5.1.1",
+        "date-fns": "^3.6.0",
         "eslint-plugin-import": "^2.29.1",
         "pg": "^8.12.0",
         "reflect-metadata": "^0.2.0",
         "rxjs": "^7.8.1",
-        "typeorm": "^0.3.20"
+        "typeorm": "^0.3.11"
     },
     "devDependencies": {
         "@nestjs/cli": "^10.0.0",

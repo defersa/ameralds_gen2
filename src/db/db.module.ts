@@ -1,9 +1,7 @@
 import { Module } from "@nestjs/common";
 import { process } from "@am/core/declare/process";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { TokenService } from './service/token/token.service';
-import { UserService } from './service/user/user.service';
-import { DataSourceService } from "@am/db/data-source.service";
+import { TokenAccessEntity, TokenEntity, TokenRefreshEntity, UserEntity } from "@am/db/entities";
 
 
 @Module({
@@ -15,13 +13,11 @@ import { DataSourceService } from "@am/db/data-source.service";
             username: process.env.DB_USERNAME,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_DATABASE,
-            entities: [
-                'src/db/entities/**/**.entity{.ts,.js}',
-            ],
+            autoLoadEntities: true,
+            entities: [TokenAccessEntity, TokenEntity, TokenRefreshEntity, UserEntity],
             logging: true,
         }),
     ],
-    providers: [DataSourceService, TokenService, UserService],
 })
 export class DbModule {
 }

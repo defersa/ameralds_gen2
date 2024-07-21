@@ -1,6 +1,6 @@
 import { ChildEntity, ManyToOne } from "typeorm";
-import { TokenEntity, TokenType } from "@am/db/entities/tokens/token.entity";
-import { UserEntity } from "@am/db/entities/user.entity";
+import { TokenEntity, TokenType } from "./token.entity";
+import { UserEntity } from "../user.entity";
 
 
 @ChildEntity(TokenType.REFRESH)

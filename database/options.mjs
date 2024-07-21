@@ -1,9 +1,8 @@
 import env from '../tools/project-env.mjs';
+import { DataSource } from "typeorm";
 
 
-console.log(env.DB_HOST)
-
-export default {
+const myDataSource = new DataSource({
     type: 'postgres',
     host: env.DB_HOST,
     port: Number(env.DB_PORT),
@@ -11,7 +10,7 @@ export default {
     password: env.DB_PASSWORD,
     database: env.DB_DATABASE,
     entities: [
-        'src/db/entities/**/**.entity{.ts,.js}',
+        'src/db/entities/**/**.entity.ts',
     ],
     migrations: [
         'database/migrations/*.ts',
@@ -19,4 +18,7 @@ export default {
     cli: {
         migrationsDir: 'database/migrations',
     },
-};
+    logging: true,
+});
+
+export default myDataSource;

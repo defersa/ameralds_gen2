@@ -3,15 +3,10 @@ import { DataSource, EntityTarget, ObjectLiteral, Repository } from "typeorm";
 
 
 @Injectable({
-    scope: Scope.TRANSIENT,
+    scope: Scope.DEFAULT,
 })
 export class DataSourceService {
-    private dataSource: DataSource;
-
-    constructor() {
-        this.dataSource = new DataSource({
-            type: "postgres",
-        });
+    constructor(public dataSource: DataSource) {
     }
 
     public getRepository<T extends ObjectLiteral>(target: EntityTarget<T>): Repository<T> {

@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany } from "typeorm";
-import { BaseModel } from "@am/db/abstract/abstract.model";
-import { TokenAccessEntity } from "@am/db/entities/tokens/token-access.entity";
-import { TokenRefreshEntity } from "@am/db/entities/tokens/token-refresh.entity";
+import { BaseModel } from "../abstract/abstract.model";
+import { TokenAccessEntity } from "./tokens/token-access.entity";
+import { TokenRefreshEntity } from "./tokens/token-refresh.entity";
 
 
 export enum UserStatus {
