@@ -13,14 +13,14 @@ export interface TokensDTO {
 }
 
 @Injectable({
-    scope: Scope.DEFAULT,
+    scope: Scope.DEFAULT
 })
 export class UserService {
     private userRepository: Repository<UserEntity>;
 
     constructor(
         private dataSource: DataSourceService,
-        private tokenService: TokenService,
+        private tokenService: TokenService
     ) {
         this.userRepository = this.dataSource.getRepository<UserEntity>(UserEntity);
     }
@@ -37,7 +37,7 @@ export class UserService {
         const user: UserEntity = await this.userRepository.create({
             passwordHash,
             email,
-            username: email.split('@')[0],
+            username: email.split("@")[0]
         });
 
         await this.userRepository.save(user);
@@ -50,12 +50,12 @@ export class UserService {
         const refreshTokenExpiredAt: Date = addDays(new Date(), 28);
         const accessToken: TokenAccessEntity = await this.tokenService.createAccessToken({
             userId: user.id,
-            expiredAt: accessTokenExpiredAt,
+            expiredAt: accessTokenExpiredAt
         }, accessTokenExpiredAt);
 
         const refreshToken: TokenRefreshEntity = await this.tokenService.refreshAccessToken({
             userId: user.id,
-            expiredAt: refreshTokenExpiredAt,
+            expiredAt: refreshTokenExpiredAt
         }, refreshTokenExpiredAt);
 
         console.log(user.access);
@@ -67,7 +67,26 @@ export class UserService {
 
         return {
             access: accessToken.value,
-            refresh: refreshToken.value,
+            refresh: refreshToken.value
+        };
+    }
+
+    public async getUserByToken(token: string): Promise<UserEntity> {
+        const decodedToken: Record<string, string> = this.tokenService.decodeToken(token);
+        const expiredAt: Date = new Date(decodedToken.expiredAt);
+
+        if (expiredAt < new Date()) {
+            await this.tokenService.deactivateToken(token);
+
+            return null;
         }
+
+        return await this.userRepository.findOne({
+            where: {
+                access: {
+                    value: token
+                }
+            }
+        });
     }
 }

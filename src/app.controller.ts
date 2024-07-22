@@ -1,6 +1,6 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Req } from "@nestjs/common";
 import { AppService } from "./app.service";
-import * as bcrypt from "bcrypt";
+import { Request } from 'express';
 
 
 @Controller()
@@ -8,22 +8,13 @@ export class AppController {
     constructor(private readonly appService: AppService) {
     }
 
-    @Get()
-    getHello(): string {
+    @Get('test')
+    getHello(
+        @Req() request: Request,
+    ): string {
 
-        console.log("?(");
-        this.test();
+        console.log((request as any).user);
 
         return this.appService.getHello();
     }
-
-    private async test(): Promise<void> {
-        const salt: string = await bcrypt.genSalt();
-        const password = "random_password";
-        const hash = await bcrypt.hash(password, salt);
-        console.log(salt, hash)
-
-        console.log(await bcrypt.compare(password, hash));
-    }
-
 }

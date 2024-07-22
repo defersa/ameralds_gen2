@@ -3,6 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Repository } from "typeorm";
 import { TokenAccessEntity, TokenEntity, TokenRefreshEntity } from "@am/db/entities";
 import { DataSourceService } from "../../data-source.service";
+import { ModelState } from "../../abstract/abstract.model";
 
 
 @Injectable({
@@ -11,6 +12,7 @@ import { DataSourceService } from "../../data-source.service";
 export class TokenService {
     private tokenAccessRepository: Repository<TokenAccessEntity>;
     private tokenRefreshRepository: Repository<TokenRefreshEntity>;
+    private tokenRepository: Repository<TokenEntity>;
 
     constructor(
         private jwtService: JwtService,
@@ -18,13 +20,12 @@ export class TokenService {
     ) {
         this.tokenAccessRepository = this.dataSource.getRepository<TokenAccessEntity>(TokenAccessEntity);
         this.tokenRefreshRepository = this.dataSource.getRepository<TokenRefreshEntity>(TokenRefreshEntity);
+        this.tokenRepository = this.dataSource.getRepository<TokenEntity>(TokenEntity);
 
     }
 
     public async createAccessToken(payload: Record<string, unknown>, expiredAt: Date): Promise<TokenAccessEntity> {
         const token: TokenAccessEntity = this.tokenAccessRepository.create();
-
-        console.log(token.value);
 
         token.value = this.jwtService.sign({ ...payload, expiredAt });
         token.expiredAt = expiredAt;
@@ -43,5 +44,25 @@ export class TokenService {
         await this.tokenRefreshRepository.save(token);
 
         return token;
+    }
+
+    public decodeToken(token: string): Record<string, string> {
+        return this.jwtService.decode(token);
+    }
+
+    public async deactivateToken(token: string): Promise<void> {
+        const tokenEntity: TokenEntity = await this.tokenRepository.findOne({
+            where: {
+                value: token,
+                state: ModelState.ACTIVE,
+            },
+        });
+
+        if (tokenEntity) {
+            tokenEntity.state = ModelState.INACTIVE;
+
+            await this.tokenRepository.save(tokenEntity);
+        }
+
     }
 }
