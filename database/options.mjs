@@ -13,7 +13,7 @@ const myDataSource = new DataSource({
         'src/db/entities/**/**.entity.ts',
     ],
     migrations: [
-        'database/migrations/*.ts',
+        'database/migrations/**.ts',
     ],
     cli: {
         migrationsDir: 'database/migrations',

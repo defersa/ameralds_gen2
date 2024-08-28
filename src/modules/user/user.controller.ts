@@ -1,5 +1,5 @@
 import { Body, Controller, HttpException, HttpStatus, Post } from "@nestjs/common";
-import { TokensDTO, UserService } from "@am/db/service/user/user.service";
+import { TokensDTO, UserService } from "@am/db/service/user.service";
 import { UserEntity } from "@am/db/entities";
 import * as bcrypt from "bcrypt";
 

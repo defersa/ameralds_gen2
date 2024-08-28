@@ -20,7 +20,8 @@
     "paths": {
       "@am/core/*": ["src/core/*"],
       "@am/db/entities": ["src/db/entities"],
-      "@am/db/service/*": ["src/db/services/*"]
+      "@am/db/service/*": ["src/db/services/*"],
+      "@am/models/*": ["src/models/*"]
     }
   }
 }

@@ -2,8 +2,8 @@ import { Injectable, Scope } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Repository } from "typeorm";
 import { TokenAccessEntity, TokenEntity, TokenRefreshEntity } from "@am/db/entities";
-import { DataSourceService } from "../../data-source.service";
-import { ModelState } from "../../abstract/abstract.model";
+import { DataSourceService } from "../data-source.service";
+import { ModelState } from "../abstract/abstract.model";
 
 
 @Injectable({

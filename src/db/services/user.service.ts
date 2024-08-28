@@ -1,9 +1,9 @@
 import { Injectable, Scope } from "@nestjs/common";
-import { DataSourceService } from "../../data-source.service";
-import { Repository } from "typeorm";
+import { DataSourceService } from "../data-source.service";
+import { FindOneOptions, Repository } from "typeorm";
 import { TokenAccessEntity, TokenRefreshEntity, UserEntity } from "@am/db/entities";
 import * as bcrypt from "bcrypt";
-import { TokenService } from "@am/db/service/token/token.service";
+import { TokenService } from "@am/db/service/token.service";
 import { addDays } from "date-fns";
 
 
@@ -58,8 +58,6 @@ export class UserService {
             expiredAt: refreshTokenExpiredAt
         }, refreshTokenExpiredAt);
 
-        console.log(user.access);
-
         user.access = [...(user.access ?? []), accessToken];
         user.refresh = [...(user.refresh ?? []), refreshToken];
 
@@ -87,6 +85,6 @@ export class UserService {
                     value: token
                 }
             }
-        });
+        } as FindOneOptions<UserEntity>);
     }
 }

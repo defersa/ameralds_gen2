@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { process } from "@am/core/declare/process";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { TokenAccessEntity, TokenEntity, TokenRefreshEntity, UserEntity } from "@am/db/entities";
+import { ImageEntity, TokenAccessEntity, TokenEntity, TokenRefreshEntity, UserEntity } from "@am/db/entities";
 
 
 @Module({
@@ -14,7 +14,13 @@ import { TokenAccessEntity, TokenEntity, TokenRefreshEntity, UserEntity } from "
             password: process.env.DB_PASSWORD,
             database: process.env.DB_DATABASE,
             autoLoadEntities: true,
-            entities: [TokenAccessEntity, TokenEntity, TokenRefreshEntity, UserEntity],
+            entities: [
+                TokenAccessEntity,
+                TokenEntity,
+                TokenRefreshEntity,
+                ImageEntity,
+                UserEntity,
+            ],
             logging: true,
         }),
     ],
