@@ -7,6 +7,7 @@ export * from './common/text-lang.entity';
 export * from './patterns/category.entity';
 export * from './patterns/size.entity';
 export * from './patterns/pattern.entity';
+export * from './patterns/pattern-size.entity';
 export * from './tokens/token.entity';
 export * from './tokens/token-access.entity';
 export * from './tokens/token-refresh.entity';

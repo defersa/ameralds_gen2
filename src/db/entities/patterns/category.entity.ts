@@ -3,7 +3,7 @@ import { BaseModel } from "../../abstract/abstract.model";
 import { LabelLangEntity } from "../common/label-lang.entity";
 
 
-@Entity()
+@Entity({ schema: 'patterns' })
 export class CategoryEntity extends BaseModel {
     @OneToOne(() => LabelLangEntity, { onDelete: 'CASCADE'})
     @JoinColumn()

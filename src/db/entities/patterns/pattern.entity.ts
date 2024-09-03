@@ -7,7 +7,7 @@ import { ImageEntity } from "../image/image.entity";
 import { CategoryEntity } from "./category.entity";
 
 
-@Entity()
+@Entity({ schema: 'patterns' })
 export class PatternEntity extends BaseModel {
     @OneToOne(() => LabelLangEntity, { onDelete: 'CASCADE'})
     @JoinColumn()
