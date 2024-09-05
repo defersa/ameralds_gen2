@@ -1,0 +1,173 @@
+@import "/src/app/styles/spacing.scss";
+@import "/src/app/styles/theming-var.scss";
+@import "/src/app/styles/typography.scss";
+
+$badge-padding: 14px;
+$badge-size: 32px;
+$badge-radius: 16px;
+
+$button-round-radius: 18px;
+$button-round-size: 36px;
+
+$button-round-border: 2px;
+
+@mixin amstore-button-round-color($theme) {
+    color: get-amstore-color(gray, white);
+    background: get-amstore-color($theme, dark);
+
+    &:hover {
+        background: get-amstore-color($theme, deep);
+    }
+}
+
+@mixin amstore-button-round-border-color($theme) {
+    border-color: get-amstore-color($theme, dark);
+
+    &:hover {
+        border-color: get-amstore-color($theme, deep);
+    }
+}
+
+@mixin amstore-round-image() {
+    background-clip: border-box;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    border-width: $button-round-border;
+    border-style: solid;
+}
+
+:host {
+    padding: get-spacing(2) get-spacing(4);
+    text-transform: uppercase;
+    box-sizing: border-box;
+    min-width: $button-round-size;
+    min-height: $button-round-size;
+
+    &.left-side {
+        border-radius: $button-round-radius 0 0 $button-round-radius;
+    }
+    &.right-side {
+        border-radius: 0 $button-round-radius $button-round-radius 0;
+    }
+    &.both-side {
+        border-radius: $button-round-radius;
+    }
+    &.amstore-round-has-badge {
+        margin-top: $badge-padding;
+        margin-right: $badge-padding;
+    }
+
+    &.amstore-primary {
+        &.amstore-round-image {
+            @include amstore-button-round-border-color(green);
+        }
+
+        &, .amstore-button-round-badge {
+            @include amstore-button-round-color(green);
+        }
+    }
+
+    &.amstore-accent {
+        &.amstore-round-image {
+            @include amstore-button-round-border-color(blue);
+        }
+
+        &, .amstore-button-round-badge {
+            @include amstore-button-round-color(blue);
+        }
+    }
+
+    &.amstore-warn {
+        &.amstore-round-image {
+            @include amstore-button-round-border-color(red);
+        }
+
+        &, .amstore-button-round-badge {
+            @include amstore-button-round-color(red);
+        }
+    }
+
+    &.amstore-special {
+        &.amstore-round-image {
+            @include amstore-button-round-border-color(turquoise);
+        }
+
+        &, .amstore-button-round-badge {
+            @include amstore-button-round-color(turquoise);
+        }
+    }
+
+    &.amstore-round-image {
+        @include amstore-round-image();
+        &:hover {
+            @include amstore-round-image();
+        }
+    }
+
+    @include get-amstore-font("body", 16, null, null);
+}
+
+.amstore-button-round-badge {
+    position: absolute;
+    box-sizing: border-box;
+    text-transform: none;
+
+    width: $badge-size;
+    height: $badge-size;
+    top: -($badge-padding);
+    right: -($badge-padding);
+
+    border-radius: $button-round-radius;
+    border: $button-round-border solid get-amstore-color(gray, white);
+
+    @include get-amstore-font("body", 14, null, null);
+    line-height: $badge-size - $button-round-border * 2;
+}
+
+// mobile
+$badge-mobile-padding: 12px;
+$badge-mobile-size: 24px;
+$badge-mobile-radius: 12px;
+
+$button-mobile-round-radius: 14px;
+$button-mobile-round-size: 28px;
+
+$button-mobile-round-border: 1px;
+@media screen and (max-width: 768px) {
+    :host {
+        padding: get-spacing(1) get-spacing(2);
+        text-transform: uppercase;
+        box-sizing: border-box;
+        min-width: $button-mobile-round-size;
+        min-height: $button-mobile-round-size;
+
+        &.left-side {
+            border-radius: $button-mobile-round-radius 0 0 $button-mobile-round-radius;
+        }
+        &.right-side {
+            border-radius: 0 $button-mobile-round-radius $button-mobile-round-radius 0;
+        }
+        &.both-side {
+            border-radius: $button-mobile-round-radius;
+        }
+        &.amstore-round-has-badge {
+            margin-top: $badge-mobile-padding;
+            margin-right: $badge-mobile-padding;
+        }
+        @include get-amstore-font("body", 14, null, null);
+    }
+
+    .amstore-button-round-badge {
+        width: $badge-mobile-size;
+        height: $badge-mobile-size;
+        top: -($badge-mobile-padding);
+        right: -($badge-mobile-padding);
+
+        border-radius: $badge-mobile-radius;
+        border: $button-mobile-round-border solid get-amstore-color(gray, white);
+
+        @include get-amstore-font("body", 12, null, null);
+        line-height: $badge-mobile-size - $button-mobile-round-border * 2;
+    }
+}

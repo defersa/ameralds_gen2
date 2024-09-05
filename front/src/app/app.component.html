@@ -1,0 +1,12 @@
+<amstore-header>
+    <amstore-header-admin *ngIf="isAdmin | async"></amstore-header-admin>
+    <amstore-language></amstore-language>
+    <amstore-goods-snap></amstore-goods-snap>
+    <amstore-profile></amstore-profile>
+</amstore-header>
+<div class="amstore-body">
+    <router-outlet></router-outlet>
+</div>
+<footer>
+    <p style="text-align: center">Amerald Store, {{date.getFullYear()}} год.</p>
+</footer>

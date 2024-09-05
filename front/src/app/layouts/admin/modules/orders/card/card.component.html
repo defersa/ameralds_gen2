@@ -1,0 +1,39 @@
+<div class="amstore-pattern-card-actions">
+    <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
+</div>
+
+<div *ngIf="order$ | async; let order">
+
+    <amstore-info [contrast]="true" [needIcon]="false" class="order-card__info" color="special">
+        <h2 class="snapshot-order__header">Заказ №{{order.id}}</h2>
+
+        <div class="snapshot-order__title">
+            <amstore-icon iconName="profile" [size]="20"></amstore-icon>
+            Email: {{order.email}}
+        </div>
+
+        <div class="snapshot-order__title">
+            <amstore-icon iconName="time" [size]="20"></amstore-icon>
+            Дата заказа: {{order.create_date | date : 'YYYY.MM.dd HH:mm.SS'}}
+        </div>
+    </amstore-info>
+
+    <amstore-snapshot-pattern *ngFor="let purchase of order.purchases" [pattern]="purchase.pattern">
+        <p>
+            Купленные размеры:
+        </p>
+
+        <div class="order-card__purchase-row">
+            <amstore-chip *ngFor="let size of purchase.sizesWithStatus" [stroked]="!size.status">
+                {{size.value}} бср
+            </amstore-chip>
+        </div>
+
+        <p>
+            Подбор:
+        </p>
+        <div class="order-card__purchase-row">
+            <amstore-chip [stroked]="!purchase.colors">{{purchase.colors ? 'Куплен' : 'Не куплен'}}</amstore-chip>
+        </div>
+    </amstore-snapshot-pattern>
+</div>

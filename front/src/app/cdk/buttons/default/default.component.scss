@@ -1,0 +1,84 @@
+@import "/src/app/styles/spacing.scss";
+@import "/src/app/styles/theming-var.scss";
+@import "/src/app/styles/typography.scss";
+
+@mixin amstore-button-default-color($theme) {
+    color: get-amstore-color(gray, white);
+    background: get-amstore-color($theme, dark);
+    border-color: transparent;
+
+    &:hover {
+        background: get-amstore-color($theme, deep);
+    }
+
+    &.amstore-button-default-disabled {
+        color: get-amstore-color(gray, white);
+        background: get-amstore-color(gray, middle);
+        cursor: default;
+        pointer-events: none;
+
+        &:hover {
+            background: get-amstore-color(gray, middle);
+        }
+
+        &.amstore-button-default-stroked, &.amstore-button-default-stroked:hover {
+            background: get-amstore-color(gray, slight);
+            color: get-amstore-color(gray, dark);
+            border-color: get-amstore-color(gray, dark);
+        }
+    }
+
+    &.amstore-button-default-stroked {
+        background: get-amstore-color(gray, white);
+        color: get-amstore-color($theme, deep);
+        border-color: get-amstore-color($theme, deep);
+
+        &:hover {
+            background: get-amstore-color($theme, slight);
+            color: get-amstore-color($theme, deep);
+            border-color: get-amstore-color($theme, deep);
+        }
+    }
+}
+
+
+:host {
+    text-transform: uppercase;
+
+    border-style: solid;
+    border-width: 0px;
+
+    &.amstore-button-default-stroked {
+        border-width: 1px;
+    }
+
+    &.amstore-primary {
+        @include amstore-button-default-color(green);
+    }
+
+    &.amstore-accent {
+        @include amstore-button-default-color(blue);
+    }
+
+    &.amstore-warn {
+        @include amstore-button-default-color(red);
+    }
+
+    &.amstore-special {
+        @include amstore-button-default-color(turquoise);
+    }
+
+    &.amstore-button-default-medium {
+        padding: get-spacing(2) get-spacing(4);
+        border-radius: 6px;
+        min-width: 130px;
+        @include get-amstore-font("body", 16, null, null);
+    }
+
+    &.amstore-button-default-large {
+        padding: get-spacing(2) get-spacing(6);
+        border-radius: 8px;
+        min-width: 130px;
+        @include get-amstore-font("body", 20, null, null);
+    }
+}

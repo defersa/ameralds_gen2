@@ -1,0 +1,11 @@
+@import "../../../../../styles/spacing";
+
+.amstore-pattern-card {
+    &-actions {
+        margin: 16px 0;
+
+        amstore-button {
+            margin: get-spacing(2);
+        }
+    }
+}

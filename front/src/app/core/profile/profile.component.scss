@@ -1,0 +1,27 @@
+@import "/src/app/styles/spacing.scss";
+
+// desktop
+:host {
+    amstore-icon:not(:last-child) {
+        margin-right: get-spacing(1);
+    }
+
+    amstore-icon:not(:first-child) {
+        margin-left: get-spacing(1);
+    }
+}
+
+// mobile
+@media screen and (max-width: 768px) {
+    :host {
+        margin-right: get-spacing(1);
+    }
+
+    amstore-icon {
+        margin-right: 0;
+    }
+
+    .header-button-label {
+        display: none;
+    }
+}

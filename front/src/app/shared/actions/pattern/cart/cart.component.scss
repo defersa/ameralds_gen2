@@ -1,0 +1,14 @@
+@import "spacing";
+
+
+:host {
+    h2 {
+        text-align: left;
+    }
+}
+
+.admin-pattern-cart {
+    &__row {
+        margin: get-spacing(4) 0;
+    }
+}

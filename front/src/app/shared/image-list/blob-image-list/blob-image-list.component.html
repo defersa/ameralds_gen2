@@ -1,0 +1,4 @@
+<div class="amstore-images">
+    <img *ngFor="let image of savedImages" [outsideSrc]="image?.image?.image_small" [style.order]="image.index" class="amstore-card-img">
+    <img *ngFor="let image of blobImages" [src]="image?.src" [style.order]="image.index" class="amstore-card-img">
+</div>

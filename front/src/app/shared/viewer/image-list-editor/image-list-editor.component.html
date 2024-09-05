@@ -1,0 +1,57 @@
+<h2>Текущий список</h2>
+<div class="amstore-image-list-editor-current">
+    <div *ngFor="let image of currentImages"
+         class="amstore-image-list-editor-image-container"
+         [ngStyle]="{ order: image.index }">
+
+        <img [src]="image.image.image_full"/>
+
+        <div class="container">
+            <div class="row">
+                <div class="col"><amstore-icon role="button" color="accent" iconName="left-arrow" (click)="moveImage(image, 'prev')"></amstore-icon></div>
+                <div class="col"><amstore-icon role="button" color="accent" iconName="cross" (click)="removeDownloadImage(image)"></amstore-icon></div>
+                <div class="col"><amstore-icon role="button" color="accent" iconName="right-arrow" (click)="moveImage(image, 'next')"></amstore-icon></div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngFor="let image of blobImages"
+         class="amstore-image-list-editor-image-container"
+         [ngStyle]="{ order: image.index }">
+        <img [src]="image.src"/>
+
+        <div class="container">
+            <div class="row">
+                <div class="col"><amstore-icon role="button" color="warn" iconName="left-arrow" (click)="moveImage(image, 'prev')"></amstore-icon></div>
+                <div class="col"><amstore-icon role="button" color="warn" iconName="cross" (click)="removeBlobImage(image)"></amstore-icon></div>
+                <div class="col"><amstore-icon role="button" color="warn" iconName="right-arrow" (click)="moveImage(image, 'next')"></amstore-icon></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="amstore-image-list-editor-image-container" style="order: -1;">
+        <input type="file" (change)="dropFiles($event.target)" name="uploadimage" #imageInput style="display: none;">
+        <div class="amstore-image-list-editor-actions">
+            <amstore-button (click)="callInputDialog()" color="accent">+</amstore-button>
+        </div>
+        <span style="text-align: center">Добавить новое<br> изображение</span>
+    </div>
+</div>
+
+<h2>Удаленные</h2>
+<div class='amstore-image-list-editor-removed'>
+    <div *ngFor="let image of removedImages"
+         class="amstore-image-list-editor-image-container">
+        <img [src]="image.image_small"/>
+
+        <div class="container">
+            <div class="row">
+                <div class="col" style="text-align: center;"><amstore-icon role="button" color="primary" iconName="refresh" (click)="revertImage(image)"></amstore-icon></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class='amstore-image-list-editor-button'>
+    <amstore-button color="warn" (click)="close()">Отменить</amstore-button>
+    <amstore-button color="primary" (click)="close(true)">Сохранить</amstore-button>
+</div>

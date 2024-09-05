@@ -1,0 +1,22 @@
+@import "../../../styles/spacing";
+@import "../../../styles/theming-var";
+
+.amstore-button-base.amstore-snapshot-container-sale {
+    padding: get-spacing(1)/2;
+    min-width: auto;
+    margin-right: get-spacing(1);
+    animation: pulse 0.5s infinite alternate;
+
+    &.not-active {
+        animation: pulse 0.5s infinite alternate;
+    }
+}
+
+@keyframes pulse {
+    from {
+        box-shadow: 0px 0px 3px 1px get-amstore-color(red, slight);
+    }
+    to {
+        box-shadow: 0px 0px 6px 2px get-amstore-color(red, dark);
+    }
+}

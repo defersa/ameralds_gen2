@@ -1,0 +1,71 @@
+@import "../../styles/theming-var";
+@import "../../styles/spacing";
+@import "../../styles/typography";
+
+$card-border-radius: 8px;
+
+$mobile-image-full: 148px + get-spacing(2);
+$mobile-image-small: 70px + get-spacing(2);
+
+@for $i from 1 to 8 {
+    $j: $i + 1;
+    $mobile-min-width: $mobile-image-full + $mobile-image-small * $i + get-spacing(default);
+    $mobile-max-width: $mobile-image-full + $mobile-image-small * $j + get-spacing(default);
+
+    @if ($mobile-max-width > 768px) {
+        $mobile-max-width: 768px;
+    }
+
+    @media screen and (max-width: $mobile-max-width) and (min-width: $mobile-min-width) {
+        .amstore-card-images {
+            width: $mobile-min-width;
+        }
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .amstore-card {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        border-radius: $card-border-radius;
+        margin-bottom: get-spacing(default);
+        box-shadow: 0 0 8px rgba(get-amstore-color(gray, deep), .3);
+
+
+        &-images {
+            display: block;
+            padding: get-spacing(2);
+
+            &-wrapper {
+                padding: get-spacing(2);
+                margin: auto;
+            }
+
+            img {
+                object-fit: fill;
+                max-width: 70px;
+                height: 50px;
+                margin: 0 get-spacing(1);
+                border-radius: 4px;
+
+                &:first-child {
+                    float: left;
+                    max-width: 148px;
+                    height: 104px;
+                }
+            }
+        }
+
+        h1 {
+            margin: 0;
+            @include get-amstore-font("header", 36, null, null);
+        }
+
+        &-container {
+            padding: 0 get-spacing(default) get-spacing(default);
+            width: 100%;
+        }
+    }
+}

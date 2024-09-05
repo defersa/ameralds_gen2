@@ -1,0 +1,16 @@
+<button amstore-button-round color="primary" [routerLink]="['create']">
+    <amstore-icon iconName="setting" [contrast]="true" [size]="20"></amstore-icon>
+    Создать новую
+</button>
+
+<div class="amstore-categories-container">
+    <div *ngFor="let item of items$ | async" class="amstore-categories-container-row" [routerLink]="['edit', item.id]">
+        <div class="amstore-categories-container-col-small">{{item.id}}</div>
+        <div class="amstore-categories-container-col-large">{{item.name.ru}}</div>
+        <div class="amstore-categories-container-col-large">{{item.name.en}}</div>
+        <div class="amstore-categories-container-col-large">{{item.create_date | date : 'dd.MM.YYYY hh:mm:ss'}}</div>
+    </div>
+</div>
+
+<amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page">
+</amstore-paginator>

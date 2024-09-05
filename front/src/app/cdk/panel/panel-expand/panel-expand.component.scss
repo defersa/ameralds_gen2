@@ -1,0 +1,72 @@
+@import "../../../styles/theming-var";
+@import "../../../styles/spacing";
+@import "../../../styles/typography";
+@import "../../../styles/utils";
+
+@mixin amstore-panel-color($theme) {
+    background: get-amstore-color($theme, dark);
+}
+
+:host {
+    display: block;
+    border-radius: 8px;
+    overflow: hidden;
+
+    @include amstore-box-shadow();
+
+    width: 100%;
+    margin-bottom: get-spacing(4);
+
+    &.amstore-primary {
+        @include amstore-panel-color(green);
+    }
+
+    &.amstore-accent {
+        @include amstore-panel-color(blue);
+    }
+
+    &.amstore-warn {
+        @include amstore-panel-color(red);
+    }
+
+    &.amstore-special {
+        @include amstore-panel-color(turquoise);
+    }
+}
+
+.amstore-panel {
+    &-header {
+        display: flex;
+        color: white;
+        align-items: center;
+        cursor: pointer;
+
+        padding: get-spacing(3) get-spacing(6);
+        height: 48px;
+
+        @include get-amstore-font("header", 20, null, null);
+
+        &-wrapper {
+            flex-grow: 1;
+        }
+
+        amstore-icon {
+            padding-left: get-spacing(5);
+        }
+    }
+
+    &-content {
+        background: white;
+
+        &-wrapper {
+            padding: get-spacing(3) get-spacing(6);
+        }
+    }
+}
+
+// mobile
+@media screen and (max-width: 768px) {
+    :host {
+        border-radius: 0;
+    }
+}

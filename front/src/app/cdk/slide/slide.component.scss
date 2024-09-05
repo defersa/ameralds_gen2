@@ -1,0 +1,30 @@
+@import "/src/app/styles/theming-var.scss";
+@import "/src/app/styles/spacing.scss";
+@import "/src/app/styles/typography.scss";
+
+.amstore-slide {
+    .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb {
+        background-color: get-amstore-color(green, dark);
+    }
+    .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {
+        background-color: get-amstore-color(green, middle);
+    }
+    .mat-slide-toggle.mat-checked .mat-ripple-element {
+        background-color: get-amstore-color(green, middle);
+    }
+
+    &-small span {
+        color: get-amstore-color(gray, deep);
+        @include get-amstore-font("body", 12, null, null);
+    }
+
+    &-medium span {
+        color: get-amstore-color(gray, deep);
+        @include get-amstore-font("body", 14, null, null);
+    }
+
+    &-large span {
+        color: get-amstore-color(gray, deep);
+        @include get-amstore-font("body", 16, null, null);
+    }
+}

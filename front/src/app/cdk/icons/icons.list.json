@@ -1,0 +1,42 @@
+{
+    "login": "NI Login.svg",
+    "logout": "NI Logout.svg",
+    "profile": "NI Profile.svg",
+    "registration": "NI Registration.svg",
+    "community": "NI Communiti.svg",
+    "order": "NI Order.svg",
+    "info": "NI Info.svg",
+    "apply": "NI Apply.svg",
+    "warn": "NI Warn.svg",
+    "map": "NI Map.svg",
+    "question": "NI Question.svg",
+    "setting": "NI Setting.svg",
+
+    "message": "NI Message.svg",
+    "chat": "NI Chat.svg",
+    "sale": "NI Sale.svg",
+    "time": "NI Time.svg",
+    "status": "NI Status.svg",
+    "card": "NI Card.svg",
+    "coupon": "NI Coupon.svg",
+    "price": "NI Price.svg",
+
+    "chevrone-down": "Chevron-down.svg",
+    "chevrone-up": "Chevron-up.svg",
+    "cross": "Cross.svg",
+    "ellipsis": "Ellipsis.svg",
+    "heart": "Heart.svg",
+
+    "left-arrow": "Left Arrow.svg",
+    "right-arrow": "Right Arrow.svg",
+    "jewelry": "Jewelry.svg",
+    "pattern": "Pattern.svg",
+
+    "upload": "EVA Upload.svg",
+    "trash": "EVA Trash.svg",
+    "download": "EVA Download.svg",
+    "refresh": "EVA Refresh.svg",
+
+    "eye-off": "Eye-off.svg",
+    "eye-on": "Eye-on.svg"
+}

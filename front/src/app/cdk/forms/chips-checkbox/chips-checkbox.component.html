@@ -1,0 +1,13 @@
+<ng-content selector="amstore-forms-label"></ng-content>
+<div class="amstore-chips-checkbox-list" *ngIf="itemList">
+    <ng-container *ngFor="let item of itemList;">
+        <amstore-chip size="large" (click)="change(item.checked, item.item.value)" [stroked]="!item.checked" [color]="color">
+            <mat-checkbox [checked]="item.checked"
+                          class="amstore-checkbox"
+                          [ngClass]="colorClass"
+                          (click)="$event.preventDefault()">
+            </mat-checkbox>
+            <span>{{item.item.label}}</span>
+        </amstore-chip>
+    </ng-container>
+</div>

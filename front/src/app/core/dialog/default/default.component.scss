@@ -1,0 +1,15 @@
+@import "/src/app/styles/spacing.scss";
+
+p {
+    margin: get-spacing(4) 0;
+}
+
+amstore-button {
+    margin: get-spacing(2) 0;
+}
+
+.amstore-default-dialog-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}

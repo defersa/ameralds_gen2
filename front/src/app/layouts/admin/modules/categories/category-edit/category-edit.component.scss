@@ -1,0 +1,16 @@
+@import "../../../../../styles/theming-var";
+@import "../../../../../styles/spacing";
+@import "../../../../../styles/typography";
+
+
+.amstore-category-add {
+    width: 100%;
+    overflow: hidden;
+    padding: get-spacing(default);
+
+    border-radius: $card-border-radius;
+    box-shadow: 0 0 8px rgba(get-amstore-color(gray, deep), .3 );
+}
+amstore-button {
+    margin-bottom: get-spacing(default);
+}

@@ -1,0 +1,73 @@
+@import "/src/app/styles/theming-var.scss";
+@import "/src/app/styles/spacing.scss";
+@import "/src/app/styles/typography.scss";
+
+
+@mixin amstore-paginator-color($theme) {
+    button {
+        color:  get-amstore-color(gray, deep);
+        background: get-amstore-color(gray, slight);
+
+        &.paginator-current {
+            color:  get-amstore-color(gray, white);
+            background: get-amstore-color($theme, dark);
+        }
+
+        &.disabled {
+            cursor: default;
+            color:  get-amstore-color(gray, light);
+            .amstore-icon .amstore-icon-figure {
+                fill: get-amstore-color(gray, light);
+            }
+            .amstore-icon .amstore-icon-figure {
+                stroke: get-amstore-color(gray, light);
+            }
+        }
+    }
+}
+
+
+.amstore-paginator {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    button {
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        width: 42px;
+        height: 42px;
+        border-radius: 21px;
+        margin: 0 get-spacing(1);
+
+        @include get-amstore-font("heading", 24, null, null);
+
+        &.over-hundred {
+            @include get-amstore-font("heading", 16);
+        }
+    }
+
+    svg {
+        vertical-align: top;
+    }
+
+    &.amstore-primary {
+        @include amstore-paginator-color(green);
+    }
+
+    &.amstore-accent {
+        @include amstore-paginator-color(blue);
+    }
+
+    &.amstore-warn {
+        @include amstore-paginator-color(red);
+    }
+
+    &.amstore-special {
+        @include amstore-paginator-color(turquoise);
+    }
+}

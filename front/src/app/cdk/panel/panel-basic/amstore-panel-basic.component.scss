@@ -1,0 +1,9 @@
+@import "../../../styles/spacing";
+@import "../../../styles/utils";
+
+:host {
+    display: block;
+    padding: get-spacing(8);
+    border-radius: get-spacing(2);
+    @include amstore-box-shadow();
+}

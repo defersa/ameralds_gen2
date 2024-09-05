@@ -1,0 +1,28 @@
+<ng-container *ngIf="pattern">
+    <h2>
+        <ng-content></ng-content>
+    </h2>
+
+    <form [formGroup]="form">
+        <div class="admin-pattern-cart__row">
+            <amstore-chips-checkbox *ngIf="sizeItems?.length" [items]="sizeItems" [control]="form.get('sizes')">
+                <h3>Размеры</h3>
+            </amstore-chips-checkbox>
+        </div>
+
+        <div class="admin-pattern-cart__row">
+            <h3>Подбор</h3>
+
+            <amstore-slide size="large" [control]="form.get('color')">Включить подбор</amstore-slide>
+        </div>
+    </form>
+
+    <amstore-button color="warn"
+                    class="amstore-card-container-sale"
+                    size="large"
+                    (click)="removePattern()"
+                    [disabled]="isEmpty">
+        <amstore-icon iconName="trash" [contrast]="true" [size]="24"></amstore-icon>
+        Убрать
+    </amstore-button>
+</ng-container>

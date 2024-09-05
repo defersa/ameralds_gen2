@@ -1,0 +1,43 @@
+@import "/src/app/styles/theming-var.scss";
+@import "/src/app/styles/spacing.scss";
+@import "/src/app/styles/typography.scss";
+
+
+@mixin amstore-info-color($theme) {
+    color:  get-amstore-color(gray, white);
+    background: get-amstore-color($theme, deep);
+
+    &.is-contrast {
+        color:  get-amstore-color(gray, deep);
+        background: get-amstore-color($theme, slight);
+    }
+}
+
+:host {
+    display: flex;
+    flex-direction: row;
+    padding: get-spacing(3);
+    border-radius: 8px;
+
+    amstore-icon {
+        margin-right: 8px;
+    }
+
+    &.amstore-primary {
+        @include amstore-info-color(green);
+    }
+
+    &.amstore-accent {
+        @include amstore-info-color(blue);
+    }
+
+    &.amstore-warn {
+        @include amstore-info-color(red);
+    }
+
+    &.amstore-special {
+        @include amstore-info-color(turquoise);
+    }
+
+    @include get-amstore-font("body", 14, null, null);
+}

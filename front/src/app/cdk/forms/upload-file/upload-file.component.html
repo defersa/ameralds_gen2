@@ -1,0 +1,31 @@
+<div class="amstore-form-upload-file-container">
+    <strong class="amstore-text-accent">{{format}}</strong>
+
+    <amstore-button color="accent" (click)="callInputDialog()" [disabled]="!isEmpty">
+        <amstore-icon iconName="upload" [contrast]="true" [size]="24"></amstore-icon>
+    </amstore-button>
+
+    <amstore-button color="primary" [disabled]="isEmpty">
+        <amstore-icon iconName="download" [contrast]="true" [size]="24"></amstore-icon>
+    </amstore-button>
+
+    <input type="file" name="uploadimage" [accept]="format" #imageInput (change)="dropFiles($event.target)" [multiple]="false"
+        style="display: none;">
+
+    <span>{{status}}</span>
+
+    <b>{{name}}</b>
+
+    <amstore-button color="warn" *ngIf="isUploaded" (click)="clearControl()">
+        <amstore-icon iconName="cross" [contrast]="true" [size]="24"></amstore-icon>
+    </amstore-button>
+
+    <amstore-button color="warn" *ngIf="isSaved" (click)="clearControl()">
+        <amstore-icon iconName="trash" [contrast]="true" [size]="24"></amstore-icon>
+    </amstore-button>
+
+    <amstore-button color="accent" *ngIf="!isSaved && savedFile" (click)="refreshValue()">
+        <amstore-icon iconName="refresh" [contrast]="true" [size]="24"></amstore-icon>
+    </amstore-button>
+</div>
+<mat-error *ngIf="isErrorState">{{errors$ | async}}</mat-error>

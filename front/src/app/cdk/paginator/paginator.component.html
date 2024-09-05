@@ -1,0 +1,20 @@
+<ng-container *ngIf="pageCount">
+    <button [disabled]="page === 1"
+            (click)="goToPage(1)">
+        <amstore-icon iconName="left-arrow" [size]="20"></amstore-icon>
+    </button>
+
+    <button
+        *ngFor="let p of pageList"
+        [disabled]="p === page"
+        [class.paginator-current]="p === page"
+        (click)="goToPage(p);"
+        [class.over-hundred]="p > 99">
+        {{p}}
+    </button>
+
+    <button [disabled]="page === pageCount"
+            (click)="goToPage(pageCount)">
+        <amstore-icon iconName="right-arrow" [size]="20"></amstore-icon>
+    </button>
+</ng-container>

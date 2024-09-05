@@ -1,0 +1,92 @@
+@import "theming-var";
+@import "spacing";
+@import "typography";
+@import "utils";
+
+$card-border-radius: 8px;
+
+
+.amstore-card {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+
+    border-radius: $card-border-radius;
+    margin-bottom: get-spacing(default);
+    box-shadow: 0 0 8px rgba(get-amstore-color(gray, deep), .3);
+
+
+    &-images-wrapper {
+        @include tablet {
+            text-align: center;
+            width: 30%;
+            padding: get-spacing(2);
+        }
+    }
+
+    h1 {
+        margin: 0;
+        @include get-amstore-font("header", 36, null, null);
+    }
+
+    &-container {
+        padding: get-spacing(default) get-spacing(default) get-spacing(default) get-spacing(2);
+        width: 70%;
+
+        &-header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            h1 {
+                margin: get-spacing(1);
+            }
+        }
+
+        h2 {
+            text-align: right;
+            @include get-amstore-font("header", 28, null, null);
+        }
+
+        h3 {
+            margin: get-spacing(2) 0;
+            @include get-amstore-font("header", 20, null, null);
+        }
+
+        p {
+            @include get-amstore-font("body", 16, null, null);
+            margin: 0;
+        }
+
+        &-heart {
+            margin-left: auto;
+        }
+
+        &-line {
+            display: flex;
+            flex-direction: column;
+            padding: get-spacing(1);
+            width: 100%;
+
+            amstore-chip {
+                margin: 0 get-spacing(1) get-spacing(1) 0;
+            }
+        }
+
+        &-buttons {
+            justify-content: flex-end;
+        }
+
+        &-info {
+            margin: get-spacing(2);
+            overflow: hidden;
+        }
+
+        &-download {
+            * {
+                margin: get-spacing(1) 0;
+            }
+        }
+    }
+}
+

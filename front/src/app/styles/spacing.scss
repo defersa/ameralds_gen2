@@ -1,0 +1,41 @@
+@function get-spacing-level($config, $default: 4, $xx-small: 1, $x-small: 2, $small: 3, $large: 8, $x-large: 16) {
+    @return map-merge(
+        $config,
+        (
+            xx-small: map-get($config, _get-level-by-factor($xx-small)),
+            x-small: map-get($config, _get-level-by-factor($x-small)),
+            small: map-get($config, _get-level-by-factor($small)),
+            default: map-get($config, _get-level-by-factor($default)),
+            medium: map-get($config, _get-level-by-factor($default)),
+            large: map-get($config, _get-level-by-factor($large)),
+            x-large: map-get($config, _get-level-by-factor($x-large)),
+        )
+    );
+}
+
+@function _get-level-by-factor($factor) {
+    @return "level-" + $factor;
+}
+
+@function get-spacing($keyword-or-factor: default) {
+    $spacing-config: (
+        level-1: 4px,
+        level-2: 8px,
+        level-3: 12px,
+        level-4: 16px,
+        level-5: 20px,
+        level-6: 24px,
+        level-7: 28px,
+        level-8: 32px,
+        level-10: 40px,
+        level-12: 48px,
+        level-14: 56px,
+        level-16: 64px,
+    );
+
+    @if type-of($keyword-or-factor) == number {
+        @return map-get(get-spacing-level($spacing-config, $keyword-or-factor), default);
+    }
+
+    @return map-get(get-spacing-level($spacing-config), $keyword-or-factor);
+}

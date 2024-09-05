@@ -1,0 +1,57 @@
+@import "/src/app/styles/spacing.scss";
+@import "/src/app/styles/theming-var.scss";
+@import "/src/app/styles/typography.scss";
+
+@mixin amstore-button-menu-color($theme) {
+    background: get-amstore-color(gray, white);
+
+    &:hover {
+        background: get-amstore-color($theme, light);
+    }
+
+    &:active {
+        background: get-amstore-color($theme, middle);
+    }
+
+    &.amstore-button-menu-active {
+        background: get-amstore-color($theme, middle);
+    }
+
+}
+
+
+.amstore-button-menu {
+    padding: get-spacing(2) get-spacing(3);
+    text-align: left;
+
+    border-radius: 6px;
+
+    &.amstore-primary {
+        @include amstore-button-menu-color(green);
+    }
+
+    &.amstore-accent {
+        @include amstore-button-menu-color(blue);
+    }
+
+    &.amstore-warn {
+        @include amstore-button-menu-color(red);
+    }
+
+    &.amstore-special {
+        @include amstore-button-menu-color(turquoise);
+    }
+
+    @include get-amstore-font("body", 16, null, null);
+}
+
+// mobile
+@media screen and (max-width: 768px) {
+    .amstore-button-menu {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+}

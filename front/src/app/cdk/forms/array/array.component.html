@@ -1,0 +1,31 @@
+<div class="container">
+    <div *ngFor="let formGroup of formGroups; let i = index" class="amstore-form-array-container row">
+        <ng-container *ngFor="let keycontrol of formGroup.controls | keyvalue">
+            <ng-container *ngIf="getComponent(keycontrol.key); let component" [ngSwitch]="component.component">
+                <div *ngSwitchCase="'label'" [ngClass]="component.classes" [ngStyle]="{order: component.order}" class="amstore-form-array-padding-bottom">
+                    <span class="amstore-text-primary">{{component.label}}</span>: &nbsp; <b>{{keycontrol.value.value}}</b>
+                </div>
+                
+                <amstore-forms-input *ngSwitchCase="'input'" [ngClass]="component.classes" [control]="keycontrol.value" [ngStyle]="{order: component.order}">
+                    <amstore-forms-label>{{component.label}}</amstore-forms-label>
+                </amstore-forms-input>
+                
+                <amstore-form-select *ngSwitchCase="'select'" [items]="component.items" [ngClass]="component.classes" [control]="keycontrol.value" [ngStyle]="{order: component.order}">
+                    <amstore-forms-label>{{component.label}}</amstore-forms-label>
+                </amstore-form-select>
+                
+                <amstore-form-upload-file *ngSwitchCase="'file'" [ngClass]="component.classes" [format]="component.label" [control]="keycontrol.value" [ngStyle]="{order: component.order}">
+                </amstore-form-upload-file>
+            </ng-container>
+        </ng-container>
+        <div class="col-12 amstore-form-array-padding-bottom" [ngStyle]="{order: 999}">
+            <amstore-button [stroked]="true" (click)="removeFormGroup(i)" color="warn">
+                Удалить
+            </amstore-button>
+        </div>
+    </div>
+</div>
+<amstore-button [stroked]="true" (click)="addFormGroup({})">
+    Добавить запись
+    <ng-content select=".amstore-label-add"></ng-content>
+</amstore-button>

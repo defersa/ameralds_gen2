@@ -1,0 +1,12 @@
+<div class="amstore-viewer-main-image">
+    <div (click)="prevImage()">
+        <amstore-icon iconName="left-arrow" [size]="32" [isBlack]="true"></amstore-icon>
+    </div>
+    <img [src]="data.images[data.index].image_full">
+    <div (click)="nextImage()">
+        <amstore-icon iconName="right-arrow" [size]="32" [isBlack]="true"></amstore-icon>
+    </div>
+</div>
+<div class="amstore-viewer-snippet-images">
+    <img *ngFor="let image of data.images; index as i " [src]="image.image_small" [class.image-active]="i === data.index" (click)="data.index = i">
+</div>

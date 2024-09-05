@@ -1,0 +1,18 @@
+<amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
+
+<div class="amstore-category-add">
+    <h1>{{id ? "Изменить" : "Добавить"}} категорию</h1>
+    <p *ngIf="id">id: {{id}}</p>
+
+    <amstore-forms-input [control]="form.get('ru')" name="name_ru">
+        <amstore-forms-label>Имя ru</amstore-forms-label>
+    </amstore-forms-input>
+    <amstore-forms-input [control]="form.get('en')">
+        <amstore-forms-label>Имя en</amstore-forms-label>
+    </amstore-forms-input>
+
+    <div class="d-flex flex-row-reverse justify-content-between">
+        <amstore-button size="large" (click)="save()">Сохранить</amstore-button>
+        <amstore-button *ngIf="id" size="large" (click)="delete()">Удалить</amstore-button>
+    </div>
+</div>

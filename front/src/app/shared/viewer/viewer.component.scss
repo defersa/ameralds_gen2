@@ -1,0 +1,63 @@
+@import "../../styles/theming-var";
+@import "../../styles/spacing";
+@import "../../styles/typography";
+
+.amstore-viewer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    &-main-image {
+        > div {
+            position: absolute;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+
+            width: 48px;
+            height: 48px;
+            top: Calc(50% - 24px);
+            border-radius: 4px;
+            opacity: 0.3;
+            background: get-amstore-color(gray, white);
+
+            @include get-amstore-font("header", 36, null, null);
+            &:hover {
+                opacity: 1;
+            }
+            &:first-child {
+                left: 10px;
+            }
+            &:last-child {
+                right: 10px;
+            }
+        }
+        img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+    }
+    &-snippet-images {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        img {
+            object-fit: cover;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            margin: 4px;
+            transition: 0.3s;
+        }
+        .image-active {
+            width: 60px;
+            height: 60px;
+        }
+    }
+}

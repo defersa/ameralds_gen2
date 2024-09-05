@@ -1,0 +1,39 @@
+@import "/src/app/styles/theming-var.scss";
+
+@mixin amstore-panel-color($theme) {
+    background: get-amstore-color($theme, dark);
+}
+
+:host {
+    display: block;
+    &:not(.amstore-divider-vertical) {
+        width: 1px;
+        height: 100%;
+    }
+
+    &.amstore-divider-vertical {
+        height: 1px;
+        width: 100%;
+    }
+
+    &.amstore-primary {
+        @include amstore-panel-color(green);
+    }
+
+    &.amstore-accent {
+        @include amstore-panel-color(blue);
+    }
+
+    &.amstore-warn {
+        @include amstore-panel-color(red);
+    }
+
+
+    &.is-contrast {
+        background: get-amstore-color(gray, white) !important;
+    }
+
+    &.is-dark {
+        background: get-amstore-color(gray, light) !important;
+    }
+}

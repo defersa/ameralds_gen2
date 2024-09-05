@@ -1,0 +1,19 @@
+@import '/src/app/styles/theming-var.scss';
+
+.amstore-spinner {
+    display: block;
+
+    mat-progress-spinner {
+        margin: auto;
+    }
+
+    &.amstore-primary circle {
+        stroke: get-amstore-color(green, dark);
+    }
+    &.amstore-accent circle {
+        stroke: get-amstore-color(blue, dark);
+    }
+    &.amstore-warn circle {
+        stroke: get-amstore-color(red, dark);
+    }
+}

@@ -1,0 +1,56 @@
+<div class="amstore-card-images-wrapper">
+    <amstore-button class="amstore-card-edit-image-add" (click)="openImagesEdit()">Изменить <br> изображения
+    </amstore-button>
+
+    <amstore-blob-image-list [blobImages]="blobImages" [savedImages]="savedImages"></amstore-blob-image-list>
+</div>
+<div class="amstore-card-container">
+    <div class="amstore-card-container-header">
+        <h1>Добавить/Изменить</h1>
+    </div>
+
+    <div class="amstore-card-container-line">
+        <h3>Имя и цена:</h3>
+        <div class="row">
+            <div class="col-6">
+                <amstore-forms-input [nullControl]="getLangControl('name', 'ru')">Имя</amstore-forms-input>
+                <amstore-forms-input [nullControl]="getLangControl('price', 'ru')" type="number">Р</amstore-forms-input>
+            </div>
+            <div class="col-6">
+                <amstore-forms-input [nullControl]="getLangControl('name', 'en')">Name</amstore-forms-input>
+                <amstore-forms-input [nullControl]="getLangControl('price', 'en')" type="number">$</amstore-forms-input>
+            </div>
+        </div>
+    </div>
+
+    <div class="amstore-card-container-line">
+        <h3>Прочие параметры:</h3>
+        <amstore-checkbox [nullControl]="patternForm.get('hidden')">Скрытый</amstore-checkbox>
+    </div>
+
+    <div class="amstore-card-container-line">
+        <h3>Цветовая схема:</h3>
+        <amstore-form-upload-file format=".jpg" [nullControl]="patternForm.get('colors')">
+        </amstore-form-upload-file>
+    </div>
+
+
+    <div class="amstore-card-container-line">
+        <h3>Категории:</h3>
+        <amstore-form-select *ngIf="categoriesList$ | async; let categoryList" [items]="categoryList"
+                             [multiple]="true" [nullControl]="patternForm.get('category')">
+            <amstore-forms-label>Категории</amstore-forms-label>
+        </amstore-form-select>
+    </div>
+
+    <div class="amstore-card-container-line" *ngIf="sizeArrayComponentList.length">
+        <h3>Размеры и файлы:</h3>
+        <amstore-form-array [controlArray]="sizeArrayControl" [arrayComponentList]="sizeArrayComponentList"
+                            [model]="sizeArrayModel">
+        </amstore-form-array>
+    </div>
+
+    <div class="amstore-row amstore-card-container-buttons">
+        <amstore-button (click)="save()" size="large">Сохранить</amstore-button>
+    </div>
+</div>

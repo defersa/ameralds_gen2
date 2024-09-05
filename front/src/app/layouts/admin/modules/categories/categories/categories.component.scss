@@ -1,0 +1,41 @@
+@import "../../../../../styles/theming-var";
+@import "../../../../../styles/spacing";
+@import "../../../../../styles/typography";
+
+.amstore-categories-container {
+    margin: get-spacing(default) 0;
+    display: block;
+
+    &-row {
+        border-width: 0;
+        border-style: solid;
+        border-color: get-amstore-color(gray, light);
+        border-top-width: 1px;
+        cursor: pointer;
+
+        padding: get-spacing(2);
+
+        display: flex;
+        flex-direction: row;
+        min-height: 48px;
+        align-content: center;
+        align-items: center;
+
+        &:last-child {
+            border-bottom-width: 1px;
+        }
+        &:hover {
+            background: get-amstore-color(gray, slight);
+        }
+    }
+    &-col-small {
+        width: 10%;
+    }
+
+    &-col-large {
+        width: 30%;
+    }
+    &-col-small, &-col-large {
+        padding: get-spacing(2);
+    }
+}

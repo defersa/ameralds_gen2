@@ -1,0 +1,14 @@
+@import "../../../../styles/spacing";
+
+:host {
+    amstore-panel-basic {
+        margin: auto;
+        max-width: 450px;
+    }
+    h1 {
+        margin-top: 0;
+    }
+    amstore-button {
+        margin: get-spacing(6) 0 0;
+    }
+}

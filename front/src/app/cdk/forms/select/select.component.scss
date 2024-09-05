@@ -1,0 +1,13 @@
+@import "/src/app/styles/theming-var.scss";
+@import "/src/app/styles/spacing.scss";
+@import "/src/app/styles/typography.scss";
+
+.mat-select-panel {
+    span {
+        color: get-amstore-color(gray, deep);
+        @include get-amstore-font("body", 14, null, null);
+    }
+    .mat-pseudo-checkbox-checked, .mat-primary .mat-pseudo-checkbox-indeterminate {
+        background-color: get-amstore-color(green, dark);
+    }
+}

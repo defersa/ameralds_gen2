@@ -1,0 +1,41 @@
+@import "utils";
+@import "spacing";
+
+
+.amstore-images {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+
+
+    img {
+        object-fit: cover;
+        cursor: pointer;
+        margin: get-spacing(1);
+        border-radius: 4px;
+        max-width: 25%;
+
+
+        @include fhd {
+            height: 30px;
+        }
+
+        @include qhd {
+            height: 50px;
+        }
+
+        &:first-child {
+            width: 100%;
+            max-width: 100%;
+
+            @include fhd {
+                height: 120px;
+            }
+
+            @include qhd {
+                height: 160px;
+            }
+        }
+    }
+}

@@ -1,0 +1,11 @@
+<div class="amstore-snapshot-images">
+    <img *ngIf="pattern.images[0]" [outsideSrc]="pattern.images[0].image_full" (click)="openViewer(pattern.images, 0)">
+</div>
+<div class="amstore-snapshot-container">
+    <div class="amstore-snapshot-container-header">
+        <h2 [routerLink]="routerLink">
+            <amstore-lang-text [text]="pattern.name"></amstore-lang-text>
+        </h2>
+    </div>
+    <ng-content></ng-content>
+</div>

@@ -1,0 +1,72 @@
+@import '/src/app/styles/typography.scss';
+@import '/src/app/styles/spacing.scss';
+@import "../../styles/utils";
+
+:host {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    overflow: hidden;
+
+    padding: get-spacing(default);
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.amstore-header-controls {
+    display: flex;
+    align-items: flex-start;
+
+    &-wrapper {
+        display: flex;
+        align-items: flex-end;
+    }
+}
+
+.amstore-header-logo {
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+
+    &-text {
+        padding: get-spacing(default) 0 0 get-spacing(default);
+        display: flex;
+        flex-direction: column;
+    }
+
+    &-title {
+        @include get-amstore-font('headline', 36, null, null);
+        &-mobile {
+            display: none;
+        }
+    }
+
+    &-description {
+        @include get-amstore-font('headline', 12, null, null);
+    }
+}
+
+// mobile
+@media screen and (max-width: 768px) {
+    :host {
+        padding: get-spacing(2);
+        @include amstore-box-shadow();
+    }
+    .amstore-header-logo {
+        img {
+            width: 50px;
+        }
+        &-text {
+            width: 110px;
+            padding: get-spacing(2) 0 0 get-spacing(2);
+        }
+
+        &-description, &-title {
+            display: none;
+            &-mobile {
+            @include get-amstore-font('headline', 20, null, null);
+                display: block;
+            }
+        }
+    }
+}

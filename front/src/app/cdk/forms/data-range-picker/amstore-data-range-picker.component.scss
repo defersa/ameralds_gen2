@@ -1,0 +1,38 @@
+@import "spacing";
+@import "theming-var";
+
+@mixin amstore-forms-datapicker-color($theme) {
+    .mat-calendar-body-selected {
+        background-color: get-amstore-color($theme, dark);
+    }
+    .mat-calendar-body-in-range::before {
+        background: get-amstore-color($theme, light);
+    }
+    //@media (hover: hover)
+    .mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover > .mat-calendar-body-cell-content:not(.mat-calendar-body-selected):not(.mat-calendar-body-comparison-identical) {
+        background: get-amstore-color($theme, middle);
+    }
+}
+
+
+.amstore-form-picker {
+    &__icon {
+        margin-left: get-spacing(2);
+        cursor: pointer;
+    }
+
+    &__picker-class {
+        &.amstore-primary {
+            @include amstore-forms-datapicker-color(green);
+        }
+        &.amstore-accent {
+            @include amstore-forms-datapicker-color(blue);
+        }
+        &.amstore-warn {
+            @include amstore-forms-datapicker-color(red);
+        }
+        &.amstore-special {
+            @include amstore-forms-datapicker-color(turquoise);
+        }
+    }
+}

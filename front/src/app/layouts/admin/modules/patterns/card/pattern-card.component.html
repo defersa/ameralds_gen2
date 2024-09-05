@@ -1,0 +1,13 @@
+<div class="amstore-pattern-card-actions">
+    <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
+    <amstore-button
+        [routerLink]="['edit']"
+        [stroked]="true"
+        color="accent">Изменить</amstore-button>
+</div>
+
+<amstore-pattern-card *ngIf="pattern" [data]="pattern">
+    <admin-pattern-cart [pattern]="pattern">
+        Корзина админа
+    </admin-pattern-cart>
+</amstore-pattern-card>

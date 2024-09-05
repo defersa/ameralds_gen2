@@ -1,0 +1,36 @@
+@import "/src/app/styles/spacing.scss";
+
+.amstore-form-upload-file {
+    &-container {
+        display: flex;
+        align-items: center;
+
+        >:not(:first-child) {
+            margin-left: get-spacing(1);
+        }
+        >:not(:last-child) {
+            margin-right: get-spacing(1);
+        }
+
+        b {
+            flex-grow: 1;
+            flex-shrink: 1;
+
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .amstore-button-default {
+            padding: get-spacing(1);
+            min-width: auto;
+        }
+    }
+        
+    padding-bottom: 1.25em;
+    
+    .mat-error {
+        padding-top: get-spacing(2);
+        font-size: 80%;
+    }
+}

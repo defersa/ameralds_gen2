@@ -1,0 +1,3 @@
+<div class="amstore-images">
+    <img *ngFor="let image of images; index as i;" [outsideSrc]="image.image_full" (click)="openViewer(images, i)" class="amstore-card-img">
+</div>

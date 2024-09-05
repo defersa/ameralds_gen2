@@ -1,0 +1,46 @@
+@import "../../styles/theming-var";
+@import "../../styles/spacing";
+@import "../../styles/typography";
+
+$field-border-radius: 8px;
+$snapshot-image-width: 110px;
+$snapshot-image-height: 100px;
+
+$snapshot-image-full-width: $snapshot-image-width + get-spacing(4);
+
+@media screen and (max-width: 768px) {
+    .amstore-snapshot {
+        border-radius: 0;
+        margin-bottom: get-spacing(6);
+
+        img {
+            object-fit: cover;
+            width: $snapshot-image-width;
+            height: $snapshot-image-height;
+            margin: get-spacing(2);
+            border-radius: get-spacing(1);
+        }
+
+        &-images {
+            width: $snapshot-image-full-width;
+        }
+
+        h2 {
+            @include get-amstore-font("header", 24, null, null);
+        }
+
+        &-container {
+            width: Calc(100% - #{$snapshot-image-full-width});
+
+            &-header {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-start;
+
+                h2 {
+                    margin: get-spacing(1);
+                }
+            }
+        }
+    }
+}

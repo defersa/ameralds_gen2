@@ -1,0 +1,17 @@
+<mat-form-field>
+    <mat-label>
+        <ng-content selector="amstore-forms-label"></ng-content>
+    </mat-label>
+    <mat-date-range-input [rangePicker]="picker">
+        <input matStartDate [placeholder]="startPlaceholder" [formControl]="startFormControl">
+        <input matEndDate [placeholder]="endPlaceholder" [formControl]="endFormControl">
+    </mat-date-range-input>
+
+    <amstore-icon class="amstore-form-picker__icon"
+        iconName="time"
+                  (click)="picker.open()"
+                  [size]="20"
+                  color="primary"
+                  matSuffix></amstore-icon>
+    <mat-date-range-picker #picker [panelClass]="'amstore-form-picker__picker-class ' + this.colorClass"></mat-date-range-picker>
+</mat-form-field>

@@ -1,0 +1,50 @@
+@import '/src/app/styles/theming-var.scss';
+
+@mixin amstore-icon-color($theme) {
+    .amstore-icon-figure {
+        fill: get-amstore-color($theme, deep);
+    }
+    .amstore-icon-figure-stroke {
+        stroke: get-amstore-color($theme, deep);
+    }
+}
+
+.amstore-icon {
+    display: inline-block;
+    vertical-align: bottom;
+
+    &.amstore-primary:not(.is-contrast):not(.is-black) {
+        @include amstore-icon-color(green);
+    }
+    &.amstore-accent:not(.is-contrast):not(.is-black) {
+        @include amstore-icon-color(blue);
+    }
+    &.amstore-warn:not(.is-contrast):not(.is-black) {
+        @include amstore-icon-color(red);
+    }
+    &.amstore-special:not(.is-contrast):not(.is-black) {
+        @include amstore-icon-color(turquoise);
+    }
+
+    &.is-contrast {
+        .amstore-icon-figure {
+            fill: get-amstore-color(gray, white);
+        }
+        .amstore-icon-figure-stroke {
+            stroke: get-amstore-color(gray, white);
+        }
+    }
+
+    &.is-black {
+        .amstore-icon-figure {
+            fill: get-amstore-color(gray, deep);
+        }
+        .amstore-icon-figure-stroke {
+            stroke: get-amstore-color(gray,deep);
+        }
+    }
+}
+
+[role="button"] {
+  cursor: pointer;
+}

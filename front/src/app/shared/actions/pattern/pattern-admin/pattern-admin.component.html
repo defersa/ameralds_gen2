@@ -1,0 +1,20 @@
+<div class="amstore-card-container-line">
+    <h3>Размеры:</h3>
+
+    <div class="amstore-row">
+        <amstore-checkbox *ngFor="let size of sizesWithControl" [control]="size.control">{{size.value}} бвк</amstore-checkbox>
+    </div>
+</div>
+
+
+<div class="amstore-card-container-line">
+    <h3>Подбор цветов:</h3>
+    <amstore-slide size="large" [formControl]="colorControl">Включить подбор</amstore-slide>
+</div>
+
+<div class="container">
+    <div class="row justify-content-end">
+        <amstore-button (click)="removeFromCart()" size="large" color="warn" [disabled]="!inCart">Убрать</amstore-button>
+        <amstore-button (click)="addToCart()" size="large" color="special" [disabled]="!canAdd">Добавить</amstore-button>
+    </div>
+</div>

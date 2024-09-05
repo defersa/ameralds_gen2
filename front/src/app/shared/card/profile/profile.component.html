@@ -1,0 +1,43 @@
+<amstore-panel color="accent" [state]="true" [clickable]="false">
+    <amstore-panel-header>Пользователь №{{user.id}}</amstore-panel-header>
+    <div class="amstore-profile-card__main">
+        <div class="amstore-profile-card__main-image">
+            <img src="assets/no-profile-image.png">
+        </div>
+        <div class="amstore-profile-card__main-body">
+            <amstore-forms-input [nullControl]="mainFromGroup.get('username')">
+                <amstore-forms-label>Имя пользователя</amstore-forms-label>
+            </amstore-forms-input>
+            <amstore-forms-input [nullControl]="mainFromGroup.get('email')">
+                <amstore-forms-label>Почта</amstore-forms-label>
+            </amstore-forms-input>
+
+            <amstore-button [stroked]="true" color="accent">Сменить пароль</amstore-button>
+
+            <div class="amstore-card-container-line">
+                <h3>Свойства:</h3>
+                <div class="amstore-row">
+                    <amstore-chip *ngIf="user.is_staff" color="accent">Админ</amstore-chip>
+                    <amstore-chip [color]="user.person.verify ? 'accent' : 'warn'">{{user.person.verify ? 'Подтвержденный' : 'Не подтвержденный' }}</amstore-chip>
+                    <amstore-chip color="primary">{{user.person.location}}</amstore-chip>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="amstore-card-container-line">
+        <h3>Дополнительные параметры:</h3>
+        <div class="amstore-row">
+            Дата регистрации: {{user.date_joined | date : 'YYYY.MM.dd HH:mm:SS'}}
+        </div>
+    </div>
+
+    <div class="amstore-card-container-line align-items-end">
+        <amstore-button color="warn" (click)="logout()">Выйти</amstore-button>
+    </div>
+
+    <div class="amstore-card-container-line align-items-end">
+        <ng-content></ng-content>
+    </div>
+</amstore-panel>

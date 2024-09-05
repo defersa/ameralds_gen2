@@ -1,0 +1,15 @@
+<div class="amstore-panel-header" (click)="changeState()">
+    <div class="amstore-panel-header-wrapper">
+        <ng-content select="amstore-panel-header"></ng-content>
+    </div>
+
+    <ng-container *ngIf="clickable">
+        <amstore-divider [contrast]="true" side="horizontal"></amstore-divider>
+        <amstore-icon [iconName]="state ? 'chevrone-up' : 'chevrone-down'" [contrast]="true" [size]="20"></amstore-icon>
+    </ng-container>
+</div>
+<div class="amstore-panel-content" [@expand]="expandState">
+    <div class="amstore-panel-content-wrapper">
+        <ng-content></ng-content>
+    </div>
+</div>

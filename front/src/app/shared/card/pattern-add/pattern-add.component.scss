@@ -1,0 +1,8 @@
+@import "../../../styles/spacing";
+@import "../../../styles/theming-var";
+
+.amstore-card-edit {
+    &-image-add {
+        margin: get-spacing(default) auto;
+    }
+}

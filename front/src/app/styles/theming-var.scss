@@ -1,0 +1,43 @@
+@function get-amstore-color($palette: green, $level: slight) {
+    $palettes: (
+        green: (
+            slight: #EDF5EE,
+            light: #CADCCB,
+            middle: #A6C6A8,
+            dark: #6D876F,
+            deep: #38473A
+        ),
+        red: (
+            slight: #FBF1F1,
+            light: #F8BFBF,
+            middle: #E38D8D,
+            dark: #D25050,
+            deep: #B83131
+        ),
+        turquoise: (
+            slight: #EDF5F5,
+            light: #DEF1EF,
+            middle: #B8D4D6,
+            dark: #69928F,
+            deep: #346265
+        ),
+        blue: (
+            slight: #EFF6FC,
+            light: #C1D9EF,
+            middle: #A1BFDB,
+            dark: #6692BB,
+            deep: #456F96
+        ),
+        gray: (
+            white: #FFFFFF,
+            slight: #EDEAEA,
+            light: #B4B4B4,
+            middle: #707070,
+            dark: #393939,
+            deep: #111111
+        )
+    );
+    @return map-get(map-get($palettes, $palette), $key: $level);
+}
+
+$card-border-radius: 8px;

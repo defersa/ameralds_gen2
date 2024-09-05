@@ -1,0 +1,15 @@
+@import "spacing";
+
+
+.order-card {
+    &__info {
+        flex-direction: column;
+        margin: get-spacing(4) 0;
+    }
+
+    &__purchase-row {
+        display: flex;
+        flex-direction: row;
+        gap: get-spacing(2);
+    }
+}

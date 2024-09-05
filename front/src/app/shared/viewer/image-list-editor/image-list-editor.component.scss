@@ -1,0 +1,61 @@
+@import "../../../styles/spacing";
+
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.amstore-image-list-editor {
+    &-button {
+        flex-shrink: 0;
+        text-align: end;
+
+        amstore-button:not(:last-child) {
+            margin-right: get-spacing(4);
+        }
+    }
+
+    &-actions {
+        amstore-button {
+            min-width: 50px;
+            display: flex;
+            height: 50px;
+            font-size: 36px;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    &-image-container {
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: center;
+
+        padding: get-spacing(2) 0;
+    }
+
+    &-current, &-removed {
+        display: flex;
+        flex-direction: row;
+
+        flex-wrap: wrap;
+        align-items: center;
+        align-content: flex-start;
+
+        padding: get-spacing(2);
+        flex-grow: 1;
+
+        img {
+            object-fit: fill;
+            cursor: pointer;
+
+            margin: get-spacing(1);
+            border-radius: 4px;
+
+            height: 100px;
+            max-width: 120px;
+        }
+    }
+}

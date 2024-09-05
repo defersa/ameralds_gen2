@@ -1,0 +1,9 @@
+@import "/src/app/styles/spacing";
+
+amstore-checkbox {
+    padding-right: get-spacing(2);
+}
+
+.justify-content-end > *{
+    margin-left: get-spacing(2);
+}

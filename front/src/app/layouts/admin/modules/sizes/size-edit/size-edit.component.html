@@ -1,0 +1,15 @@
+<amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
+
+<div class="amstore-category-add" *ngIf="form">
+    <h1>{{id ? "Изменить" : "Добавить"}} размер</h1>
+    <p *ngIf="id">id: {{id}}</p>
+
+    <amstore-forms-input [control]="controlValue" name="value" type="number">
+        <amstore-forms-label>Значение</amstore-forms-label>
+    </amstore-forms-input>
+
+    <div class="d-flex flex-row-reverse justify-content-between">
+        <amstore-button size="large" (click)="save()">Сохранить</amstore-button>
+        <amstore-button *ngIf="id" size="large" (click)="delete()">Удалить</amstore-button>
+    </div>
+</div>

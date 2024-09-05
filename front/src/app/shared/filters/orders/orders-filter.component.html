@@ -1,0 +1,39 @@
+<amstore-panel [color]="color">
+    <amstore-panel-header class="amstore-filter-header">
+        Фильтры
+        <amstore-button *ngIf="!isEmpty" (click)="clearFilters($event)" [color]="color">
+            Очистить
+            <amstore-icon [contrast]="true" [iconName]="'cross'" [size]="20"></amstore-icon>
+        </amstore-button>
+    </amstore-panel-header>
+    <div class="row">
+        <div class="col-6">
+            <amstore-forms-input [control]="filterForm.get('email')">Email</amstore-forms-input>
+        </div>
+        <div class="col-6">
+            <amstore-form-select>Сортировка</amstore-form-select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <amstore-data-range-picker
+                startPlaceholder="Начало"
+                endPlaceholder="Конец"
+                [startFormControl]="startFormControl"
+                [endFormControl]="endFormControl">
+                <amstore-forms-label>
+                    Дата заказа
+                </amstore-forms-label>
+            </amstore-data-range-picker>
+        </div>
+
+    </div>
+    <div class="row amstore-filter-buttons">
+        <div class="col-12 text-right">
+            <amstore-button *ngIf="!isEmpty" color="warn" (click)="clearFilters($event)">Очистить</amstore-button>
+            <amstore-button [stroked]="true" color="warn" [disabled]="!isChanged" (click)="resetFilters()">Отменить
+            </amstore-button>
+            <amstore-button [disabled]="!isChanged" [color]="color" (click)="setFilters()">Найти</amstore-button>
+        </div>
+    </div>
+</amstore-panel>

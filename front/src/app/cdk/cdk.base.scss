@@ -1,0 +1,18 @@
+@import './buttons/base.scss';
+@import './forms/forms.scss';
+@import '../shared/snapshot/snapshot.scss';
+@import '../shared/snapshot/snapshot.mobile.scss';
+@import '../shared/card/card.scss';
+@import '../shared/card/card.mobile.scss';
+
+.amstore-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.amstore-column {
+    display: flex;
+    flex-direction: column;
+}

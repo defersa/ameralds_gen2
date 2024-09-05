@@ -1,0 +1,16 @@
+@import "/src/app/styles/theming-var.scss";
+@import "/src/app/styles/spacing.scss";
+@import "/src/app/styles/typography.scss";
+
+.amstore-form-array {
+    &-container {
+        padding-bottom: get-spacing(3);
+        &:not(:last-child) {
+            border-bottom: 1px dashed get-amstore-color(gray, light);
+            margin-bottom: get-spacing(2);
+        }
+    }
+    &-padding-bottom {
+        padding-bottom: get-spacing(3);
+    }
+}
