@@ -5,12 +5,8 @@ import { TokenAccessEntity, TokenRefreshEntity, UserEntity } from "@am/db/entiti
 import * as bcrypt from "bcrypt";
 import { TokenService } from "@am/db/service/token.service";
 import { addDays } from "date-fns";
+import { UserTokensDTO } from "../../modules/user/user.dto";
 
-
-export interface TokensDTO {
-    access: string;
-    refresh: string;
-}
 
 @Injectable({
     scope: Scope.DEFAULT
@@ -45,7 +41,7 @@ export class UserService {
         return user;
     }
 
-    public async createAccessToken(user: UserEntity): Promise<TokensDTO> {
+    public async createAccessToken(user: UserEntity): Promise<UserTokensDTO> {
         const accessTokenExpiredAt: Date = addDays(new Date(), 7);
         const refreshTokenExpiredAt: Date = addDays(new Date(), 28);
         const accessToken: TokenAccessEntity = await this.tokenService.createAccessToken({

@@ -2,7 +2,7 @@ import {
     Controller,
     Get, Inject,
     NestInterceptor, Optional,
-    Post,
+    Post, Query,
     Req,
     StreamableFile,
     UploadedFile,
@@ -83,5 +83,23 @@ export class AppController {
         const imageEntity: ImageEntity = await this.imageService.createImage(image);
 
         return imageEntity.id;
+    }
+
+    @Get("categories/all")
+    public async fakeHandlerOne(): Promise<[]> {
+        return [];
+    }
+
+    @Get("sizes/all")
+    public async fakeHandlerTwo(): Promise<[]> {
+        return [];
+    }
+
+    @Get("patterns/paginated")
+    public async fakeHandlerThree(
+        @Query('page') page: number,
+    ): Promise<[]> {
+
+        return [];
     }
 }

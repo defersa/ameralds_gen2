@@ -45,8 +45,7 @@ export class SizesService {
     }
 
     public getAllSizes(): Observable<SizeType[]> {
-        return this.httpClient.get<IListResponse<SizeType>>(UB(['api', 'sizes', 'all']))
-            .pipe(map((result: IListResponse<SizeType>) => result.items));
+        return this.httpClient.get<SizeType[]>(UB(['api', 'sizes', 'all']));
     }
 
 

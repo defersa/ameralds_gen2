@@ -1,27 +1,19 @@
 import { Body, Controller, HttpException, HttpStatus, Post } from "@nestjs/common";
-import { TokensDTO, UserService } from "@am/db/service/user.service";
+import { UserService } from "@am/db/service/user.service";
 import { UserEntity } from "@am/db/entities";
 import * as bcrypt from "bcrypt";
+import { UserCredentialsDto, UserTokensDTO } from "./user.dto";
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiErrorCodes, ErrorsDto } from "../errors/errors.dto";
 
 
-enum ApiErrorCodes {
-    ALREADY_EXIST = 'ALREADY_EXIST',
-    INVALID_PASSWORD = 'INVALID_PASSWORD',
-    INVALID_EMAIL = 'INVALID_EMAIL',
-
-    NOT_EXIST = 'NOT_EXIST',
-    INCORRECT_PASSWORD = 'INCORRECT_PASSWORD',
-}
 
 const passwordComplexCheck: RegExp = /(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{6,}/g;
 const emailCheck: RegExp = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-export interface RegisterDTO {
-    email: string;
-    password: string;
-}
 
 @Controller()
+@ApiTags('user')
 export class UserController {
     constructor(
         private userService: UserService,
@@ -29,8 +21,10 @@ export class UserController {
     }
 
     @Post('register')
+    @ApiCreatedResponse({ description: 'The user has been successfully created.', type: String })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async register(
-        @Body() { email, password }: RegisterDTO,
+        @Body() { email, password }: UserCredentialsDto,
     ): Promise<string> {
         if (await this.userService.getUserByEmail(email)) {
             throw new HttpException({ code: ApiErrorCodes.ALREADY_EXIST }, HttpStatus.BAD_REQUEST);
@@ -48,9 +42,10 @@ export class UserController {
     }
 
     @Post('sign-in')
+    @ApiOkResponse({ description: 'The user has been successfully authenticated.', type: UserTokensDTO })
     public async signIn(
-        @Body() { email, password }: RegisterDTO,
-    ): Promise<TokensDTO> {
+        @Body() { email, password }: UserCredentialsDto,
+    ): Promise<UserTokensDTO> {
         const user: UserEntity = await this.userService.getUserByEmail(email);
 
         if (!user) {

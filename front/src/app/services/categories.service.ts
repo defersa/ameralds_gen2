@@ -44,8 +44,7 @@ export class CategoriesService {
     }
 
     public getAllCategories(): Observable<CategoryType[]> {
-        return this.httpClient.get<IListResponse<CategoryType>>(UB(['api', 'categories', 'all']))
-            .pipe(map((result: IListResponse<CategoryType>) => result.items));
+        return this.httpClient.get<CategoryType[]>(UB(['api', 'categories', 'all']));
     }
 
     public editCategory(values: Record<string, unknown>): Observable<IResultRequest> {

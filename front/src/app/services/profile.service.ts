@@ -22,6 +22,7 @@ import { AuthRegistrationRequest } from "@am/interface/request/auth-request.inte
 import { IResultRequest } from "@am/interface/request.interface";
 import { UBehaviorSubject } from "@am/utils/u-behavior.subject";
 import { LocalStorage } from "@am/decorators/local.decorator";
+import { UserCredentialsDto, UserService, UserTokensDTO } from "@am/root/api";
 
 
 declare var grecaptcha: ReCAPTCHA;
@@ -53,6 +54,7 @@ export class ProfileService {
         private authService: AuthService,
         private goodsService: GoodsService,
         private httpClient: HttpClient,
+        private userService: UserService,
     ) {
 
         this.authService.authStatus$
@@ -90,8 +92,8 @@ export class ProfileService {
     //             })));
     // }
 
-    public postNewUser(value: unknown): Observable<AuthRegistrationRequest> {
-        return this.httpClient.post<AuthRegistrationRequest>(getAction(HttpAuthActions.Registration, RestSuffixFragments.Auth), value);
+    public postNewUser(data: UserCredentialsDto): Observable<string> {
+        return this.userService.userControllerRegister(data);
     }
 
     public createUser(value: unknown): Observable<AuthRegistrationRequest> {
