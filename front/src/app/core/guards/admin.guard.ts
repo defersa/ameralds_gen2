@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, RouterStateSnapshot, UrlTree } from "@angular/router";
+import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from "@angular/router";
 import { Observable } from "rxjs";
 import { ProfileService } from "@am/services/profile.service";
 import { UserEnum } from "@am/utils/router-builder";
@@ -8,7 +8,7 @@ import { UserEnum } from "@am/utils/router-builder";
 @Injectable({
     providedIn: 'root'
 })
-export class AdminGuard implements CanActivate, CanActivateChild {
+export class AdminGuard  {
     constructor(private _profileService: ProfileService) {}
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):
