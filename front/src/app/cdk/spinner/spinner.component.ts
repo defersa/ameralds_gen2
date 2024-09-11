@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, ViewEncapsulation } from '@angular/core';
-import { ProgressSpinnerMode } from "@angular/material/progress-spinner";
+import { LegacyProgressSpinnerMode as ProgressSpinnerMode } from "@angular/material/legacy-progress-spinner";
 import { AmstoreColor } from "@am/cdk/core/color";
 
 @Component({
