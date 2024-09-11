@@ -82,15 +82,15 @@
                 "serve": {
                     "builder": "@angular-devkit/build-angular:dev-server",
                     "options": {
-                        "browserTarget": "amstore:build"
+                      "buildTarget": "amstore:build"
                     },
                     "configurations": {
                         "production": {
-                            "browserTarget": "amstore:build:production"
+                          "buildTarget": "amstore:build:production"
                         },
                         "development": {
-                            "browserTarget": "amstore:build:development",
-                            "proxyConfig": "proxy.config.js"
+                          "proxyConfig": "proxy.config.js",
+                            "buildTarget": "amstore:build:development"
                         }
                     },
                     "defaultConfiguration": "development"
@@ -98,7 +98,7 @@
                 "extract-i18n": {
                     "builder": "@angular-devkit/build-angular:extract-i18n",
                     "options": {
-                        "browserTarget": "amstore:build"
+                      "buildTarget": "amstore:build"
                     }
                 },
                 "test": {
