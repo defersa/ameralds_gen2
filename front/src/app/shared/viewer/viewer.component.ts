@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
 import { ImageModelSmall } from 'src/app/interface/image.interface';
+import { MAT_DIALOG_DATA } from "@angular/material/dialog";
 
 @Component({
     selector: 'asmtore-viewer',

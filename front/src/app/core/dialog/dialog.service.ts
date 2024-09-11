@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { MatLegacyDialog as MatDialog, MatLegacyDialogConfig as MatDialogConfig } from '@angular/material/legacy-dialog';
 import { ComponentType } from "@angular/cdk/portal";
 import { AmstoreDefaultDialogComponent } from "./default/default.component";
+import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
 
 @Injectable({
     providedIn: 'root'

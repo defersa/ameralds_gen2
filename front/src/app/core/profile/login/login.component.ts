@@ -1,11 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, ViewEncapsulation } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, ValidationErrors } from '@angular/forms';
-import { MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import { RecaptchaDirective } from "../../recaptcha/recaptcha.directive";
 import { AuthService } from "@am/services/auth.service";
 import { ProfileService } from "@am/services/profile.service";
 import { IAuthResponse } from "@am/interface/profile.interface";
+import { MatDialogRef } from "@angular/material/dialog";
 
 
 @Component({

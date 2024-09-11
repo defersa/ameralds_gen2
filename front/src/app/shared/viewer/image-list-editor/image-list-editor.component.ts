@@ -1,6 +1,6 @@
 import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from "@angular/material/legacy-dialog";
 import { ImageType, IIndexedBlob, IIndexedImage } from "@am/interface/image.interface";
+import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 
 
 @Component({

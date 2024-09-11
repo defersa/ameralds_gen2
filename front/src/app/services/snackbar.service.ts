@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
-import { MatLegacySnackBar as MatSnackBar } from "@angular/material/legacy-snack-bar";
 import { OperatorFunction, pipe } from "rxjs";
 import { tap } from "rxjs/operators";
+import { MatSnackBar } from "@angular/material/snack-bar";
 
 
 const DEFAULT_DURATION: number = 5000;
