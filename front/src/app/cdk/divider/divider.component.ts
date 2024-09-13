@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AmstoreColor } from "@am/cdk/core/color";
 
 @Component({
@@ -22,9 +22,4 @@ export class AmstoreDividerComponent extends AmstoreColor {
 
     @Input()
     public dark: boolean = false;
-
-    constructor(public elementRef: ElementRef) {
-        super(elementRef)
-    }
-
 }

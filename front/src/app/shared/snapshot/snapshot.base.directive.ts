@@ -27,7 +27,7 @@ export class AmstoreSnapshotBaseDirective extends AmstoreColor {
     public routerLink: (string | number)[];
 
     constructor(private _injector: Injector) {
-        super(_injector.get(ElementRef));
+        super();
         this._viewer = _injector.get(AmstoreViewerService);
     }
 

@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewEncapsulation } from '@angular/core';
+import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { ProgressSpinnerMode } from "@angular/material/progress-spinner";
 import { AmstoreColor } from "@am/cdk/core/color";
 
@@ -26,9 +26,4 @@ export class AmstoreSpinnerComponent extends AmstoreColor {
     public get mode(): ProgressSpinnerMode {
         return this.isDeterminate ? 'determinate' : 'indeterminate';
     }
-
-    constructor(public elementRef: ElementRef) {
-        super(elementRef);
-    }
-
 }

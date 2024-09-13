@@ -2,11 +2,11 @@ import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
     Component,
-    ElementRef,
+    ElementRef, inject,
     Input,
     OnDestroy,
     ViewEncapsulation
-} from '@angular/core';
+} from "@angular/core";
 import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup, ValidatorFn } from '@angular/forms';
 import { AmstoreFormsBaseDirective, SelectOption } from '../forms.abstract.directive';
 import { ArrayComponentListService } from './array-component-list.service';
@@ -63,9 +63,7 @@ export class AmstoreFormArrayComponent extends AmstoreFormsBaseDirective impleme
         return this.controlArray.controls as UntypedFormGroup[];
     }
 
-    constructor(public elementRef: ElementRef, private _arrayComponentListService: ArrayComponentListService, private _changeDetectorRef: ChangeDetectorRef) {
-        super(elementRef, _changeDetectorRef);
-    }
+    private _arrayComponentListService: ArrayComponentListService = inject(ArrayComponentListService);
 
     public addFormGroup(value: Record<string, unknown>): void {
         const controlsNames: [string, ValidatorFn[]][] = this.arrayComponentList.map((item: ArrayComponent) => [item.name, item.validator || []]);

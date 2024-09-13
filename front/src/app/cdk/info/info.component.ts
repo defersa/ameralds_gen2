@@ -26,12 +26,13 @@ const ICON_MAP: Record<StatusInfo, IconsName> = {
 })
 export class AmstoreInfoComponent extends AmstoreColor  {
 
+    // TODO: revive
     @Input()
     public get status(): StatusInfo {
         return this._status;
     }
     public set status(value: StatusInfo) {
-        this.color = STATUS_MAP[value];
+        // this.color = STATUS_MAP[value];
         this._status = value;
     }
     private _status: StatusInfo = 'success';
@@ -46,9 +47,8 @@ export class AmstoreInfoComponent extends AmstoreColor  {
     @Input()
     public needIcon: boolean = true;
 
-    constructor(public elementRef: ElementRef) {
-        super(elementRef)
-
+    constructor() {
+        super();
         this.status = 'success';
     }
 

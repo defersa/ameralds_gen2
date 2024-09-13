@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostListener, ViewEncapsulation } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { RecaptchaDirective } from "../../recaptcha/recaptcha.directive";
 import { AuthService } from "@am/services/auth.service";
@@ -12,10 +12,6 @@ import { MatDialogRef } from "@angular/material/dialog";
     selector: 'amstore-dialog-login',
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.scss'],
-    encapsulation: ViewEncapsulation.None,
-    host: {
-        class: 'amstore-dialog-login'
-    }
 })
 export class AmstoreLoginComponent extends RecaptchaDirective {
     public authForm: UntypedFormGroup;

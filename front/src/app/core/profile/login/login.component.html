@@ -1,20 +1,22 @@
-<h1>Войти</h1>
+<h3 mat-dialog-title>Войти</h3>
 
-<form>
-    <amstore-forms-input color="primary" type="email" [control]="username" name="username" autocomplete="username"  [required]="true">
-        <amstore-forms-label>Адрес почты</amstore-forms-label>
+<mat-dialog-content>
+  <form class="amstore-dialog-login">
+    <amstore-forms-input color="primary" type="email" [control]="username" name="username" autocomplete="username"
+                         [required]="true">
+      <amstore-forms-label>Адрес почты</amstore-forms-label>
     </amstore-forms-input>
 
-    <amstore-forms-input-password color="primary" [control]="password" name="password" autocomplete="password"  [required]="true">
-        <amstore-forms-label>Пароль</amstore-forms-label>
+    <amstore-forms-input-password color="primary" [control]="password" name="password" autocomplete="password"
+                                  [required]="true">
+      <amstore-forms-label>Пароль</amstore-forms-label>
     </amstore-forms-input-password>
-</form>
+  </form>
 
-<span *ngIf="error" class="amstore-dialog-login__error">{{error}}</span>
+  <span *ngIf="error" class="amstore-dialog-login__error">{{ error }}</span>
+</mat-dialog-content>
 
-<div class="container">
-    <div class="row justify-content-between">
-        <amstore-button (click)="login()" color="primary">Забыли пароль?</amstore-button>
-        <amstore-button (click)="login()" color="accent">Войти</amstore-button>
-    </div>
-</div>
+<mat-dialog-actions align="end" class="amstore-dialog-login__actions">
+  <amstore-button (click)="login()" color="primary">Забыли пароль?</amstore-button>
+  <amstore-button (click)="login()" color="accent">Войти</amstore-button>
+</mat-dialog-actions>

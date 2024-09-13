@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AmstoreButtonBaseDirective } from '../base.abstract.directive';
 
 @Component({
@@ -24,9 +24,4 @@ export class AmstoreButtonRoundComponent extends AmstoreButtonBaseDirective {
 
     @Input()
     public image: string | undefined;
-
-    constructor(public elementRef: ElementRef) {
-        super(elementRef);
-    }
-
 }

@@ -16,7 +16,6 @@ import { AmstoreColor } from '../core/color';
     }
 })
 export class AmstoreChipComponent extends AmstoreColor {
-
     @Input()
     public size: 'small' | 'medium' | 'large' = 'medium';
 
@@ -25,10 +24,4 @@ export class AmstoreChipComponent extends AmstoreColor {
 
     @Input()
     public stroked: boolean = false;
-
-
-    constructor(public elementRef: ElementRef) {
-        super(elementRef)
-    }
-
 }

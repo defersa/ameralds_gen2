@@ -1,35 +1,25 @@
-import { Directive, ElementRef, Input } from '@angular/core';
+import { computed, Directive, effect, ElementRef, inject, input, InputSignal, Signal } from "@angular/core";
+
 
 export type ThemePalette = 'primary' | 'accent' | 'warn' | 'special' | 'contrast' | undefined;
 
-@Directive({selector: 'abstract-color'})
+@Directive({
+    standalone: true,
+})
 export class AmstoreColor {
-    @Input()
-    public set color(value: ThemePalette) {
-        if (this._color !== value) {
-            this.setColor(value);
-        }
+    public color: InputSignal<ThemePalette> = input('primary');
 
-        this._color = value;
-    }
+    public colorClass: Signal<string> = computed(() => `amstore-${this.color()}`);
 
-    public get color(): ThemePalette {
-        return this._color;
-    }
+    private previousColorClass: string = '';
 
-    public get colorClass(): string {
-        return `amstore-${this._color}`;
-    }
+    protected elementRef: ElementRef = inject(ElementRef);
 
-    protected _color: ThemePalette;
-    protected defaultColor: ThemePalette = 'primary';
-
-    constructor(public elementRef: ElementRef) {
-        this.color = this.defaultColor;
-    }
-
-    private setColor(color: ThemePalette): void {
-        this.elementRef.nativeElement.classList.remove(`amstore-${this._color}`);
-        this.elementRef.nativeElement.classList.add(`amstore-${color}`);
+    constructor() {
+        effect(() => {
+            this.elementRef.nativeElement.classList.remove(`amstore-${this.previousColorClass}`);
+            this.elementRef.nativeElement.classList.add(`amstore-${this.colorClass()}`);
+            this.previousColorClass = this.colorClass();
+        });
     }
 }

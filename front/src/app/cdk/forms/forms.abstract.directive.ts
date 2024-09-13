@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Directive, ElementRef, HostBinding, inject, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, Directive, HostBinding, inject, Input } from '@angular/core';
 import { AbstractControl, FormControl, Validators } from '@angular/forms';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { startWith, takeUntil } from 'rxjs/operators';
@@ -98,10 +98,7 @@ export class AmstoreFormsBaseDirective extends AmstoreColor {
 
     protected defaultColor: ThemePalette = 'primary';
 
-    constructor(public elementRef: ElementRef, protected changeDetector: ChangeDetectorRef) {
-        super(elementRef)
-    }
-
+    protected changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
 }
 
 @Component({

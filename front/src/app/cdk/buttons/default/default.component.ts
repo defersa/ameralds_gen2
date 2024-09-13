@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AmstoreButtonBaseDirective } from '../base.abstract.directive';
 
 @Component({
@@ -13,19 +13,10 @@ import { AmstoreButtonBaseDirective } from '../base.abstract.directive';
         '[class.amstore-button-default-large]': 'size === "large"',
     }
 })
-export class DefaultComponent extends AmstoreButtonBaseDirective implements OnInit {
-
+export class DefaultComponent extends AmstoreButtonBaseDirective {
     @Input()
     public size: 'medium' | 'large' = 'medium';
 
     @Input()
     public stroked: boolean = false;
-
-    constructor(public elementRef: ElementRef) {
-        super(elementRef);
-    }
-
-    public ngOnInit(): void {
-    }
-
 }

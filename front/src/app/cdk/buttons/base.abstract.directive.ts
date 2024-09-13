@@ -10,9 +10,4 @@ export class AmstoreButtonBaseDirective extends AmstoreColor {
 
     @Input()
     public disabled: boolean = false;
-
-    constructor(public elementRef: ElementRef) {
-        super(elementRef)
-    }
-
 }

@@ -45,10 +45,6 @@ export class AmstorePaginatorComponent extends AmstoreColor {
     @Output()
     public goToPageEvent: EventEmitter<number> = new EventEmitter<number>();
 
-    constructor(public elementRef: ElementRef) {
-        super(elementRef)
-    }
-
     public goToPage(page: number): void {
         this.page = page;
         this.goToPageEvent.emit(page);

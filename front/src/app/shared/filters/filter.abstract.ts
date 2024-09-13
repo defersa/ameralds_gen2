@@ -16,6 +16,8 @@ export abstract class AbstractFilterComponent implements OnInit {
 
     @Input()
     public set filters(filters: Record<string, unknown>) {
+        filters = filters ?? {};
+
         Object.entries(filters).forEach(([key, value]: [string, unknown]) => {
             this.filterForm.get(key)?.setValue(value);
         });

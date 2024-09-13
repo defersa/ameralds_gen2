@@ -35,9 +35,10 @@ export class IconsComponent extends AmstoreColor {
     @Input()
     public isBlack: boolean = false;
 
-    constructor(public elementRef: ElementRef,
+    constructor(
         private _sanitizer: DomSanitizer,
-        private _changeDetectorRef: ChangeDetectorRef) {
-        super(elementRef);
+        private _changeDetectorRef: ChangeDetectorRef
+    ) {
+        super();
     }
 }

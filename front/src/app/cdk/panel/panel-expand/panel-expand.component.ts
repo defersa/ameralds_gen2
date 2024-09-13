@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AmstoreColor } from "@am/cdk/core/color";
 import { expandAnimation } from "@am/cdk/animations/expand";
 
@@ -22,10 +22,6 @@ export class AmstorePanelExpandComponent extends AmstoreColor {
 
     public get expandState(): 'collapsed' | 'expanded' {
         return this.state ? 'expanded' : 'collapsed';
-    }
-
-    constructor(public elementRef: ElementRef) {
-        super(elementRef)
     }
 
     public changeState(): void {

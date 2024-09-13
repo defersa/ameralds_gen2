@@ -5,7 +5,7 @@ import { AmstoreColor } from './color';
 
 
 @NgModule({
-    declarations: [AmstoreColor],
+    declarations: [],
     imports: [
         CommonModule
     ]
