@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject } from "@angular/core";
 import { ProfileService } from "@am/services/profile.service";
 import { DialogService } from "@am/core/dialog/dialog.service";
 import { ActivatedRoute, Params, Router } from "@angular/router";
@@ -6,26 +6,30 @@ import { switchMap, take } from "rxjs/operators";
 import { of } from "rxjs";
 import { IResultRequest } from "@am/interface/request.interface";
 import { fromPromise } from "rxjs/internal-compatibility";
+import { AmstoreSpinnerComponent } from "@am/cdk/spinner/spinner.component";
 
 
 @Component({
-    selector: 'amstore-verify',
-    template: '<amstore-spinner></amstore-spinner>',
+    selector: "amstore-verify",
+    template: "<amstore-spinner/>",
     styles: [`
         amstore-spinner {
             margin: auto;
         }
-    `]
+    `],
+    standalone: true,
+    imports: [
+        AmstoreSpinnerComponent
+    ]
 })
-export class AmstoreVerifyComponent implements OnInit {
+export class AmstoreVerifyComponent {
+    private _activateRoute: ActivatedRoute = inject(ActivatedRoute);
+    private _profile: ProfileService = inject(ProfileService);
+    private _router: Router = inject(Router);
+    private _dialog: DialogService = inject(DialogService);
 
     constructor(
-        private _activateRoute: ActivatedRoute,
-        private _profile: ProfileService,
-        private _router: Router,
-        private _dialog: DialogService
     ) {
-
         this._activateRoute.queryParams?.pipe(
             take(1),
             switchMap((params: Params) => {
@@ -47,8 +51,4 @@ export class AmstoreVerifyComponent implements OnInit {
                 })
         });
     }
-
-    ngOnInit(): void {
-    }
-
 }

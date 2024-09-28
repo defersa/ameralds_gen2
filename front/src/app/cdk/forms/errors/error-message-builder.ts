@@ -19,6 +19,11 @@ export function getControlErrors(errors: ValidationErrors | null): string | null
     return Object.keys(errors)
         .map((key: string) => {
             const transformFunc: TransformFunc | null = ErrorTemplates[key];
+
+            if (key === 'message') {
+                return errors[key];
+            }
+
             return transformFunc ? transformFunc(errors[key]) : 'Has no template for error ' + key
         })
         .join(', ');

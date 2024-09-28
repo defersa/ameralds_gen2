@@ -1,19 +1,21 @@
-<ng-container *ngIf="pattern">
+@if (pattern) {
     <h2>
-        <ng-content></ng-content>
+        <ng-content />
     </h2>
 
     <form [formGroup]="form">
         <div class="admin-pattern-cart__row">
-            <amstore-chips-checkbox *ngIf="sizeItems?.length" [items]="sizeItems" [control]="form.get('sizes')">
-                <h3>Размеры</h3>
-            </amstore-chips-checkbox>
+            @if (sizeItems()?.length) {
+                <amstore-chips-checkbox [items]="sizeItems()" formControlName="size">
+                    <h3>Размеры</h3>
+                </amstore-chips-checkbox>
+            }
         </div>
 
         <div class="admin-pattern-cart__row">
             <h3>Подбор</h3>
 
-            <amstore-slide size="large" [control]="form.get('color')">Включить подбор</amstore-slide>
+            <amstore-slide size="large" formControlName="color">Включить подбор</amstore-slide>
         </div>
     </form>
 
@@ -22,7 +24,7 @@
                     size="large"
                     (click)="removePattern()"
                     [disabled]="isEmpty">
-        <amstore-icon iconName="trash" [contrast]="true" [size]="24"></amstore-icon>
+        <amstore-icon iconName="trash" [contrast]="true" [size]="24" />
         Убрать
     </amstore-button>
-</ng-container>
+}

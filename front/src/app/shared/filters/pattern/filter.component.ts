@@ -1,43 +1,55 @@
-import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup } from "@angular/forms";
+import { Component, inject } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { Observable } from "rxjs";
-import { takeUntil } from "rxjs/operators";
 
 import { SizesService } from "@am/services/sizes.service";
 import { CategoriesService } from "@am/services/categories.service";
-import { LangService } from "@am/services/lang.service";
 import { OptionType } from "@am/interface/cdk.interface";
-import { DestroyService } from "@am/utils/destroy.service";
-import { ThemePalette } from "@am/cdk/core/color";
 import { AbstractFilterComponent } from "@am/shared/filters/filter.abstract";
+import {
+    AmstorePanelExpandComponent,
+    AmstorePanelHeaderComponent
+} from "@am/cdk/panel/panel-expand/panel-expand.component";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
+import { AmstoreSelectComponent } from "@am/cdk/forms/select/select.component";
+import { AmstoreChipsCheckboxComponent } from "@am/cdk/forms/chips-checkbox/chips-checkbox.component";
+import { AsyncPipe } from "@angular/common";
 
 
 @Component({
-    selector: 'amstore-filters',
-    templateUrl: './filter.component.html',
-    styleUrls: ['./filter.component.scss'],
-    providers: [DestroyService],
+    selector: "amstore-filters",
+    templateUrl: "./filter.component.html",
+    styleUrls: ["./filter.component.scss"],
+    standalone: true,
+    imports: [
+        AmstorePanelExpandComponent,
+        AmstorePanelHeaderComponent,
+        AmstoreButtonComponent,
+        IconsComponent,
+        AmstoreInputComponent,
+        AmstoreSelectComponent,
+        AmstoreChipsCheckboxComponent,
+        AsyncPipe,
+        ReactiveFormsModule
+    ],
     host: {
-        class: 'amstore-filters'
+        class: "amstore-filters"
     }
 })
 export class AmstoreFilterComponent extends AbstractFilterComponent {
-    public categoriesList$: Observable<OptionType[]> = this._categoriesService.categoriesList$;
-    public sizesList$: Observable<OptionType[]> = this._sizeService.sizesList$;
+    private sizeService: SizesService = inject(SizesService);
+    private categoriesService: CategoriesService = inject(CategoriesService);
+
+    public categoriesList$: Observable<OptionType[]> = this.categoriesService.categoriesList$;
+    public sizesList$: Observable<OptionType[]> = this.sizeService.sizesList$;
 
     public filterForm: FormGroup = new FormGroup({
             search: new FormControl(),
             categories: new FormControl(),
             sizes: new FormControl()
         });
-
-    constructor(
-        private _langService: LangService,
-        private _sizeService: SizesService,
-        private _categoriesService: CategoriesService,
-    ) {
-        super();
-    }
 }
 
 

@@ -3,9 +3,6 @@ import { NgModule } from "@angular/core";
 import { SizeEditComponent } from "./size-edit/size-edit.component";
 import { SizesComponent } from "./sizes/sizes.component";
 import { RouterModule, Routes } from "@angular/router";
-import { CommonModule } from "@angular/common";
-import { AmstoreCdkModule } from "@am/cdk/cdk.module";
-import { AmstoreSharedModule } from "@am/shared/shared.module";
 
 
 const routes: Routes = [
@@ -21,16 +18,8 @@ const routes: Routes = [
     }];
 
 @NgModule({
-    declarations: [
-        SizeEditComponent,
-        SizesComponent,
-    ],
     imports: [
         RouterModule.forChild(routes),
-        CommonModule,
-
-        AmstoreCdkModule,
-        AmstoreSharedModule
     ],
 })
 export class SizesModule {

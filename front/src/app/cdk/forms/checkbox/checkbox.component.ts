@@ -1,15 +1,21 @@
 import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
 import { AmstoreFormsBaseDirective } from '../forms.abstract.directive';
-import { DestroyService } from "@am/utils/destroy.service";
+import { MatCheckbox } from "@angular/material/checkbox";
+import { ReactiveFormsModule } from "@angular/forms";
+
 
 @Component({
-    selector: 'amstore-checkbox',
-    templateUrl: './checkbox.component.html',
+    selector: "amstore-checkbox",
+    templateUrl: "./checkbox.component.html",
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [DestroyService],
+    standalone: true,
+    imports: [
+        MatCheckbox,
+        ReactiveFormsModule
+    ],
     host: {
-        class: 'amstore-checkbox'
+        class: "amstore-checkbox"
     }
 })
 export class AmstoreCheckboxComponent extends AmstoreFormsBaseDirective {

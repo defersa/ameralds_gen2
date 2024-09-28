@@ -1,10 +1,13 @@
 <div class="amstore-menu">
     <h2>{{label}}</h2>
+
     <div class="amstore-menu-list">
-        <amstore-button-menu *ngFor="let item of list" [routerLink]="item.path" [color]='color'
-            [active]="(currentRoute$ | async)?.startsWith(item.path.join('/'))">
-            <amstore-icon [iconName]="item.icon || 'profile'" [size]="20" color="accent"></amstore-icon>
-            {{item.label}}
-        </amstore-button-menu>
+        @for (item of list; track item) {
+            <amstore-button-menu [routerLink]="item.path" [color]='color'
+                                 [active]="(currentRoute$ | async)?.startsWith(item.path.join('/'))">
+                <amstore-icon [iconName]="item.icon || 'profile'" [size]="20" color="accent"/>
+                {{item.label}}
+            </amstore-button-menu>
+        }
     </div>
 </div>

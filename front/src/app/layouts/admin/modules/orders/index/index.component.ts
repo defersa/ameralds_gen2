@@ -7,13 +7,24 @@ import { Params } from "@angular/router";
 import { IPaginatedResponse } from "@am/interface/request.interface";
 import { IAdminOrderShort } from "@am/interface/order.interface";
 import { DestroyService } from "@am/utils/destroy.service";
+import { OrdersFilterComponent } from "@am/shared/filters/orders/orders-filter.component";
+import { AsyncPipe } from "@angular/common";
+import { SnapshotAdminOrderComponent } from "@am/shared/snapshot/admin-order/snapshot-admin-order.component";
+import { AmstorePaginatorComponent } from "@am/cdk/paginator/paginator.component";
 
 
 @Component({
-    selector: 'admin-orders-index',
-    templateUrl: './index.component.html',
-    styleUrls: ['./index.component.scss'],
+    selector: "admin-orders-index",
+    templateUrl: "./index.component.html",
+    styleUrls: ["./index.component.scss"],
     providers: [DestroyService],
+    standalone: true,
+    imports: [
+        OrdersFilterComponent,
+        AsyncPipe,
+        SnapshotAdminOrderComponent,
+        AmstorePaginatorComponent
+    ]
 })
 export class IndexComponent extends FilteredPage {
     public items$: Observable<IAdminOrderShort[]> = this.filterSet$.pipe(

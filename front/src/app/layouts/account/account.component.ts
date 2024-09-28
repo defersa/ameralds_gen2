@@ -1,15 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from "@angular/core";
+import { MenuComponent } from "@am/shared/menu/menu.component";
+import { RouterOutlet } from "@angular/router";
+
 
 @Component({
-  selector: 'app-account',
-  templateUrl: './account.component.html',
-  styleUrls: ['./account.component.scss']
+    templateUrl: "./account.component.html",
+    styleUrls: ["./account.component.scss"],
+    imports: [
+        MenuComponent,
+        RouterOutlet
+    ],
+    standalone: true
 })
-export class AccountComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
+export class AccountComponent {
 }

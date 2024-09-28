@@ -5,15 +5,28 @@ import { Component } from '@angular/core';
 import { Observable } from "rxjs";
 import { filter, map, switchMap } from "rxjs/operators";
 import { FilteredPage, FiltersSet } from "@am/shared/abstract/filtered-page";
-import { Params } from "@angular/router";
+import { Params, RouterLink } from "@angular/router";
 import { DestroyService } from "@am/utils/destroy.service";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+import { AsyncPipe, DatePipe } from "@angular/common";
+import { AmstorePaginatorComponent } from "@am/cdk/paginator/paginator.component";
+import { AmstoreButtonRoundComponent } from "@am/cdk/buttons/round/round.component";
 
 
 @Component({
-    selector: 'app-sizes',
-    templateUrl: './sizes.component.html',
-    styleUrls: ['./sizes.component.scss'],
+    selector: "app-sizes",
+    templateUrl: "./sizes.component.html",
+    styleUrls: ["./sizes.component.scss"],
     providers: [DestroyService],
+    standalone: true,
+    imports: [
+        RouterLink,
+        IconsComponent,
+        AsyncPipe,
+        AmstorePaginatorComponent,
+        DatePipe,
+        AmstoreButtonRoundComponent
+    ]
 })
 export class SizesComponent extends FilteredPage {
     public items$: Observable<SizeType[]> = this.filterSet$.pipe(

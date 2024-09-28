@@ -1,15 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject } from "@angular/core";
 import { Subject } from "rxjs";
 import { GoodsService } from "@am/services/goods.service";
+import { AmstoreButtonRoundComponent } from "@am/cdk/buttons/round/round.component";
+import { AsyncPipe } from "@angular/common";
+import { RouterLink } from "@angular/router";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
 
 
 @Component({
-    selector: 'amstore-header-admin',
-    templateUrl: './admin.component.html',
-    styleUrls: ['./admin.component.scss']
+    selector: "amstore-header-admin",
+    templateUrl: "./admin.component.html",
+    styleUrls: ["./admin.component.scss"],
+    standalone: true,
+    imports: [
+        AmstoreButtonRoundComponent,
+        AsyncPipe,
+        RouterLink,
+        IconsComponent
+    ]
 })
-export class AmstoreHeaderAdminComponent implements OnInit {
-
+export class AmstoreHeaderAdminComponent {
     public get goodsCount(): Subject<number> {
         return this.goodsService.goodsCount;
     }
@@ -17,11 +27,5 @@ export class AmstoreHeaderAdminComponent implements OnInit {
         return this.goodsService.goodsPrice;
     }
 
-    constructor(
-        private goodsService: GoodsService,
-    ) { }
-
-    ngOnInit(): void {
-    }
-
+    private goodsService: GoodsService = inject(GoodsService);
 }

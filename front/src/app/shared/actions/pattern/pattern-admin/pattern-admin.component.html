@@ -2,13 +2,16 @@
     <h3>Размеры:</h3>
 
     <div class="amstore-row">
-        <amstore-checkbox *ngFor="let size of sizesWithControl" [control]="size.control">{{size.value}} бвк</amstore-checkbox>
+        @for (size of sizesWithControl(); track size) {
+            <amstore-checkbox [formControl]="size.control">{{size.value}} бвк</amstore-checkbox>
+        }
     </div>
 </div>
 
 
 <div class="amstore-card-container-line">
     <h3>Подбор цветов:</h3>
+
     <amstore-slide size="large" [formControl]="colorControl">Включить подбор</amstore-slide>
 </div>
 

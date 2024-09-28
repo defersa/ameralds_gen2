@@ -1,4 +1,4 @@
-import { Component, Injector, OnInit } from '@angular/core';
+import { Component, computed, inject, Injector, input, InputSignal, OnInit, Signal } from "@angular/core";
 import { IdName } from "@am/interface/request.interface";
 import { CategoryType } from "@am/interface/category.interface";
 import { IPattern } from "@am/interface/pattern.interface";
@@ -10,6 +10,14 @@ import { combineLatest } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 import { ProfileService } from "@am/services/profile.service";
 import { AbstractPatternCard } from "@am/shared/actions/pattern/pattern.abstract";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
+import { ReactiveFormsModule } from "@angular/forms";
+import { AmstoreSlideComponent } from "@am/cdk/slide/slide.component";
+import { AmstoreInfoComponent } from "@am/cdk/info/info.component";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+import { NgClass } from "@angular/common";
 
 type ButtonStatusMap = {
     label: string;
@@ -19,22 +27,51 @@ type ButtonStatusMap = {
 
 
 @Component({
-    selector: 'app-pattern-cart',
-    templateUrl: './pattern-cart.component.html',
-    styleUrls: ['./pattern-cart.component.scss'],
+    selector: "app-pattern-cart",
+    templateUrl: "./pattern-cart.component.html",
+    styleUrls: ["./pattern-cart.component.scss"],
+    standalone: true,
     animations: [
         expandAnimation
     ],
+    imports: [
+        AmstoreCheckboxComponent,
+        ReactiveFormsModule,
+        AmstoreSlideComponent,
+        AmstoreInfoComponent,
+        AmstoreButtonComponent,
+        IconsComponent,
+        NgClass
+    ]
 })
-export class PatternCartComponent extends AbstractPatternCard implements OnInit {
+export class PatternCartComponent extends AbstractPatternCard {
+    public categories: Signal<IdName[]> = computed(() => {
+        const pattern: IPattern = this.pattern();
+        const lang: 'en' | 'ru' = toSignal(this.langService.lang$)();
 
-    public get categories(): IdName[] {
-        return this.pattern.category.map((item: CategoryType) => ({id: item.id, name: item.name[this._lang]}))
-    }
+        return pattern.category.map((item: CategoryType) => ({id: item.id, name: item.name[lang]}));
+    });
 
-    public get price(): string {
-        return this.pattern.price[this._lang] + (this._lang === 'en' ? '$' : '₽');
-    }
+    public price: Signal<string> = computed(() => {
+        const pattern: IPattern = this.pattern();
+        const lang: 'en' | 'ru' = toSignal(this.langService.lang$)();
+
+        return pattern.price[lang] + (lang === 'en' ? '$' : '₽')
+    });
+
+    public status: Signal<'buy' | 'remove' | 'bought'> = computed(() => {
+        const goods: GoodsCard = toSignal(this.goodsService.goods$)();
+        const bought: number[] = toSignal(this.profileService.boughtPatterns$)();
+        const pattern: IPattern = this.pattern();
+
+        if (goods.patterns.find((value: IPattern) => value.id === pattern.id)) {
+            return 'remove';
+        } else  if (bought.find((value: number) => value === pattern.id)) {
+            return 'bought';
+        }
+
+        return 'buy';
+    });
 
     public get expandState(): 'collapsed' | 'expanded' {
         return this.showSale ? 'expanded' : 'collapsed';
@@ -42,41 +79,15 @@ export class PatternCartComponent extends AbstractPatternCard implements OnInit 
 
     public showSale: boolean = false;
 
-
-    public status: 'buy' | 'remove' | 'bought' = 'buy';
-
-
-    constructor(private goodsService: GoodsService,
-                private profileService: ProfileService,
-                private _injector: Injector) {
-        super(_injector);
-    }
-
-    public ngOnInit(): void {
-        combineLatest([
-            this.goodsService.goods$,
-            this.profileService.boughtPatterns$
-        ]).pipe(takeUntil(this.destroyed))
-            .subscribe(() => {
-                this.status = 'buy';
-                const goods: GoodsCard = this.goodsService.goods$.value;
-                const bought: number[] = this.profileService.boughtPatterns$.value;
-
-                if (goods.patterns.find((value: IPattern) => value.id === this.pattern.id)) {
-                    this.status = 'remove';
-                }
-                if (bought.find((value: number) => value === this.pattern.id)) {
-                    this.status = 'bought';
-                }
-            })
-    }
+    private goodsService: GoodsService = inject(GoodsService);
+    private profileService: ProfileService = inject(ProfileService);
 
     public buttonStatus: Record<string, ButtonStatusMap> = {
         buy: {
             label: 'Купить',
             action: () => {
                 this.goodsService.addProduct(
-                    ProductType.Patterns, this.pattern)
+                    ProductType.Patterns, this.pattern())
                     .subscribe((result: GoodsModifire) => {
                     });
             },
@@ -86,7 +97,7 @@ export class PatternCartComponent extends AbstractPatternCard implements OnInit 
             label: 'Удалить из корзины',
             action: () => {
                 this.goodsService.removeProduct(
-                    ProductType.Patterns, this.pattern.id)
+                    ProductType.Patterns, this.pattern().id)
                     .subscribe((result: GoodsModifire) => {
                     });
             },

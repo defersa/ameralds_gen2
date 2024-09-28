@@ -1,30 +1,41 @@
-import { Component, OnInit } from "@angular/core";
-import { FormControl, UntypedFormControl, UntypedFormGroup } from "@angular/forms";
+import { Component, inject } from "@angular/core";
+import { FormControl, ReactiveFormsModule, UntypedFormGroup } from "@angular/forms";
 import { CustomValidatorFns } from "@am/cdk/forms/custom-validators-fn";
 import { ProfileService } from "@am/services/profile.service";
-import { formAsyncErrorHandler } from "@am/cdk/forms/form-async-error.handler";
-import { AuthRegistrationRequest } from "@am/interface/request/auth-request.interface";
 import { DialogService } from "@am/core/dialog/dialog.service";
 import { fromPromise } from "rxjs/internal-compatibility";
 import { Router } from "@angular/router";
-import { UserCredentialsDto, UserTokensDTO } from "@am/root/api";
-import { error } from "protractor";
+import { UserCredentialsDto } from "@am/root/api";
+import { AmstorePanelBasicComponent } from "@am/cdk/panel/panel-basic/amstore-panel-basic.component";
+import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
+import { AmstoreInputPasswordComponent } from "@am/cdk/forms/input-password/input-password.component";
+import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 
 
 @Component({
     selector: "amstore-registration",
     templateUrl: "./amstore-registration.component.html",
-    styleUrls: ["./amstore-registration.component.scss"]
+    styleUrls: ["./amstore-registration.component.scss"],
+    standalone: true,
+    imports: [
+        AmstorePanelBasicComponent,
+        AmstoreInputComponent,
+        ReactiveFormsModule,
+        AmstoreInputPasswordComponent,
+        AmstoreCheckboxComponent,
+        AmstoreButtonComponent
+    ]
 })
 export class AmstoreRegistrationComponent {
+    private _profileService: ProfileService = inject(ProfileService);
+    private _dialogService: DialogService = inject(DialogService);
+    private _router: Router = inject(Router);
 
     public regForm: UntypedFormGroup;
     public isAccept: FormControl = new FormControl(false);
 
     constructor(
-        private _profileService: ProfileService,
-        private _dialogService: DialogService,
-        private _router: Router
     ) {
         const passwordControl: FormControl = new FormControl(null, [CustomValidatorFns.getPasswordComplexity]);
         this.regForm = new UntypedFormGroup({

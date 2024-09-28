@@ -1,59 +1,51 @@
-import { Component, inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-
-import { expandAnimation } from '@am/cdk/animations/expand';
-import { LangType } from '@am/interface/lang.interface';
-import { GoodsCard, ProductLite } from '@am/interface/goods.intreface';
-import { ImageModelSmall } from '@am/interface/image.interface';
+import {
+    Component,
+    computed,
+    inject,
+    input,
+    InputSignal,
+    Signal
+} from "@angular/core";
+import { GoodsCard } from '@am/interface/goods.intreface';
 import { IPattern } from '@am/interface/pattern.interface';
 import { GoodsService } from '@am/services/goods.service';
-import { LangService } from '@am/services/lang.service';
 import { ProfileService } from '@am/services/profile.service';
 
 import { AmstoreSnapshotBaseDirective } from '../snapshot.base.directive';
-import { DestroyService } from "@am/utils/destroy.service";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { OutsideSrcDirective } from "@am/shared/outside-src/outside-src.directive";
+import { RouterLink } from "@angular/router";
+import { LangTextComponent } from "@am/shared/lang-text/lang-text.component";
 
 
 @Component({
-    selector: 'amstore-snapshot-pattern',
-    templateUrl: './pattern.component.html',
-    styleUrls: ['./pattern.component.scss', '../snapshot.mobile.scss'],
-    providers: [
-        DestroyService,
-    ],
+    selector: "amstore-snapshot-pattern",
+    templateUrl: "./pattern.component.html",
+    styleUrls: ["./pattern.component.scss", "../snapshot.mobile.scss"],
+    standalone: true,
+    imports: [
+        OutsideSrcDirective,
+        RouterLink,
+        LangTextComponent
+    ]
 })
-export class AmstoreSnapshotPatternComponent extends AmstoreSnapshotBaseDirective implements OnInit {
-    @Input()
-    public pattern: IPattern;
+export class AmstoreSnapshotPatternComponent extends AmstoreSnapshotBaseDirective {
+    public pattern: InputSignal<IPattern> = input();
 
-    public status: 'buy' | 'remove' | 'bought' = 'buy';
+    public status: Signal<'buy' | 'remove' | 'bought'> = computed(() => {
+        const goods: GoodsCard = toSignal(this.goodsService.goods$)();
+        const bought: number[] = toSignal(this.profileService.boughtPatterns$)();
+        const pattern: IPattern = this.pattern();
 
-    protected onDestroy: DestroyService = inject(DestroyService);
+        if (goods.patterns.find((value: IPattern) => value.id === pattern.id)) {
+            return 'remove';
+        } else  if (bought.find((value: number) => value === pattern.id)) {
+            return 'bought';
+        }
 
-    constructor(protected injector: Injector,
-                private profileService: ProfileService,
-                private langService: LangService,
-                private goodsService: GoodsService) {
-        super(injector);
+        return 'buy';
+    });
 
-    }
-
-    public ngOnInit(): void {
-        combineLatest([
-            this.goodsService.goods$,
-            this.profileService.boughtPatterns$
-        ]).pipe(takeUntil(this.onDestroy))
-            .subscribe(() => {
-                this.status = 'buy';
-                const goods: GoodsCard = this.goodsService.goods$.value;
-                const bought: number[] = this.profileService.boughtPatterns$.value;
-                if (goods.patterns.find((value: ProductLite) => value.id === this.pattern.id)) {
-                    this.status = 'remove';
-                }
-                if (bought.find((value: number) => value === this.pattern.id)) {
-                    this.status = 'bought';
-                }
-            })
-    }
+    private profileService: ProfileService = inject(ProfileService);
+    private goodsService: GoodsService = inject(GoodsService);
 }

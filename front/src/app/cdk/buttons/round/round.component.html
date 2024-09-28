@@ -1,2 +1,5 @@
-<ng-content></ng-content>
-<div *ngIf="badge" class="amstore-button-round-badge">{{badge}}</div>
+<ng-content/>
+
+@if (badge()) {
+    <div class="amstore-button-round-badge">{{badge()}}</div>
+}

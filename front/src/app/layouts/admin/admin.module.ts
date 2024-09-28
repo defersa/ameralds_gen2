@@ -2,9 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AmstoreAdminComponent } from './admin.component';
 import { RouterModule, Routes } from "@angular/router";
-import { AmstoreCdkModule } from "@am/cdk/cdk.module";
-import { AmstoreSharedModule } from "@am/shared/shared.module";
-import { MenuModule } from "@am/shared/menu/menu.module";
 import { AMSTORE_SECTION_CONFIG } from "@am/shared/menu/menu.component";
 import { adminConfig } from "@am/root/layouts/admin/section.config";
 
@@ -39,15 +36,9 @@ export const routes: Routes = [{
 
 
 @NgModule({
-    declarations: [
-        AmstoreAdminComponent,
-    ],
     imports: [
         CommonModule,
         RouterModule.forChild(routes),
-        AmstoreCdkModule,
-        AmstoreSharedModule,
-        MenuModule,
     ],
     providers: [
         { provide: AMSTORE_SECTION_CONFIG, useValue: adminConfig},

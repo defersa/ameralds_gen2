@@ -2,15 +2,30 @@ import { CustomValidatorFns } from '@am/cdk/forms/custom-validators-fn';
 import { SizeType } from '@am/interface/size.interface';
 import { SizesService } from '@am/services/sizes.service';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+    FormControl,
+    FormGroup,
+    ReactiveFormsModule,
+    UntypedFormControl,
+    UntypedFormGroup,
+    Validators
+} from "@angular/forms";
 import { ActivatedRoute } from '@angular/router';
 import { Location } from "@angular/common";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 
 
 @Component({
-    selector: 'asmtore-size-edit',
-    templateUrl: './size-edit.component.html',
-    styleUrls: ['./size-edit.component.scss']
+    selector: "asmtore-size-edit",
+    templateUrl: "./size-edit.component.html",
+    styleUrls: ["./size-edit.component.scss"],
+    imports: [
+        AmstoreButtonComponent,
+        AmstoreInputComponent,
+        ReactiveFormsModule
+    ],
+    standalone: true
 })
 export class SizeEditComponent implements OnInit {
     public id: number;
@@ -25,11 +40,10 @@ export class SizeEditComponent implements OnInit {
     }
 
     protected readonly location: Location = inject(Location);
+    private route: ActivatedRoute = inject(ActivatedRoute);
+    private sizes: SizesService = inject(SizesService);
 
-    constructor(
-        private route: ActivatedRoute,
-        private sizes: SizesService
-    ) {
+    constructor() {
         this.id = Number(this.route.snapshot.paramMap.get('id')) ?? null;
     }
 

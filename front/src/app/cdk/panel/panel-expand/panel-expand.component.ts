@@ -1,42 +1,49 @@
-import { Component, Input } from '@angular/core';
+import { Component, input, InputSignal, model, ModelSignal } from "@angular/core";
 import { AmstoreColor } from "@am/cdk/core/color";
 import { expandAnimation } from "@am/cdk/animations/expand";
+import { AmstoreDividerComponent } from "@am/cdk/divider/divider.component";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+
 
 @Component({
-    selector: 'amstore-panel',
-    templateUrl: './panel-expand.component.html',
-    styleUrls: ['./panel-expand.component.scss'],
+    selector: "amstore-panel",
+    templateUrl: "./panel-expand.component.html",
+    styleUrls: ["./panel-expand.component.scss"],
     animations: [
         expandAnimation
     ],
+    standalone: true,
+    imports: [
+        AmstoreDividerComponent,
+        IconsComponent
+    ],
     host: {
-        class: 'amstore-panel'
+        class: "amstore-panel"
     }
 })
 export class AmstorePanelExpandComponent extends AmstoreColor {
-    @Input()
-    public state: boolean = false;
-
-    @Input()
-    public clickable: boolean = true;
+    public state: ModelSignal<boolean> = model(false);
+    public clickable: InputSignal<boolean> = input(true);
 
     public get expandState(): 'collapsed' | 'expanded' {
-        return this.state ? 'expanded' : 'collapsed';
+        return this.state() ? 'expanded' : 'collapsed';
     }
 
     public changeState(): void {
-        if(!this.clickable){
-            return
+        if (!this.clickable()) {
+            return;
         }
-        this.state = !this.state;
+
+        this.state.set(!this.state());
     }
 
 }
 
-
+// TODO: УДОЛИ
 @Component({
     selector: 'amstore-panel-header',
-    template: '<ng-content></ng-content>'
+    standalone: true,
+    template: '<ng-content/>',
 })
 export class AmstorePanelHeaderComponent {
 

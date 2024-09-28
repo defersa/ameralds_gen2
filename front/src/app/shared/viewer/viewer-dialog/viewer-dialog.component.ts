@@ -1,23 +1,27 @@
-import {Component, HostListener, Inject, OnInit, ViewEncapsulation} from '@angular/core';
+import { Component, HostListener, inject, Inject, OnInit, ViewEncapsulation } from "@angular/core";
 import { ImageModelSmall } from 'src/app/interface/image.interface';
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+import { OutsideSrcDirective } from "@am/shared/outside-src/outside-src.directive";
 
 @Component({
-    selector: 'asmtore-viewer',
-    templateUrl: './viewer-dialog.component.html',
-    styleUrls: ['./viewer-dialog.component.scss'],
+    selector: "asmtore-viewer",
+    templateUrl: "./viewer-dialog.component.html",
+    styleUrls: ["./viewer-dialog.component.scss"],
     encapsulation: ViewEncapsulation.None,
+    standalone: true,
+    imports: [
+        IconsComponent,
+        OutsideSrcDirective
+    ],
     host: {
-        class: 'amstore-viewer'
+        class: "amstore-viewer"
     }
 })
-export class AmstoreViewerDialogComponent implements OnInit {
+export class AmstoreViewerDialogComponent {
+    public data: {images: ImageModelSmall[], index: number} = inject(MAT_DIALOG_DATA);
+    private _dialogRef: MatDialogRef<unknown> = inject(MatDialogRef);
 
-    constructor(@Inject(MAT_DIALOG_DATA) public data: {images: ImageModelSmall[], index: number},
-                private _dialogRef: MatDialogRef<unknown>) { }
-
-    ngOnInit(): void {
-    }
 
     public nextImage(event: MouseEvent): void {
         event.stopPropagation();

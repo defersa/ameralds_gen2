@@ -1,18 +1,24 @@
 <h1>Заказ</h1>
 
-<amstore-forms-input [control]="emailControl">Email</amstore-forms-input>
+<amstore-forms-input [formControl]="emailControl">Email</amstore-forms-input>
 
-<div *ngFor="let pattern of patterns$ | async"
-    class="admin-cart__pattern">
-    <div class="admin-cart__pattern-image">
-        <amstore-image-list [images]="pattern.images"></amstore-image-list>
+@for (pattern of patterns$ | async; track pattern) {
+    <div class="admin-cart__pattern">
+        <div class="admin-cart__pattern-image">
+            <amstore-image-list [images]="pattern.images"/>
+        </div>
+
+        <div class="admin-cart__pattern-content">
+            <h2>{{pattern.name.ru}}</h2>
+
+            <admin-pattern-cart [pattern]="pattern"/>
+        </div>
     </div>
-    <div class="admin-cart__pattern-content">
-        <h2>{{pattern.name.ru}}</h2>
-        <admin-pattern-cart [pattern]="pattern"></admin-pattern-cart>
-    </div>
-</div>
+}
+
 <!--TODO: Чекать и отправлять только с размерами-->
-<div class="amstore-actions-line right" *ngIf="order$ | async; let order">
-    <amstore-button [disabled]="emailControl.invalid || !order.purchases.length" size="large" (click)="sendOrder(order)">Отправить</amstore-button>
-</div>
+@if (order$ | async; as order) {
+    <div class="amstore-actions-line right">
+        <amstore-button [disabled]="emailControl.invalid || !order.purchases.length" size="large" (click)="sendOrder(order)">Отправить</amstore-button>
+    </div>
+}

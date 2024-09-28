@@ -1,18 +1,27 @@
-import { Directive, EventEmitter, inject, Input, OnInit, Output } from "@angular/core";
+import {
+    DestroyRef,
+    Directive,
+    EventEmitter,
+    inject,
+    input,
+    Input,
+    InputSignal,
+    model,
+    ModelSignal,
+    OnInit,
+    Output
+} from "@angular/core";
 import { DestroyService } from "@am/utils/destroy.service";
 import { AbstractControl, FormGroup } from "@angular/forms";
 import { ThemePalette } from "@am/cdk/core/color";
 import { takeUntil } from "rxjs/operators";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
-@Directive({
-    providers: [DestroyService],
-})
+@Directive()
 export abstract class AbstractFilterComponent implements OnInit {
-
     public abstract filterForm: FormGroup;
 
-    @Input()
-    public color?: ThemePalette = 'primary';
+    public color: InputSignal<ThemePalette> = input('primary');
 
     @Input()
     public set filters(filters: Record<string, unknown>) {
@@ -31,7 +40,7 @@ export abstract class AbstractFilterComponent implements OnInit {
 
     public isChanged: boolean = false;
     public isEmpty: boolean = false;
-    protected onDestroy: DestroyService = inject(DestroyService);
+    protected destroyRef: DestroyRef = inject(DestroyRef);
 
     @Output()
     public onSetFilters: EventEmitter<Record<string, unknown>> = new EventEmitter<Record<string, unknown>>();
@@ -39,7 +48,7 @@ export abstract class AbstractFilterComponent implements OnInit {
 
     public ngOnInit(): void {
         this.filterForm.valueChanges
-            .pipe(takeUntil(this.onDestroy))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.isChanged = true);
     }
 

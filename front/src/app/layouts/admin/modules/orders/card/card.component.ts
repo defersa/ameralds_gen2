@@ -1,11 +1,16 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from "@angular/router";
-import { Location } from "@angular/common";
+import { AsyncPipe, DatePipe, Location } from "@angular/common";
 import { AdminOrderService } from "@am/services/admin-order.service";
 import { Observable } from "rxjs";
 import { IAdminOrder, IPurchaseSaved } from "@am/interface/order.interface";
 import { map } from "rxjs/operators";
 import { PattenSizeFiles } from "@am/interface/pattern.interface";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { AmstoreInfoComponent } from "@am/cdk/info/info.component";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+import { AmstoreSnapshotPatternComponent } from "@am/shared/snapshot/pattern/pattern.component";
+import { AmstoreChipComponent } from "@am/cdk/chip/chip.component";
 
 type IAdminOrderWithStatus = IAdminOrder & {
     purchases: (IPurchaseSaved & {
@@ -17,9 +22,19 @@ type IAdminOrderWithStatus = IAdminOrder & {
 }
 
 @Component({
-    selector: 'app-card',
-    templateUrl: './card.component.html',
-    styleUrls: ['./card.component.scss']
+    selector: "app-card",
+    templateUrl: "./card.component.html",
+    styleUrls: ["./card.component.scss"],
+    standalone: true,
+    imports: [
+        AmstoreButtonComponent,
+        AsyncPipe,
+        AmstoreInfoComponent,
+        IconsComponent,
+        DatePipe,
+        AmstoreSnapshotPatternComponent,
+        AmstoreChipComponent
+    ]
 })
 export class CardComponent implements OnInit {
     public readonly location: Location = inject(Location);
@@ -29,7 +44,6 @@ export class CardComponent implements OnInit {
     public id: number;
 
     public order$: Observable<IAdminOrderWithStatus>;
-
 
     public ngOnInit(): void {
         this.id = Number(this.route.snapshot.paramMap.get('id')) ?? null;

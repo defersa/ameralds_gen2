@@ -1,4 +1,13 @@
-import { computed, Directive, effect, ElementRef, inject, input, InputSignal, Signal } from "@angular/core";
+import {
+    computed,
+    Directive,
+    effect,
+    ElementRef,
+    inject,
+    model,
+    ModelSignal,
+    Signal
+} from "@angular/core";
 
 
 export type ThemePalette = 'primary' | 'accent' | 'warn' | 'special' | 'contrast' | undefined;
@@ -7,8 +16,7 @@ export type ThemePalette = 'primary' | 'accent' | 'warn' | 'special' | 'contrast
     standalone: true,
 })
 export class AmstoreColor {
-    public color: InputSignal<ThemePalette> = input('primary');
-
+    public color: ModelSignal<ThemePalette> = model('primary');
     public colorClass: Signal<string> = computed(() => `amstore-${this.color()}`);
 
     private previousColorClass: string = '';
@@ -17,8 +25,14 @@ export class AmstoreColor {
 
     constructor() {
         effect(() => {
-            this.elementRef.nativeElement.classList.remove(`amstore-${this.previousColorClass}`);
-            this.elementRef.nativeElement.classList.add(`amstore-${this.colorClass()}`);
+            if (this.previousColorClass) {
+                this.elementRef.nativeElement.classList.remove(this.previousColorClass);
+            }
+
+            if (this.colorClass()) {
+                this.elementRef.nativeElement.classList.add(this.colorClass());
+            }
+
             this.previousColorClass = this.colorClass();
         });
     }

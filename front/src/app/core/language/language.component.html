@@ -1,12 +1,13 @@
-<button amstore-button-round
-    [badge]="currentTypeObj.type"
-    [image]="currentTypeObj.url"
-    cdkOverlayOrigin
-    (click)="toggle()"
-    #origin="cdkOverlayOrigin">
-</button>
+@if (currentTypeObj$ | async; as currentTypeObj) {
+    <button amstore-button-round
+            [badge]="currentTypeObj.type"
+            [image]="currentTypeObj.url"
+            cdkOverlayOrigin
+            (click)="toggle()"
+            #origin="cdkOverlayOrigin">
+    </button>
 
-<ng-template
+    <ng-template
         cdk-connected-overlay
         cdkConnectedOverlayLockPosition
         cdkConnectedOverlayHasBackdrop
@@ -16,7 +17,12 @@
         (backdropClick)="close()"
         (detach)="close()">
         <div class="language-panel">
-            <div *ngFor="let lang of langTypesList" class="language-panel-item" (click)="setLang(lang.type)">
-                {{lang.label}}<img [src]="lang.url"></div>
+            @for (lang of langTypesList; track lang) {
+                <div class="language-panel-item" (click)="setLang(lang.type)">
+                    {{lang.label}}
+                    <img [src]="lang.url">
+                </div>
+            }
         </div>
     </ng-template>
+}

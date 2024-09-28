@@ -5,25 +5,32 @@ import { ImageModelSmall } from '@am/interface/image.interface';
 import { IPattern } from '@am/interface/pattern.interface';
 import { PatternService } from '@am/services/pattern.service';
 import { EMPTY_PATTERN } from "@am/shared/mocks/pattern";
-import { Location } from "@angular/common";
+import { AsyncPipe, Location } from "@angular/common";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { AmstorePatternAddCardComponent } from "@am/shared/card/pattern-add/pattern-add.component";
 
 
 @Component({
-    selector: 'admin-pattern-edit',
-    templateUrl: './pattern-edit.component.html',
-    styleUrls: ['./pattern-edit.component.scss']
+    selector: "admin-pattern-edit",
+    templateUrl: "./pattern-edit.component.html",
+    styleUrls: ["./pattern-edit.component.scss"],
+    standalone: true,
+    imports: [
+        AmstoreButtonComponent,
+        AmstorePatternAddCardComponent,
+        AsyncPipe
+    ]
 })
 export class PatternEditComponent {
-
     public id: number;
     public images: ImageModelSmall[] = [];
     public asyncPattern: Observable<IPattern>;
-    private readonly location: Location = inject(Location);
 
-    constructor(
-        private route: ActivatedRoute,
-        private patternService: PatternService
-    ) {
+    private readonly location: Location = inject(Location);
+    private route: ActivatedRoute = inject(ActivatedRoute);
+    private patternService: PatternService = inject(PatternService);
+
+    constructor() {
         this.id = Number(this.route.snapshot.paramMap.get('id'));
 
         this.asyncPattern = !this.id ? of(EMPTY_PATTERN) :

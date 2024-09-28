@@ -1,6 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject } from "@angular/core";
 import { LangObject, LangType } from 'src/app/interface/lang.interface';
 import { LangService } from 'src/app/services/lang.service';
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
+import { AmstoreButtonRoundComponent } from "@am/cdk/buttons/round/round.component";
+import { AsyncPipe } from "@angular/common";
+import { CdkConnectedOverlay, CdkOverlayOrigin } from "@angular/cdk/overlay";
 
 const LANGS: Record<LangType, LangObject> = {
     'en': {
@@ -17,27 +22,25 @@ const LANGS: Record<LangType, LangObject> = {
 };
 
 @Component({
-    selector: 'amstore-language',
-    templateUrl: './language.component.html',
-    styleUrls: ['./language.component.scss']
+    selector: "amstore-language",
+    templateUrl: "./language.component.html",
+    styleUrls: ["./language.component.scss"],
+    standalone: true,
+    imports: [
+        AmstoreButtonRoundComponent,
+        AsyncPipe,
+        CdkOverlayOrigin,
+        CdkConnectedOverlay
+    ]
 })
-export class AmastoreLanguageComponent implements OnInit {
+export class AmastoreLanguageComponent {
+    private langService: LangService = inject(LangService)
 
-    public get currentTypeObj(): LangObject {
-        return LANGS[this.currentType];
-    }
-
+    public currentTypeObj$: Observable<LangObject> = this.langService.lang$.pipe(map((lang: LangType) => LANGS[lang]));
     public panelOpen: boolean = false;
-
     public currentType: LangType = 'en';
-
     public langTypesList: LangObject[] = Object.values(LANGS);
 
-    constructor(private langService: LangService) { }
-
-    ngOnInit(): void {
-        this.langService.lang$.subscribe((lang: LangType) => this.currentType = lang);
-    }
 
     public setLang(lang: LangType): void {
         this.close();

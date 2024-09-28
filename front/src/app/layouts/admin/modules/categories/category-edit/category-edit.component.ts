@@ -1,16 +1,24 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute } from '@angular/router';
 import { CategoriesService } from '@am/services/categories.service';
 import { CategoryType } from '@am/interface/category.interface';
 import { map } from "rxjs/operators";
 import { Location } from "@angular/common";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 
 
 @Component({
-    selector: 'app-category-edit',
-    templateUrl: './category-edit.component.html',
-    styleUrls: ['./category-edit.component.scss']
+    selector: "app-category-edit",
+    templateUrl: "./category-edit.component.html",
+    styleUrls: ["./category-edit.component.scss"],
+    standalone: true,
+    imports: [
+        AmstoreButtonComponent,
+        AmstoreInputComponent,
+        ReactiveFormsModule
+    ]
 })
 export class CategoryEditComponent implements OnInit {
     protected readonly location: Location = inject(Location);

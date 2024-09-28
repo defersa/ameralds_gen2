@@ -3,12 +3,12 @@ import {
     ChangeDetectorRef,
     Component,
     ElementRef,
-    EventEmitter,
+    EventEmitter, inject,
     Input,
     OnDestroy,
     OnInit,
     Output
-} from '@angular/core';
+} from "@angular/core";
 import { combineLatest, Observable, of, Subject } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 
@@ -23,8 +23,15 @@ import {
     PatternSaveResultResponse,
     PatternSaveSizeResult
 } from '@am/interface/pattern.interface';
-import { ArrayComponent } from '@am/cdk/forms/array/array.component';
-import { AbstractControl, UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AmstoreFormArrayComponent, ArrayComponent } from "@am/cdk/forms/array/array.component";
+import {
+    AbstractControl,
+    ReactiveFormsModule,
+    UntypedFormArray,
+    UntypedFormControl,
+    UntypedFormGroup,
+    Validators
+} from "@angular/forms";
 import { SizesService } from '@am/services/sizes.service';
 import { SizeType } from '@am/interface/size.interface';
 import { ArrayValidatorFns } from '@am/cdk/forms/array/array-validators-fn';
@@ -35,12 +42,31 @@ import { AmstoreCardDirective } from '../card.directive';
 import { IResultRequest } from "@am/interface/request.interface";
 import { ImagesService } from "@am/services/images.service";
 import { SnackService } from "@am/services/snackbar.service";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { BlobImageListComponent } from "@am/shared/image-list/blob-image-list/blob-image-list.component";
+import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
+import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
+import { AmstoreUploadFileComponent } from "@am/cdk/forms/upload-file/upload-file.component";
+import { AsyncPipe } from "@angular/common";
+import { AmstoreSelectComponent } from "@am/cdk/forms/select/select.component";
 
 
 @Component({
-    selector: 'amstore-pattern-add-card',
-    templateUrl: './pattern-add.component.html',
-    styleUrls: ['./pattern-add.component.scss'],
+    selector: "amstore-pattern-add-card",
+    templateUrl: "./pattern-add.component.html",
+    styleUrls: ["./pattern-add.component.scss"],
+    standalone: true,
+    imports: [
+        AmstoreButtonComponent,
+        BlobImageListComponent,
+        AmstoreInputComponent,
+        AmstoreCheckboxComponent,
+        ReactiveFormsModule,
+        AmstoreUploadFileComponent,
+        AsyncPipe,
+        AmstoreSelectComponent,
+        AmstoreFormArrayComponent
+    ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AmstorePatternAddCardComponent extends AmstoreCardDirective implements OnDestroy, OnInit {
@@ -71,16 +97,17 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
 
     protected destroyed: Subject<void> = new Subject<void>();
 
-    constructor(public elementRef: ElementRef,
-                private _changeDetector: ChangeDetectorRef,
-                private _sizeService: SizesService,
-                private _categoriesService: CategoriesService,
-                private _imageService: ImagesService,
-                private _patternService: PatternService,
-                private _arrayValidatorsFns: ArrayValidatorFns,
-                private _snackService: SnackService,
-                protected viewer: AmstoreViewerService) {
-        super(viewer);
+    public elementRef: ElementRef = inject(ElementRef);
+    private _changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
+    private _sizeService: SizesService = inject(SizesService);
+    private _categoriesService: CategoriesService = inject(CategoriesService);
+    private _imageService: ImagesService = inject(ImagesService);
+    private _patternService: PatternService = inject(PatternService);
+    private _arrayValidatorsFns: ArrayValidatorFns = inject(ArrayValidatorFns);
+    private _snackService: SnackService = inject(SnackService);
+
+    constructor() {
+        super();
 
         this.patternForm = new UntypedFormGroup({
             name: new UntypedFormGroup({

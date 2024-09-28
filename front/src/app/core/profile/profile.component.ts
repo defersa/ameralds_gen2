@@ -7,14 +7,25 @@ import { ProfileService } from "@am/services/profile.service";
 
 import { AmstoreLoginComponent } from './login/login.component';
 import { DialogService } from "../dialog/dialog.service";
+import { AsyncPipe } from "@angular/common";
+import { AmstoreButtonRoundComponent } from "@am/cdk/buttons/round/round.component";
+import { RouterLink } from "@angular/router";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
 
 
 @Component({
-    selector: 'amstore-profile',
-    templateUrl: './profile.component.html',
-    styleUrls: ['./profile.component.scss'],
+    selector: "amstore-profile",
+    templateUrl: "./profile.component.html",
+    styleUrls: ["./profile.component.scss"],
+    standalone: true,
+    imports: [
+        AsyncPipe,
+        AmstoreButtonRoundComponent,
+        RouterLink,
+        IconsComponent
+    ],
     host: {
-        class: 'amstore-profile'
+        class: "amstore-profile"
     }
 })
 export class ProfileComponent {

@@ -1,16 +1,22 @@
 <mat-form-field>
-    <mat-label>
-        <ng-content selector="amstore-forms-label"></ng-content>
-    </mat-label>
+    @if (label()) {
+        <mat-label>
+            {{ label() }}
+        </mat-label>
+    }
 
-    <input matInput [type]="type" [formControl]="formControl" [name]="name" [autocomplete]="autocomplete" ngDefaultControl [required]="required">
+    <input matInput [type]="type()" [formControl]="control" [name]="name()" [autocomplete]="autocomplete()" ngDefaultControl
+           [required]="required()">
 
-    <amstore-icon *ngIf="suffixName"
-                  (click)="emitSuffixClick()"
-                  [iconName]="suffixName"
-                  [size]="20"
-                  color="accent"
-                  matSuffix></amstore-icon>
+    @if (suffixName()) {
+        <amstore-icon (click)="emitSuffixClick()"
+                      [iconName]="suffixName()"
+                      [size]="20"
+                      color="accent"
+                      matSuffix/>
+    }
 
-    <mat-error *ngIf="isErrorState">{{errors$ | async}}</mat-error>
+    @if (errorStatusChanges$ | async) {
+        {{ control.errors | errors }}
+    }
 </mat-form-field>

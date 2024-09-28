@@ -1,10 +1,18 @@
-import { ChangeDetectorRef, Component, Directive, HostBinding, inject, Input } from '@angular/core';
-import { AbstractControl, FormControl, Validators } from '@angular/forms';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { startWith, takeUntil } from 'rxjs/operators';
+import {
+    ChangeDetectorRef,
+    Component,
+    DestroyRef,
+    Directive,
+    HostBinding,
+    inject, input,
+    Input,
+    InputSignal,
+    OnInit
+} from "@angular/core";
+import { AbstractControl, ControlValueAccessor, FormControl, NgControl, Validators } from "@angular/forms";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
+import { map, startWith, takeUntil } from "rxjs/operators";
 import { AmstoreColor, ThemePalette } from '../core/color';
-import { getControlErrors } from './error-message-builder';
-import { DestroyService } from "@am/utils/destroy.service";
 
 
 export type SelectOption = {
@@ -12,93 +20,52 @@ export type SelectOption = {
     value: string | number | null;
 }
 
-@Directive({
-    selector: 'forms-base',
-    providers: [DestroyService],
-})
-export class AmstoreFormsBaseDirective extends AmstoreColor {
-    @HostBinding('class')
-    protected classes: string = 'amstore-forms';
+@Directive()
+export class AmstoreFormsBaseDirective extends AmstoreColor implements ControlValueAccessor, OnInit {
+    public label: InputSignal<string> = input();
 
-    public get isErrorState(): boolean {
-        return this.control?.invalid && this?.control.touched;
+    public readonly ngControl: NgControl = inject(NgControl, { self: true, optional: true });
+    protected readonly destroyRef: DestroyRef = inject(DestroyRef);
+
+    constructor() {
+        super();
+
+        if (this.ngControl !== null) {
+            this.ngControl.valueAccessor = this;
+        }
     }
 
-    @Input()
-    public required: boolean = false;
+    public errorStatusChanges$: Observable<boolean>;
+    public control: FormControl;
 
-    @Input()
-    public set nullControl(value: AbstractControl) {
-        if (value) {
-            this.control = value;
-        }
-    };
+    public ngOnInit(): void {
+        this.control = this.ngControl.control as FormControl;
 
-    @Input()
-    public get control(): AbstractControl {
-        return this._control;
-    };
-
-    public set control(value: AbstractControl) {
-        if (this._controlChanged) {
-            this._controlChanged.next();
-            this._controlChanged.complete();
-        }
-
-        this._controlChanged = new Subject<void>();
-
-        this._control = value;
-
-        this._control.statusChanges
+        this.errorStatusChanges$ = this.control.statusChanges
             .pipe(
-                startWith(""),
-                takeUntil(this._controlChanged),
-                takeUntil(this.onDestroy),
-            )
-            .subscribe(() => {
-                const errors: string | null = this.control.invalid ? getControlErrors(this.control.errors) : null;
-                this.errors$.next(errors);
-                this.changeDetector.markForCheck();
-            });
+                startWith(null),
+                map(() => !!this.control.errors),
+            );
 
-        if (this.required) {
-            this._control.addValidators([Validators.required])
+        this.checkInitValue();
+    }
+
+    public writeValue(value?: unknown): void {
+    }
+
+    public registerOnChange(fn: (value?: unknown) => void): void {
+    }
+
+    public registerOnTouched(fn: (value?: unknown) => void): void {
+    }
+
+    private checkInitValue(): void {
+        const hasValue: boolean = Array.isArray(this.control.value) ? this.control.value.length > 0 : Boolean(this.control.value);
+
+        if (this.control.untouched && hasValue) {
+            this.control.markAsTouched();
         }
-
-        this.changeDetector.detectChanges();
-    };
-
-    protected _control: AbstractControl = new FormControl();
-    protected _controlChanged: Subject<void>;
-    protected onDestroy: DestroyService = inject(DestroyService);
-
-    public get formControl(): FormControl {
-        return this.control as FormControl;
     }
-
-    @Input()
-    public name: string = '';
-
-    @Input()
-    public autocomplete: string = '';
-
-    public errors$: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
-
-    @Input()
-    public get isContrast(): boolean {
-        return this._isContrast;
-    }
-
-    public set isContrast(value: boolean) {
-        this._isContrast = value;
-        this.classes = 'amstore-forms' + (this._isContrast ? ' is-contrast' : '');
-    }
-
-    private _isContrast: boolean = false;
-
-    protected defaultColor: ThemePalette = 'primary';
-
-    protected changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
 }
 
 @Component({

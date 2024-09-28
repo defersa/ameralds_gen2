@@ -1,8 +1,9 @@
-<amstore-filters (onSetFilters)="setFilterWithPage($event)" [filters]="filters"></amstore-filters>
+<amstore-filters (onSetFilters)="setFilterWithPage($event)" [filters]="filters"/>
 
-<amstore-snapshot-pattern *ngFor="let item of items$ | async" [pattern]="item" [routerLink]="[item.id]">
-    <amstore-pattern-details-short [pattern]="item" [routerLink]="[item.id]"></amstore-pattern-details-short>
-</amstore-snapshot-pattern>
+@for (item of items$ | async; track item) {
+    <amstore-snapshot-pattern [pattern]="item" [routerLink]="[item.id]">
+        <amstore-pattern-details-short [pattern]="item" [routerLink]="[item.id]"/>
+    </amstore-snapshot-pattern>
+}
 
-<amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page">
-</amstore-paginator>
+<amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page"/>

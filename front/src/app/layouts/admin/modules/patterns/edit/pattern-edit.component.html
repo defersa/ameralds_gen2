@@ -1,2 +1,5 @@
 <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
-<amstore-pattern-add-card *ngIf="(asyncPattern | async); let pattern" [data]="pattern" (onBack)="getBack()"></amstore-pattern-add-card>
+
+@if (asyncPattern | async; as pattern) {
+    <amstore-pattern-add-card [data]="pattern" (onBack)="getBack()"/>
+}

@@ -1,5 +1,4 @@
 import { Directive, inject } from "@angular/core";
-import { DestroyService } from "@am/utils/destroy.service";
 import { FilteredPage, FiltersSet } from "@am/shared/abstract/filtered-page";
 import { Observable } from "rxjs";
 import { IPattern } from "@am/interface/pattern.interface";
@@ -9,9 +8,7 @@ import { PatternService } from "@am/services/pattern.service";
 import { IPaginatedResponse } from "@am/interface/request.interface";
 
 
-@Directive({
-    providers: [DestroyService],
-})
+@Directive()
 export abstract class AbstractPatternsIndex extends FilteredPage {
     public items$: Observable<IPattern[]> = this.filterSet$.pipe(
         filter((result: FiltersSet) => !!result),
@@ -36,11 +33,6 @@ export abstract class AbstractPatternsIndex extends FilteredPage {
     public filters: Record<string, unknown>;
 
     protected pattern: PatternService = inject(PatternService);
-
-    constructor(
-    ) {
-        super();
-    }
 
     public setFilterWithPage(filters: Record<string, unknown>): void {
         this.setFilter({

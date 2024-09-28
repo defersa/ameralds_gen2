@@ -2,7 +2,9 @@
     <h3>Размеры:</h3>
 
     <div class="amstore-row">
-        <amstore-checkbox *ngFor="let size of sizesWithControl" [control]="size.control">{{size.value}} {{sizeUnit}}</amstore-checkbox>
+        @for (size of sizesWithControl(); track size) {
+            <amstore-checkbox [formControl]="size.control">{{size.value}} {{sizeUnit()}}</amstore-checkbox>
+        }
     </div>
 </div>
 
@@ -28,5 +30,8 @@
     <amstore-button color="warn" class="amstore-card-container-sale" [ngClass]="showSale ? '' : 'not-active'" (click)="showSale = !showSale" size="large">
         <amstore-icon iconName="sale" [contrast]="true" [size]="32"></amstore-icon>
     </amstore-button>
-    <amstore-button (click)="buttonStatus[status].action()" [color]="buttonStatus[status].color" size="large">{{buttonStatus[status].label}}</amstore-button>
+
+    @if (status(); as status) {
+        <amstore-button (click)="buttonStatus[status].action()" [color]="buttonStatus[status].color" size="large">{{buttonStatus[status].label}}</amstore-button>
+    }
 </div>

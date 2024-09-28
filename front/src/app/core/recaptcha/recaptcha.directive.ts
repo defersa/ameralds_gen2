@@ -1,8 +1,10 @@
 import { Directive, OnDestroy, OnInit } from '@angular/core';
 import { environment } from "../../../environments/environment";
 
+
 @Directive({
-    selector: '[amstoreRecaptcha]'
+    selector: '[amstoreRecaptcha]',
+    standalone: true,
 })
 export class RecaptchaDirective implements OnInit, OnDestroy {
 

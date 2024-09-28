@@ -20,39 +20,41 @@
     }
 }
 
-.amstore-chip {
+:host {
     display: block;
     border-radius: 4px;
     cursor: pointer;
 
-    &-small {
-        @include get-amstore-font("body", 8, null, null);
-        padding: get-spacing(1)/2 get-spacing(2);
-    }
+    .amstore-chip {
+        &-small {
+            @include get-amstore-font("body", 8, null, null);
+            padding: get-spacing(1)/2 get-spacing(2);
+        }
 
-    &-medium {
-        @include get-amstore-font("body", 12, null, null);
-        padding: get-spacing(1)/2 get-spacing(2);
-    }
+        &-medium {
+            @include get-amstore-font("body", 12, null, null);
+            padding: get-spacing(1)/2 get-spacing(2);
+        }
 
-    &-large {
-        @include get-amstore-font("body", 14, null, null);
-        padding:  get-spacing(1) get-spacing(3);
-    }
+        &-large {
+            @include get-amstore-font("body", 14, null, null);
+            padding:  get-spacing(1) get-spacing(3);
+        }
 
-    &.amstore-primary {
-        @include amstore-chip-color(green);
-    }
+        &.amstore-primary {
+            @include amstore-chip-color(green);
+        }
 
-    &.amstore-accent {
-        @include amstore-chip-color(blue);
-    }
+        &.amstore-accent {
+            @include amstore-chip-color(blue);
+        }
 
-    &.amstore-warn {
-        @include amstore-chip-color(red);
-    }
+        &.amstore-warn {
+            @include amstore-chip-color(red);
+        }
 
-    &.amstore-special {
-        @include amstore-chip-color(turquoise);
+        &.amstore-special {
+            @include amstore-chip-color(turquoise);
+        }
     }
 }

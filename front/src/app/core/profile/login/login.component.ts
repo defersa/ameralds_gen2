@@ -1,46 +1,49 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostListener } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, ValidationErrors } from '@angular/forms';
+import { Component, HostListener, inject } from "@angular/core";
+import { FormGroup, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, ValidationErrors } from "@angular/forms";
 import { RecaptchaDirective } from "../../recaptcha/recaptcha.directive";
 import { AuthService } from "@am/services/auth.service";
 import { ProfileService } from "@am/services/profile.service";
 import { IAuthResponse } from "@am/interface/profile.interface";
-import { MatDialogRef } from "@angular/material/dialog";
+import { MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
+import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
+import { AmstoreInputPasswordComponent } from "@am/cdk/forms/input-password/input-password.component";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 
 
 @Component({
-    selector: 'amstore-dialog-login',
-    templateUrl: './login.component.html',
-    styleUrls: ['./login.component.scss'],
+    selector: "amstore-dialog-login",
+    templateUrl: "./login.component.html",
+    styleUrls: ["./login.component.scss"],
+    standalone: true,
+    imports: [
+        MatDialogTitle,
+        MatDialogContent,
+        AmstoreInputComponent,
+        ReactiveFormsModule,
+        AmstoreInputPasswordComponent,
+        AmstoreButtonComponent,
+        MatDialogActions
+    ]
 })
 export class AmstoreLoginComponent extends RecaptchaDirective {
-    public authForm: UntypedFormGroup;
+    private matDialogRef: MatDialogRef<AmstoreLoginComponent> = inject(MatDialogRef<AmstoreLoginComponent>);
+    private authService: AuthService = inject(AuthService);
+    private profileService: ProfileService = inject(ProfileService);
+
+    public authForm: FormGroup;
     public error: string | undefined;
-
-    public passwordType: 'text' | 'password' = 'password';
-
-    public get username(): UntypedFormControl {
-        return this.authForm.get('username') as UntypedFormControl;
-    }
-
-    public get password(): UntypedFormControl {
-        return this.authForm.get('password') as UntypedFormControl;
-    }
-
     private errorName: string = 'auth';
 
-
-    constructor(
-        private _matDialogRef: MatDialogRef<AmstoreLoginComponent>,
-        private _authService: AuthService,
-        private _profileService: ProfileService
-    ) {
+    constructor() {
         super();
+
         this.authForm = new UntypedFormGroup({
             username: new UntypedFormControl('', []),
             password: new UntypedFormControl('', [])
         });
 
+        // TODO: REWOOORK
         this.authForm.valueChanges.subscribe(() => {
             this.error = undefined;
             this.authForm.controls.username.setErrors(this._removeAuthError(this.authForm.controls.username.errors));
@@ -53,12 +56,12 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
             this.authForm.markAsTouched();
             return;
         }
-        this._profileService.authWithRecaptchaToken(this.authForm.value)
+        this.profileService.authWithRecaptchaToken(this.authForm.value)
             .subscribe(
                 (result: IAuthResponse) => {
                     if (result.access) {
-                        this._authService.setToken(result);
-                        this._matDialogRef.close();
+                        this.authService.setToken(result);
+                        this.matDialogRef.close();
                     }
 
                     if (result.error || !result.access) {
@@ -72,10 +75,6 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
                     this.authForm.markAsPristine();
                 }
             )
-    }
-
-    public changePasswordType(): void {
-        this.passwordType = this.passwordType === 'password' ? 'text' : 'password';
     }
 
     private _removeAuthError(errors: ValidationErrors | null): ValidationErrors | null {
@@ -96,5 +95,4 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
             this.login();
         }
     }
-
 }

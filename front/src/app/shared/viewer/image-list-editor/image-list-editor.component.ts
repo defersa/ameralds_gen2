@@ -1,14 +1,24 @@
-import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, Inject, OnInit, ViewChild } from "@angular/core";
 import { ImageType, IIndexedBlob, IIndexedImage } from "@am/interface/image.interface";
-import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
+import { NgStyle } from "@angular/common";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 
 
 @Component({
-    selector: 'amstore-image-list-editor',
-    templateUrl: './image-list-editor.component.html',
-    styleUrls: ['./image-list-editor.component.scss'],
+    selector: "amstore-image-list-editor",
+    templateUrl: "./image-list-editor.component.html",
+    styleUrls: ["./image-list-editor.component.scss"],
+    standalone: true,
+    imports: [
+        NgStyle,
+        MatDialogTitle,
+        IconsComponent,
+        AmstoreButtonComponent
+    ],
     host: {
-        'class': 'amstore-image-list-editor'
+        "class": "amstore-image-list-editor"
     }
 })
 export class AmstoreImageListEditorComponent implements OnInit {
@@ -27,8 +37,10 @@ export class AmstoreImageListEditorComponent implements OnInit {
     private _fileReader: FileReader = new FileReader();
     private _file: globalThis.File | null = null;
 
-    constructor(@Inject(MAT_DIALOG_DATA) public data: { currentImages: IIndexedImage[], blobImages: IIndexedBlob[] },
-                private _dialogRef: MatDialogRef<unknown>) {
+    public data: { currentImages: IIndexedImage[], blobImages: IIndexedBlob[] } = inject(MAT_DIALOG_DATA);
+    private _dialogRef: MatDialogRef<unknown> = inject(MAT_DIALOG_DATA);
+
+    constructor() {
         this.currentImages = this.data.currentImages;
         this.blobImages = this.data.blobImages;
     }

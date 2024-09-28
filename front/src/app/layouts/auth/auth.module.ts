@@ -1,7 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from "@angular/router";
-import { AmstoreCdkModule } from "@am/cdk/cdk.module";
 
 import { AuthComponent } from './auth.component';
 import { AmstoreRegistrationComponent } from './page/registration/amstore-registration.component';
@@ -25,11 +23,8 @@ export const routes: Routes = [{
 
 
 @NgModule({
-    declarations: [AuthComponent, AmstoreRegistrationComponent, AmstoreVerifyComponent],
     imports: [
-        CommonModule,
         RouterModule.forChild(routes),
-        AmstoreCdkModule
     ]
 })
 export class AuthModule {

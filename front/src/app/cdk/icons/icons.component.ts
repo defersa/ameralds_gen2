@@ -11,11 +11,12 @@ export type IconSize = 12 | 16 | 20 | 24 | 28 | 32 | 64;
     templateUrl: './icons.component.html',
     styleUrls: ['./icons.component.scss'],
     encapsulation: ViewEncapsulation.None,
+    standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
         class: 'amstore-icon',
         '[class.is-contrast]': 'contrast',
-        '[class.is-black]': 'isBlack'
+        '[class.is-black]': 'isBlack',
     }
 })
 export class IconsComponent extends AmstoreColor {

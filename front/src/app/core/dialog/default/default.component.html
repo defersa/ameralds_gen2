@@ -1,6 +1,11 @@
-<h1>{{title}}</h1>
-<h2 *ngIf="smallTitle">{{smallTitle}}</h2>
+<h1 mat-dialog-title>{{ title }}</h1>
+
+@if (smallTitle) {
+    <h2>{{ smallTitle }}</h2>
+}
+
 <p [innerHTML]="text"></p>
+
 <div class="amstore-default-dialog-button">
     <amstore-button size="large" (click)="close()">
         Хорошо

@@ -1,33 +1,43 @@
 <amstore-panel-basic class="container">
     <h1>Регистрация нового пользователя</h1>
 
-    <form>
+    <form [formGroup]="regForm">
         <div class="row">
-            <amstore-forms-input type="email" [nullControl]="regForm.get('email')" [required]="true" class="col-12">
-                <amstore-forms-label>Email</amstore-forms-label>
-            </amstore-forms-input>
-            <amstore-forms-input-password class="col-12" [nullControl]="regForm.get('password')" [required]="true">
-                <amstore-forms-label>Пароль</amstore-forms-label>
-            </amstore-forms-input-password>
-            <amstore-forms-input-password class="col-12" [nullControl]="regForm.get('passwordRepeat')" [required]="true">
-                <amstore-forms-label>Повторите пароль</amstore-forms-label>
-            </amstore-forms-input-password>
-        </div>
-        <div class="row">
-            <amstore-forms-input class="col-6" [nullControl]="regForm.get('firstName')">
-                <amstore-forms-label>Имя</amstore-forms-label>
-            </amstore-forms-input>
-            <amstore-forms-input class="col-6" [nullControl]="regForm.get('lastName')">
-                <amstore-forms-label>Фамилия</amstore-forms-label>
-            </amstore-forms-input>
-        </div>
-        <amstore-checkbox [control]="isAccept">
-            Я согласен с условиями регистрации
-        </amstore-checkbox>
+            <amstore-forms-input type="email"
+                                 formControlName="email"
+                                 [required]="true"
+                                 class="col-12"
+                                 label="Email" />
 
+            <amstore-forms-input-password class="col-12"
+                                          formControlName="password"
+                                          label="Пароль"
+                                          [required]="true" />
+
+            <amstore-forms-input-password class="col-12"
+                                          formControlName="passwordRepeat"
+                                          label="Повторите пароль"
+                                          [required]="true" />
+        </div>
+
+        <div class="row">
+            <amstore-forms-input class="col-6"
+                                 formControlName="firstName"
+                                 label="Имя" />
+
+            <amstore-forms-input class="col-6"
+                                 formControlName="lastName"
+                                 label="Фамилия" />
+        </div>
+
+        <amstore-checkbox [formControl]="isAccept"
+                          label="Я согласен с условиями регистрации"/>
     </form>
+
     <div class="row justify-content-end">
-        <amstore-button class="col" size="large" [disabled]="!isAccept.value || regForm.invalid" (click)="sendUser()">Зарегестрироваться</amstore-button>
+        <amstore-button class="col" size="large" [disabled]="!isAccept.value || regForm.invalid" (click)="sendUser()">
+            Зарегестрироваться
+        </amstore-button>
     </div>
 
 </amstore-panel-basic>

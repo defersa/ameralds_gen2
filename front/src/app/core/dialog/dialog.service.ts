@@ -1,20 +1,19 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from "@angular/core";
 import { ComponentType } from "@angular/cdk/portal";
 import { AmstoreDefaultDialogComponent } from "./default/default.component";
 import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
+
 
 @Injectable({
     providedIn: 'root'
 })
 export class DialogService {
-
-    constructor(private _dialog: MatDialog) {
-
-    }
+    public dialog: MatDialog = inject(MatDialog);
 
     public openDialog<T = any>(config: MatDialogConfig<T>): void {
         const panelClass: string[] = Array.isArray(config.panelClass) ? config.panelClass : [config.panelClass || ''];
-        this._dialog.open(AmstoreDefaultDialogComponent, {
+
+        this.dialog.open(AmstoreDefaultDialogComponent, {
             minWidth: '400px',
             ...config,
             panelClass: ["amstore-dialog-login-panel", ...panelClass]
@@ -23,7 +22,8 @@ export class DialogService {
 
     public openCustomDialog<T = any>(component: ComponentType<T>, config: MatDialogConfig<T>): void {
         const panelClass: string[] = Array.isArray(config.panelClass) ? config.panelClass : [config.panelClass || ''];
-        this._dialog.open<T>(component, {
+
+        this.dialog.open<T>(component, {
             minWidth: '400px',
             ...config,
             panelClass: ["amstore-dialog-login-panel", ...panelClass]

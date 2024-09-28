@@ -4,7 +4,7 @@
 
     <amstore-blob-image-list [blobImages]="blobImages" [savedImages]="savedImages"></amstore-blob-image-list>
 </div>
-<div class="amstore-card-container">
+<div class="amstore-card-container" [formGroup]="patternForm">
     <div class="amstore-card-container-header">
         <h1>Добавить/Изменить</h1>
     </div>
@@ -13,42 +13,59 @@
         <h3>Имя и цена:</h3>
         <div class="row">
             <div class="col-6">
-                <amstore-forms-input [nullControl]="getLangControl('name', 'ru')">Имя</amstore-forms-input>
-                <amstore-forms-input [nullControl]="getLangControl('price', 'ru')" type="number">Р</amstore-forms-input>
+                <ng-container formGroupName="name">
+                    <amstore-forms-input formControlName="ru" label="Имя"/>
+                </ng-container>
+
+                <ng-container formGroupName="price">
+                    <amstore-forms-input formControlName="ru" type="number" label="Р"/>
+                </ng-container>
             </div>
             <div class="col-6">
-                <amstore-forms-input [nullControl]="getLangControl('name', 'en')">Name</amstore-forms-input>
-                <amstore-forms-input [nullControl]="getLangControl('price', 'en')" type="number">$</amstore-forms-input>
+                <ng-container formGroupName="name">
+                    <amstore-forms-input formControlName="en" label="Name"/>
+                </ng-container>
+
+                <ng-container formGroupName="price">
+                    <amstore-forms-input formControlName="en" type="number" label="$"/>
+                </ng-container>
             </div>
         </div>
     </div>
 
     <div class="amstore-card-container-line">
         <h3>Прочие параметры:</h3>
-        <amstore-checkbox [nullControl]="patternForm.get('hidden')">Скрытый</amstore-checkbox>
+
+        <amstore-checkbox formControlName="hidden" label="Скрытый"/>
     </div>
 
     <div class="amstore-card-container-line">
         <h3>Цветовая схема:</h3>
-        <amstore-form-upload-file format=".jpg" [nullControl]="patternForm.get('colors')">
-        </amstore-form-upload-file>
+
+        <amstore-form-upload-file format=".jpg" formGroupName="colors"/>
     </div>
 
 
     <div class="amstore-card-container-line">
         <h3>Категории:</h3>
-        <amstore-form-select *ngIf="categoriesList$ | async; let categoryList" [items]="categoryList"
-                             [multiple]="true" [nullControl]="patternForm.get('category')">
-            <amstore-forms-label>Категории</amstore-forms-label>
-        </amstore-form-select>
+
+        @if (categoriesList$ | async; as categoryList) {
+            <amstore-form-select [items]="categoryList"
+                                 label="Категории"
+                                 [multiple]="true"
+                                 formControlName="category"/>
+        }
     </div>
 
-    <div class="amstore-card-container-line" *ngIf="sizeArrayComponentList.length">
-        <h3>Размеры и файлы:</h3>
-        <amstore-form-array [controlArray]="sizeArrayControl" [arrayComponentList]="sizeArrayComponentList"
-                            [model]="sizeArrayModel">
-        </amstore-form-array>
-    </div>
+    @if (sizeArrayComponentList.length > 0) {
+        <div class="amstore-card-container-line" >
+            <h3>Размеры и файлы:</h3>
+
+            <amstore-form-array [controlArray]="sizeArrayControl"
+                                [arrayComponentList]="sizeArrayComponentList"
+                                [model]="sizeArrayModel"/>
+        </div>
+    }
 
     <div class="amstore-row amstore-card-container-buttons">
         <amstore-button (click)="save()" size="large">Сохранить</amstore-button>

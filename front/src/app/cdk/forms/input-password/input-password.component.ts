@@ -1,19 +1,36 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, InputSignal, model, ModelSignal } from "@angular/core";
 import { AmstoreFormsBaseDirective } from '../forms.abstract.directive';
-import { DestroyService } from "@am/utils/destroy.service";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { ReactiveFormsModule } from "@angular/forms";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+import { AsyncPipe } from "@angular/common";
+import { ErrorsPipe } from "@am/cdk/forms/errors/errors.pipe";
+
 
 @Component({
-    selector: 'amstore-forms-input-password',
-    templateUrl: './input-password.component.html',
-    styleUrls: ['./input-password.component.scss'],
+    selector: "amstore-forms-input-password",
+    templateUrl: "./input-password.component.html",
+    styleUrls: ["./input-password.component.scss"],
+    standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [DestroyService],
+    imports: [
+        MatFormFieldModule,
+        MatInput,
+        ReactiveFormsModule,
+        IconsComponent,
+        AsyncPipe,
+        ErrorsPipe
+    ]
 })
 export class AmstoreInputPasswordComponent extends AmstoreFormsBaseDirective {
-    public type: 'text' | 'password' = 'password';
-
+    public label: InputSignal<string> = input();
+    public name: InputSignal<string> = input();
+    public required: InputSignal<boolean> = input();
+    public autocomplete: InputSignal<string> = input();
+    public type: ModelSignal<'text' | 'password'> = model('text')
 
     public switchType(): void {
-        this.type = this.type === 'password' ? 'text' : 'password';
+        this.type.set(this.type() === 'password' ? 'text' : 'password');
     }
 }

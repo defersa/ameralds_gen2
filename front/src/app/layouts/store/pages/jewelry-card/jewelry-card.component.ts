@@ -1,15 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from "@angular/core";
+
 
 @Component({
-  selector: 'app-jewelry-card',
-  templateUrl: './jewelry-card.component.html',
-  styleUrls: ['./jewelry-card.component.scss']
+    selector: "app-jewelry-card",
+    templateUrl: "./jewelry-card.component.html",
+    styleUrls: ["./jewelry-card.component.scss"],
+    standalone: true
 })
-export class JewelryCardComponent implements OnInit {
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
+export class JewelryCardComponent {
 
 }

@@ -1,3 +1,8 @@
-<amstore-profile-card *ngIf="user$ | async; let user" [user]="user">
-    <amstore-button (click)="sendVerify()" *ngIf="!user.person.verify">Отправить письмо с подтверждением</amstore-button>
-</amstore-profile-card>
+@if (user$ | async; as user) {
+    <amstore-profile-card [user]="user">
+        @if (!user.person.verify) {
+            <amstore-button (click)="sendVerify()">Отправить письмо с подтверждением</amstore-button>
+        }
+    </amstore-profile-card>
+}
+

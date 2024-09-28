@@ -1,5 +1,7 @@
-<mat-checkbox [formControl]="formControl">
-    <span>
-        <ng-content></ng-content>
-    </span>
+<mat-checkbox [formControl]="control">
+    @if (label()) {
+        <span>
+            {{ label() }}
+        </span>
+    }
 </mat-checkbox>

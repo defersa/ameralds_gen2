@@ -1,15 +1,16 @@
 <div class="amstore-actions-line">
     <amstore-button [stroked]="true" color="primary" [routerLink]="['create']">
-        <amstore-icon iconName="setting" [size]="20"></amstore-icon>
+        <amstore-icon iconName="setting" [size]="20"/>
         Добавить новую схему
     </amstore-button>
 </div>
 
-<amstore-filters (onSetFilters)="setFilterWithPage($event)" [filters]="filters" color="special"></amstore-filters>
+<amstore-filters (onSetFilters)="setFilterWithPage($event)" [filters]="filters" color="special"/>
 
-<amstore-snapshot-pattern *ngFor="let item of items$ | async" [pattern]="item" [routerLink]="[item.id]">
-    <amstore-pattern-details-short [pattern]="item" [routerLink]="[item.id]"></amstore-pattern-details-short>
-</amstore-snapshot-pattern>
+@for (item of items$ | async; track item) {
+    <amstore-snapshot-pattern [pattern]="item" [routerLink]="[item.id]">
+        <amstore-pattern-details-short [pattern]="item" [routerLink]="[item.id]"/>
+    </amstore-snapshot-pattern>
+}
 
-<amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page" color="special">
-</amstore-paginator>
+<amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page" color="special"/>

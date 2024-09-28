@@ -1,24 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { SmallOrders } from 'src/app/interface/order.interface';
-import { OrdersService } from '../../services/orders.service';
+
 
 @Component({
     selector: 'app-orders',
     templateUrl: './orders.component.html',
-    styleUrls: ['./orders.component.scss']
+    styleUrls: ['./orders.component.scss'],
+    standalone: true,
 })
-export class OrdersComponent implements OnInit {
-
+export class OrdersComponent {
     public page: number = 1;
     public pageCount: number = 1;
     public orders: SmallOrders[] = [];
-
-
-    constructor(
-        private ordersService: OrdersService
-    ) { }
-
-    public ngOnInit(): void {
-    }
-
 }

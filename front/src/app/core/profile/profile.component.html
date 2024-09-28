@@ -1,22 +1,25 @@
-<ng-container *ngIf="authStatus | async; else noAuth">
+@if (authStatus | async) {
     <a amstore-button-round roundSide="left" [routerLink]="['/', 'account']">
-        <amstore-icon iconName="profile" [size]="20" [contrast]="true"></amstore-icon>
+        <amstore-icon iconName="profile" [size]="20" [contrast]="true"/>
+
         <span class="header-button-label">Профиль</span>
     </a>
+
     <button amstore-button-round roundSide="right" (click)="logout()">
         <span class="header-button-label">Выйти</span>
-        <amstore-icon iconName="logout" [size]="20" [contrast]="true"></amstore-icon>
+
+        <amstore-icon iconName="logout" [size]="20" [contrast]="true"/>
     </button>
-</ng-container>
-
-
-<ng-template #noAuth>
+} @else {
     <button amstore-button-round roundSide="left" (click)="login()">
-        <amstore-icon iconName="login" [size]="20" [contrast]="true"></amstore-icon>
+        <amstore-icon iconName="login" [size]="20" [contrast]="true"/>
+
         <span class="header-button-label">Войти</span>
     </button>
+
     <a amstore-button-round roundSide="right" [routerLink]="['auth', 'registration']">
         <span class="header-button-label">Регистрация</span>
-        <amstore-icon iconName="registration" [size]="20" [contrast]="true"></amstore-icon>
+
+        <amstore-icon iconName="registration" [size]="20" [contrast]="true"/>
     </a>
-</ng-template>
+}

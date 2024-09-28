@@ -1,22 +1,24 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, InputSignal, Signal } from "@angular/core";
 import { ILangText, LangType } from "@am/interface/lang.interface";
 import { LangService } from "@am/services/lang.service";
-import { Observable } from "rxjs";
+import { toSignal } from "@angular/core/rxjs-interop";
+
 
 @Component({
     selector: 'amstore-lang-text',
-    template: '{{ text[lang$ | async] }}',
+    template: '{{ template() }}',
     changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
 })
 export class LangTextComponent {
-    @Input()
-    public text: ILangText;
+    public text: InputSignal<ILangText> = input();
 
-    public lang$: Observable<LangType> = this.langService.lang$;
+    private langService: LangService = inject(LangService);
 
-    constructor(
-        private langService: LangService,
-    ) {
-    }
+    public template: Signal<string> = computed(() => {
+        const lang: LangType = toSignal(this.langService.lang$)();
+        const value: ILangText = this.text();
 
+        return value?.[lang];
+    });
 }

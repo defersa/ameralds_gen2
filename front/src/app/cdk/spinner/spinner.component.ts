@@ -1,29 +1,27 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
-import { ProgressSpinnerMode } from "@angular/material/progress-spinner";
+import { Component, input, Input, InputSignal, model, ModelSignal, signal, ViewEncapsulation } from "@angular/core";
+import { MatProgressSpinner, ProgressSpinnerMode } from "@angular/material/progress-spinner";
 import { AmstoreColor } from "@am/cdk/core/color";
 
 
 @Component({
-    selector: 'amstore-spinner',
-    templateUrl: './spinner.component.html',
-    styleUrls: ['./spinner.component.scss'],
+    selector: "amstore-spinner",
+    templateUrl: "./spinner.component.html",
+    styleUrls: ["./spinner.component.scss"],
     encapsulation: ViewEncapsulation.None,
+    standalone: true,
+    imports: [
+        MatProgressSpinner
+    ],
     host: {
-        class: 'amstore-spinner'
+        class: "amstore-spinner"
     }
 })
 export class AmstoreSpinnerComponent extends AmstoreColor {
-
-    @Input()
-    public isDeterminate: boolean = false;
-
-    @Input()
-    public strokeWidth: number = 15;
-
-    @Input()
-    public value: number = 0;
+    public isDeterminate: InputSignal<boolean> = input(false);
+    public strokeWidth: InputSignal<number> = input(15);
+    public value: InputSignal<number> = input(0);
 
     public get mode(): ProgressSpinnerMode {
-        return this.isDeterminate ? 'determinate' : 'indeterminate';
+        return this.isDeterminate() ? 'determinate' : 'indeterminate';
     }
 }

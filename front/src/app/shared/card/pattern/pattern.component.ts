@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    ChangeDetectorRef,
+    Component,
+    DestroyRef,
+    ElementRef,
+    inject,
+    Input
+} from "@angular/core";
 import { UntypedFormControl } from '@angular/forms';
 import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -21,15 +29,25 @@ import { CategoryType } from '@am/interface/category.interface';
 import { SIZE_UNIT } from "@am/utils/constants";
 import { PatternService } from "@am/services/pattern.service";
 import { EMPTY_PATTERN } from "@am/shared/mocks/pattern";
+import { ImageListComponent } from "@am/shared/image-list/image-list.component";
+import { IconsComponent } from "@am/cdk/icons/icons.component";
+import { AmstoreChipComponent } from "@am/cdk/chip/chip.component";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 @Component({
-    selector: 'amstore-pattern-card',
-    templateUrl: './pattern.component.html',
-    styleUrls: ['./pattern.component.scss'],
+    selector: "amstore-pattern-card",
+    templateUrl: "./pattern.component.html",
+    styleUrls: ["./pattern.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
     animations: [
         expandAnimation
     ],
+    imports: [
+        ImageListComponent,
+        IconsComponent,
+        AmstoreChipComponent
+    ]
 })
 export class AmstorePatternCardComponent extends AmstoreCardDirective {
     public get sizeUnit(): string {
@@ -63,17 +81,14 @@ export class AmstorePatternCardComponent extends AmstoreCardDirective {
 
     protected destroyed: Subject<void> = new Subject<void>();
 
-    constructor(public elementRef: ElementRef,
-                protected viewer: AmstoreViewerService,
-                private changeDetector: ChangeDetectorRef,
-                private profileService: ProfileService,
-                private patternService: PatternService,
-                private langService: LangService) {
-        super(viewer);
-    }
+    protected viewer: AmstoreViewerService = inject(AmstoreViewerService);
+    private changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
+    private langService: LangService = inject(LangService);
+    private destroyRef: DestroyRef = inject(DestroyRef);
 
     public ngOnInit(): void {
-        this.langService.lang$.pipe(takeUntil(this.destroyed))
+        this.langService.lang$
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe((lang: LangType) => {
                 this._lang = lang;
                 this.changeDetector.markForCheck();

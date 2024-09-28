@@ -1,18 +1,21 @@
-import { Directive, ElementRef, Input } from '@angular/core';
+import { Directive, effect, ElementRef, inject, input, InputSignal } from "@angular/core";
 import { environment } from "../../../environments/environment";
 
 
+// TODO: УДОЛИ
 @Directive({
-    selector: '[outsideSrc]'
+    selector: '[outsideSrc]',
+    standalone: true,
 })
 export class OutsideSrcDirective {
+    public outsideSrc: InputSignal<string> = input();
 
-    @Input()
-    public set outsideSrc(src: string) {
-        this.elementRef?.nativeElement.setAttribute('src', environment.endpoint + src);
-    }
+    private elementRef: ElementRef = inject(ElementRef);
 
-    constructor(private elementRef: ElementRef) {
+    constructor() {
+        effect(() => {
+            this.elementRef?.nativeElement.setAttribute('src', environment.endpoint + this.outsideSrc());
+        });
     }
 
 }

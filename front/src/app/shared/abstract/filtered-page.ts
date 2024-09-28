@@ -1,22 +1,16 @@
-import { Directive, inject } from "@angular/core";
-import {
-    ActivatedRoute, Params, Router, Event, NavigationEnd, Navigation
-} from "@angular/router";
-import { filter, map, takeUntil } from "rxjs/operators";
-import { DestroyService } from "@am/utils/destroy.service";
+import { DestroyRef, Directive, inject } from "@angular/core";
+import { ActivatedRoute, Event, Navigation, NavigationEnd, Params, Router } from "@angular/router";
+import { filter, map } from "rxjs/operators";
 import { BehaviorSubject } from "rxjs";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 
 export type FiltersSet = Record<string, unknown>;
 
-@Directive({
-    providers: [
-        DestroyService,
-    ]
-})
+@Directive()
 export abstract class FilteredPage {
-    protected onDestroy: DestroyService = inject(DestroyService);
     protected activateRoute: ActivatedRoute = inject(ActivatedRoute);
+    protected destroyRef: DestroyRef = inject(DestroyRef);
     protected router: Router = inject(Router);
 
     protected filterSet$: BehaviorSubject<FiltersSet> = new BehaviorSubject(null);
@@ -43,12 +37,13 @@ export abstract class FilteredPage {
     }
 
     private initFiltersWithParams(): void {
+        // TODO: REEEEWORK
         this.router.events
             .pipe(
-                takeUntil(this.onDestroy),
                 filter((event: Event) => event instanceof NavigationEnd),
                 map(() => this.router.getCurrentNavigation()),
-                filter((navigation: Navigation) => !navigation.extras?.state?.['skip'] || navigation.trigger === 'popstate')
+                filter((navigation: Navigation) => !navigation.extras?.state?.["skip"] || navigation.trigger === "popstate"),
+                takeUntilDestroyed(this.destroyRef)
             )
             .subscribe(() => this.setFilter(this.initFilters(this.activateRoute.snapshot.queryParams)));
     }
@@ -56,14 +51,15 @@ export abstract class FilteredPage {
     private initQueryUpdateHandler(): void {
         this.filterSet$
             .pipe(
-                takeUntil(this.onDestroy),
-                filter((result: FiltersSet) => !!result))
+                filter(Boolean),
+                takeUntilDestroyed(this.destroyRef)
+            )
             .subscribe((params: FiltersSet) =>
                 this.router.navigate([], {
                     relativeTo: this.activateRoute,
                     queryParams: params,
-                    queryParamsHandling: '',
-                    state: {'skip': true}
+                    queryParamsHandling: "",
+                    state: { "skip": true }
                 })
             );
     }
