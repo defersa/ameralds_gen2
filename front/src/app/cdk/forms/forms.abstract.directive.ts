@@ -44,7 +44,7 @@ export class AmstoreFormsBaseDirective extends AmstoreColor implements ControlVa
         this.errorStatusChanges$ = this.control.statusChanges
             .pipe(
                 startWith(null),
-                map(() => !!this.control.errors),
+                map(() => Boolean(this.control.errors)),
             );
 
         this.checkInitValue();

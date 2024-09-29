@@ -29,7 +29,7 @@ export abstract class AbstractPatternsIndex extends FilteredPage {
 
 
     public pageCount: number = 1;
-    public page: number;
+    public page: number = 1;
     public filters: Record<string, unknown>;
 
     protected pattern: PatternService = inject(PatternService);

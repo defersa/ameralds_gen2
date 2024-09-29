@@ -2,14 +2,14 @@ import {
     ChangeDetectionStrategy,
     Component,
     DestroyRef,
-    inject,
+    inject, Injector,
     input,
     InputSignal,
     OnInit,
     ViewEncapsulation
 } from "@angular/core";
 import { AmstoreFormsBaseDirective, SelectOption } from "@am/cdk/forms/forms.abstract.directive";
-import { map } from "rxjs/operators";
+import { map, startWith } from "rxjs/operators";
 import { DestroyService } from "@am/utils/destroy.service";
 import { toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, Observable } from "rxjs";
@@ -39,6 +39,7 @@ export class AmstoreChipsCheckboxComponent extends AmstoreFormsBaseDirective imp
     public itemList$: Observable<{ checked: boolean; item: SelectOption }[]>;
 
     protected destroyRef: DestroyRef = inject(DestroyRef);
+    protected injector: Injector = inject(Injector);
 
     public ngOnInit() {
         super.ngOnInit();
@@ -48,8 +49,8 @@ export class AmstoreChipsCheckboxComponent extends AmstoreFormsBaseDirective imp
         }
 
         this.itemList$ = combineLatest([
-            this.control.valueChanges.pipe(this.control.value),
-            toObservable(this.items)
+            this.control.valueChanges.pipe(startWith(this.control.value)),
+            toObservable(this.items, { injector: this.injector })
         ]).pipe(
             map(([, options]: [unknown, SelectOption[]]) => {
                 const values: (number | string)[] = this.control.value ?? [];

@@ -1,4 +1,4 @@
-<amstore-panel [color]="color()">
+<amstore-panel [color]="color()"  [formGroup]="filterForm">
     <amstore-panel-header class="amstore-filter-header">
         Фильтры
 
@@ -11,45 +11,43 @@
         }
     </amstore-panel-header>
 
-    <form [formGroup]="filterForm">
-        <div class="row">
-            <div class="col-6">
-                <amstore-forms-input formControlName="search">Поиск</amstore-forms-input>
-            </div>
-
-            <div class="col-6">
-                <amstore-form-select>Сортировка</amstore-form-select>
-            </div>
+    <div class="row">
+        <div class="col-6">
+            <amstore-forms-input formControlName="search">Поиск</amstore-forms-input>
         </div>
 
-        <div class="row">
-            <div class="col-12">
-                <amstore-chips-checkbox [items]="categoriesList$ | async" formControlName="categories" [color]="color()" label="Категории"/>
-            </div>
+        <div class="col-6">
+<!--                <amstore-form-select>Сортировка</amstore-form-select>-->
         </div>
+    </div>
 
-        <div class="row">
-            <div class="col-12">
-                <amstore-chips-checkbox [items]="sizesList$ | async" formControlName="sizes" [color]="color()" label="Размер"/>
-            </div>
+    <div class="row">
+        <div class="col-12">
+            <amstore-chips-checkbox [items]="categoriesList$ | async" formControlName="categories" [color]="color()" label="Категории"/>
         </div>
+    </div>
 
-        <div class="row amstore-filter-buttons">
-            <div class="col-12 text-right">
-                @if (!isEmpty) {
-                    <amstore-button color="warn" (click)="clearFilters($event)">
-                        Очистить
-                    </amstore-button>
-                }
+    <div class="row">
+        <div class="col-12">
+            <amstore-chips-checkbox [items]="sizesList$ | async" formControlName="sizes" [color]="color()" label="Размер"/>
+        </div>
+    </div>
 
-                <amstore-button [stroked]="true" color="warn" [disabled]="!isChanged" (click)="resetFilters()">
-                    Отменить
+    <div class="row amstore-filter-buttons">
+        <div class="col-12 text-right">
+            @if (!isEmpty) {
+                <amstore-button color="warn" (click)="clearFilters($event)">
+                    Очистить
                 </amstore-button>
+            }
 
-                <amstore-button [disabled]="!isChanged" [color]="color()" (click)="setFilters()">
-                    Найти
-                </amstore-button>
-            </div>
+            <amstore-button [stroked]="true" color="warn" [disabled]="!isChanged" (click)="resetFilters()">
+                Отменить
+            </amstore-button>
+
+            <amstore-button [disabled]="!isChanged" [color]="color()" (click)="setFilters()">
+                Найти
+            </amstore-button>
         </div>
-    </form>
+    </div>
 </amstore-panel>

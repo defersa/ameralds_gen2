@@ -10,6 +10,8 @@
     </mat-select>
 
     @if (errorStatusChanges$ | async) {
-        {{ control.errors | errors }}
+        <mat-error>
+            {{ control.errors | errors }}
+        </mat-error>
     }
 </mat-form-field>

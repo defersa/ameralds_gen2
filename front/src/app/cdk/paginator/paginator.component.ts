@@ -33,23 +33,14 @@ export class AmstorePaginatorComponent extends AmstoreColor {
 
     // TODO: Ад, переделать
     public pageList: Signal<number[]> = computed(() => {
-        let pageList: number[] = [this.page()];
+        const startPosition: number = this.page() - PAGES_AROUND < 1 ? 1 : this.page() - PAGES_AROUND;
+        const endPosition: number = this.page() + PAGES_AROUND > this.pageCount() ? this.pageCount() : this.page() + PAGES_AROUND;
 
-        while (
-            this.pageList().length < PAGES_AROUND
-            && (1 !== this.pageList()[0] || this.pageCount() !== this.pageList()[this.pageList().length - 1])) {
-            if (1 !== this.pageList()[0]) {
-                this.pageList().unshift(this.pageList()[0] - 1);
-            }
+        // TODO: Add logic to increase when corner
 
-            const last: number = [...this.pageList()].pop();
+        console.log(this.page(), this.pageCount())
 
-            if (this.pageCount() !== last) {
-                this.pageList().push(last + 1);
-            }
-        }
-
-        return pageList;
+        return Array.from({ length: endPosition - startPosition + 1 }).map((item: unknown, index: number) => startPosition + index);
     });
 
     public goToPage(page: number): void {

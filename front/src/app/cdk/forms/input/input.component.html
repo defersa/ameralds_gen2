@@ -5,7 +5,8 @@
         </mat-label>
     }
 
-    <input matInput [type]="type()" [formControl]="control" [name]="name()" [autocomplete]="autocomplete()" ngDefaultControl
+    <input matInput [type]="type()" [formControl]="control" [name]="name()" [autocomplete]="autocomplete()"
+           ngDefaultControl
            [required]="required()">
 
     @if (suffixName()) {
@@ -13,10 +14,12 @@
                       [iconName]="suffixName()"
                       [size]="20"
                       color="accent"
-                      matSuffix/>
+                      matSuffix />
     }
 
     @if (errorStatusChanges$ | async) {
-        {{ control.errors | errors }}
+        <mat-error>
+            {{ control.errors | errors }}
+        </mat-error>
     }
 </mat-form-field>
