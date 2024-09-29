@@ -9,6 +9,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export { EnumApiErrorCodes } from './models/EnumApiErrorCodes';
 export type { ErrorsDto } from './models/ErrorsDto';
+export type { RefreshTokenCredentialsDto } from './models/RefreshTokenCredentialsDto';
 export type { UserCredentialsDto } from './models/UserCredentialsDto';
 export type { UserTokensDTO } from './models/UserTokensDTO';
 

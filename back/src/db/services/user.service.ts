@@ -30,7 +30,7 @@ export class UserService {
     public async creatUser(email: string, password: string): Promise<UserEntity> {
         const passwordHash: string = await bcrypt.hash(password, await bcrypt.genSalt());
 
-        const user: UserEntity = await this.userRepository.create({
+        const user: UserEntity = this.userRepository.create({
             passwordHash,
             email,
             username: email.split("@")[0]
@@ -46,12 +46,10 @@ export class UserService {
         const refreshTokenExpiredAt: Date = addDays(new Date(), 28);
         const accessToken: TokenAccessEntity = await this.tokenService.createAccessToken({
             userId: user.id,
-            expiredAt: accessTokenExpiredAt
         }, accessTokenExpiredAt);
 
-        const refreshToken: TokenRefreshEntity = await this.tokenService.refreshAccessToken({
+        const refreshToken: TokenRefreshEntity = await this.tokenService.createRefreshToken({
             userId: user.id,
-            expiredAt: refreshTokenExpiredAt
         }, refreshTokenExpiredAt);
 
         user.access = [...(user.access ?? []), accessToken];
@@ -64,6 +62,36 @@ export class UserService {
             refresh: refreshToken.value
         };
     }
+
+    public async refreshToken(previousAccess: string, refreshToken: string): Promise<UserTokensDTO> {
+        await this.tokenService.deactivateToken(previousAccess);
+
+        const refreshTokenEntity: TokenRefreshEntity = await this.tokenService.getRefreshToken(refreshToken);
+
+        if (!refreshTokenEntity) {
+            return null;
+        }
+
+        const payload: Record<string, string> = this.tokenService.decodeToken(refreshToken);
+        const user: UserEntity = await this.userRepository.findOneBy({
+            id: Number(payload.userId),
+        });
+
+        const accessTokenExpiredAt: Date = addDays(new Date(), 7);
+
+        const accessToken: TokenAccessEntity = await this.tokenService.createAccessToken({
+            userId: user.id,
+        }, accessTokenExpiredAt);
+
+        user.access.push(accessToken);
+        await this.userRepository.save(user);
+
+        return {
+            access: accessToken.value,
+            refresh: refreshTokenEntity.value,
+        };
+    }
+
 
     public async getUserByToken(token: string): Promise<UserEntity> {
         const decodedToken: Record<string, string> = this.tokenService.decodeToken(token);

@@ -8,6 +8,7 @@ export enum ApiErrorCodes {
 
     NOT_EXIST = 'NOT_EXIST',
     INCORRECT_PASSWORD = 'INCORRECT_PASSWORD',
+    EXPIRED = 'EXPIRED',
 }
 
 export class ErrorsDto {

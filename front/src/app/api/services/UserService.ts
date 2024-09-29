@@ -5,6 +5,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
+import type { RefreshTokenCredentialsDto } from '../models/RefreshTokenCredentialsDto';
 import type { UserCredentialsDto } from '../models/UserCredentialsDto';
 import type { UserTokensDTO } from '../models/UserTokensDTO';
 import { OpenAPI } from '../core/OpenAPI';
@@ -45,6 +46,24 @@ export class UserService {
             url: '/api/user/sign-in',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns UserTokensDTO The auth token has been successfully refreshed.
+     * @throws ApiError
+     */
+    public userControllerRefresh(
+        requestBody: RefreshTokenCredentialsDto,
+    ): Observable<UserTokensDTO> {
+        return __request(OpenAPI, this.http, {
+            method: 'POST',
+            url: '/api/user/refresh',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Something went wrong.`,
+            },
         });
     }
 }

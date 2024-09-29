@@ -35,7 +35,7 @@ export class TokenService {
         return token;
     }
 
-    public async refreshAccessToken(payload: Record<string, unknown>, expiredAt: Date): Promise<TokenRefreshEntity> {
+    public async createRefreshToken(payload: Record<string, unknown>, expiredAt: Date): Promise<TokenRefreshEntity> {
         const token: TokenRefreshEntity = this.tokenRefreshRepository.create();
 
         token.value = this.jwtService.sign({ ...payload, expiredAt });
@@ -44,6 +44,39 @@ export class TokenService {
         await this.tokenRefreshRepository.save(token);
 
         return token;
+    }
+
+    public async getRefreshToken(token: string): Promise<TokenRefreshEntity> {
+        const payload: Record<string, string> = this.decodeToken(token);
+        const userId: number = Number(payload.userId);
+
+        if (!userId) {
+            return;
+        }
+
+        const tokenRefresh: TokenRefreshEntity = await this.tokenRefreshRepository.findOne({
+            where: {
+                value: token,
+                state: ModelState.ACTIVE,
+                user: {
+                    id: userId,
+                },
+            },
+        });
+
+        if (!tokenRefresh) {
+            return null;
+        }
+
+        if (tokenRefresh.expiredAt < new Date()) {
+            tokenRefresh.state = ModelState.INACTIVE;
+
+            await this.tokenRefreshRepository.save(tokenRefresh);
+
+            return null;
+        }
+
+        return tokenRefresh;
     }
 
     public decodeToken(token: string): Record<string, string> {

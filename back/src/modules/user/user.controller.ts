@@ -2,7 +2,7 @@ import { Body, Controller, HttpException, HttpStatus, Post } from "@nestjs/commo
 import { UserService } from "@am/db/service/user.service";
 import { UserEntity } from "@am/db/entities";
 import * as bcrypt from "bcrypt";
-import { UserCredentialsDto, UserTokensDTO } from "./user.dto";
+import { RefreshTokenCredentialsDto, UserCredentialsDto, UserTokensDTO } from "./user.dto";
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { ApiErrorCodes, ErrorsDto } from "../errors/errors.dto";
 
@@ -59,5 +59,20 @@ export class UserController {
         }
 
         return this.userService.createAccessToken(user);
+    }
+
+    @Post('refresh')
+    @ApiOkResponse({ description: 'The auth token has been successfully refreshed.', type: UserTokensDTO })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    public async refresh(
+        @Body() { refresh, access }: RefreshTokenCredentialsDto,
+    ): Promise<UserTokensDTO> {
+        const response: UserTokensDTO = await this.userService.refreshToken(access, refresh);
+
+        if (!response) {
+            throw new HttpException({ code: ApiErrorCodes.EXPIRED }, HttpStatus.BAD_REQUEST);
+        }
+
+        return response;
     }
 }

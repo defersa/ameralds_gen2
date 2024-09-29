@@ -27,6 +27,20 @@ export class UserTokensDTO {
         description: 'Refresh token',
         type: 'string',
     })
-    refresh: string;
+    public refresh: string;
 }
 
+
+export class RefreshTokenCredentialsDto {
+    @ApiProperty({
+        description: 'Access token',
+        type: 'string',
+    })
+    public access: string;
+
+    @ApiProperty({
+        description: 'Refresh token',
+        type: 'string',
+    })
+    public refresh: string;
+}
