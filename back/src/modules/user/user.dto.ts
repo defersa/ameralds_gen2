@@ -1,4 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Column } from "typeorm";
+import { UserRole, UserStatus } from "@am/db/entities";
+import { getArrayFromEnum } from "../../utils/array-from-enum";
+import { ApiErrorCodes } from "../errors/errors.dto";
 
 
 export class UserCredentialsDto {
@@ -15,7 +19,6 @@ export class UserCredentialsDto {
     public password: string;
 }
 
-
 export class UserTokensDTO {
     @ApiProperty({
         description: 'Access token',
@@ -30,7 +33,6 @@ export class UserTokensDTO {
     public refresh: string;
 }
 
-
 export class RefreshTokenCredentialsDto {
     @ApiProperty({
         description: 'Access token',
@@ -43,4 +45,25 @@ export class RefreshTokenCredentialsDto {
         type: 'string',
     })
     public refresh: string;
+}
+
+export class UserProfileDto {
+    @ApiProperty({
+        description: 'Email of user',
+        type: 'string',
+    })
+    public email: string;
+
+    @ApiProperty({
+        description: 'Users name',
+        type: 'string',
+    })
+    public username: string;
+
+    @ApiProperty({
+        description: 'Users role',
+        enum: UserRole,
+        enumName: 'EnumUserRole',
+    })
+    public role: UserRole;
 }

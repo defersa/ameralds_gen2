@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from "@angular/core";
 import { BehaviorSubject } from 'rxjs';
 import { IAuthResponse, IRefreshToken } from "@am/interface/profile.interface";
 import { getAction, HttpAuthActions, RestSuffixFragments } from "@am/utils/action-builder";
@@ -6,6 +6,7 @@ import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { UBehaviorSubject } from "@am/utils/u-behavior.subject";
 import { LocalStorage } from "@am/decorators/local.decorator";
 import { Router } from "@angular/router";
+import { UserService } from "@am/root/api";
 
 
 const AUTH_TOKEN_NAME: string = 'authToken';
@@ -31,16 +32,13 @@ export class AuthService {
     @LocalStorage(REFRESH_EXPIRATION_DELTA)
     private localRefreshExpirationDelta!: string;
 
+    private userService: UserService = inject(UserService);
+    private httpClient: HttpClient = inject(HttpClient);
+    private router: Router = inject(Router);
+
 
     public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(!!this.localAuthToken);
     public readonly token$: BehaviorSubject<string> = new BehaviorSubject<string>(this.localAuthToken);
-
-
-    constructor(
-        private httpClient: HttpClient,
-        private router: Router,
-    ) {
-    }
 
     public setToken(tokens: IAuthResponse): void {
         this.setAuthToken(tokens.access);
@@ -89,15 +87,15 @@ export class AuthService {
             Number(this.localExpirationDelta) > Date.now() &&
             Number(this.localRefreshExpirationDelta) > Date.now()
         ) {
-            const refreshToken: Record<string, string> = { refresh: this.localRefreshToken };
-            this.httpClient.post<IRefreshToken>(getAction(HttpAuthActions.RefreshToken, RestSuffixFragments.Auth), refreshToken)
+            this.userService.userControllerRefresh({ access: this.localAuthToken, refresh: this.localRefreshToken })
                 .subscribe(
                     (result: IRefreshToken) => {
                         this.setExpirationDelta();
                         this.setAuthToken(result.access);
                     },
                     (error: HttpErrorResponse) => {
-                        console.log(error.message);
+                        console.error(error.message);
+
                         this.logout();
                     });
             return;

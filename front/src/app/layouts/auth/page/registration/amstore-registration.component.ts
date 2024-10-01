@@ -11,6 +11,7 @@ import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 import { AmstoreInputPasswordComponent } from "@am/cdk/forms/input-password/input-password.component";
 import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { switchMap } from "rxjs/operators";
 
 
 @Component({
@@ -54,18 +55,19 @@ export class AmstoreRegistrationComponent {
         }
 
         this._profileService.postNewUser(this.regForm.value as UserCredentialsDto)
+            .pipe(
+                switchMap(() => fromPromise(this._router.navigate(["/"]))),
+            )
             .subscribe({
-                next: (response: string) => {
-                    fromPromise(this._router.navigate(["/"]))
-                        .subscribe(() =>
-                            this._dialogService.openDialog({
-                                maxWidth: "400px",
-                                data: {
-                                    title: "Успешно",
-                                    smallTitle: "Профиль успешно создан.",
-                                    text: "Для завершения регистрации требуется подтвердить аккаунт. Вам на почту выслано письмо с ссылкой на страницу с подтверждением аккаунта."
-                                }
-                            }));
+                next: () => {
+                    this._dialogService.openDialog({
+                        maxWidth: "400px",
+                        data: {
+                            title: "Успешно",
+                            smallTitle: "Профиль успешно создан.",
+                            text: "Для завершения регистрации требуется подтвердить аккаунт. Вам на почту выслано письмо с ссылкой на страницу с подтверждением аккаунта."
+                        }
+                    });
                 },
                 error: () => null,
             });

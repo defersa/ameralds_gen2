@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from "@angular/core";
 import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import {
     getAction,
@@ -22,7 +22,7 @@ import { AuthRegistrationRequest } from "@am/interface/request/auth-request.inte
 import { IResultRequest } from "@am/interface/request.interface";
 import { UBehaviorSubject } from "@am/utils/u-behavior.subject";
 import { LocalStorage } from "@am/decorators/local.decorator";
-import { UserCredentialsDto, UserService, UserTokensDTO } from "@am/root/api";
+import { EnumUserRole, UserCredentialsDto, type UserProfileDto, UserService, UserTokensDTO } from "@am/root/api";
 
 
 declare var grecaptcha: ReCAPTCHA;
@@ -35,6 +35,11 @@ const USER_STATUS_STORAGE_KEY: string = "user_status";
 export class ProfileService {
     @LocalStorage(USER_STATUS_STORAGE_KEY)
     public localUserStatus!: string;
+
+    private authService: AuthService = inject(AuthService);
+    private goodsService: GoodsService = inject(GoodsService);
+    private httpClient: HttpClient = inject(HttpClient);
+    private userService: UserService = inject(UserService);
 
     public profile$: BehaviorSubject<IUser> = new BehaviorSubject<IUser>(null);
     public userStatus$: UBehaviorSubject<UserEnum> = new UBehaviorSubject<UserEnum>(this.localUserStatus as UserEnum || UserEnum.Unauthorized);
@@ -51,26 +56,21 @@ export class ProfileService {
         new BehaviorSubject<number[]>([]);
 
     constructor(
-        private authService: AuthService,
-        private goodsService: GoodsService,
-        private httpClient: HttpClient,
-        private userService: UserService,
     ) {
-
         this.authService.authStatus$
             .pipe(
                 switchMap((status: boolean) =>
                     status ?
-                        this.httpClient.get<IUser>(UB(['api', 'profile'])) :
+                        this.userService.userControllerProfile() :
                         of(null)))
-            .subscribe((profile: IUser | null) => {
-                this.profile$.next(profile ?? null);
+            .subscribe((profile: UserProfileDto | null) => {
+                // this.profile$.next(profile ?? null);
 
                 this.userStatus$.next(this._getUserStatusByProfile(profile));
                 this.localUserStatus = this.userStatus$.getValue();
 
-                this.goodsService.goods = profile?.person.goods ?? null;
-                this.rawBoughtPatterns = profile?.person.patterns ?? [];
+                // this.goodsService.goods = profile?.person.goods ?? null;
+                // this.rawBoughtPatterns = profile?.person.patterns ?? [];
             });
     }
 
@@ -80,6 +80,10 @@ export class ProfileService {
                 switchMap((token: string) =>
                     this.httpClient.post<IAuthResponse>(getAction(HttpAuthActions.TokenAuth, RestSuffixFragments.Auth), {token, ...value}))
             );
+    }
+
+    public authUser(body: UserCredentialsDto): Observable<UserTokensDTO> {
+        return this.userService.userControllerSignIn(body);
     }
 
     // public getOwnProfile(): Observable<IProfile> {
@@ -96,10 +100,6 @@ export class ProfileService {
         return this.userService.userControllerRegister(data);
     }
 
-    public createUser(value: unknown): Observable<AuthRegistrationRequest> {
-        return this.httpClient.post<AuthRegistrationRequest>(environment.endpoint + '/api/user/register', value);
-    }
-
     public sendVerify(): Observable<unknown> {
          return this.httpClient.get<unknown>(getAction(HttpAuthActions.SendVerifyToken, RestSuffixFragments.Auth));
     }
@@ -108,12 +108,12 @@ export class ProfileService {
         return this.httpClient.post<IResultRequest>(getAction(HttpAuthActions.Verify, RestSuffixFragments.Auth), data);
     }
 
-    private _getUserStatusByProfile(value: IUser | null): UserEnum {
+    private _getUserStatusByProfile(value: UserProfileDto | null): UserEnum {
         if (!value) {
             return UserEnum.Unauthorized;
         }
 
-        return value.is_staff ?
+        return value.role === EnumUserRole.ADMIN ?
             UserEnum.Moder :
             UserEnum.Authorized;
     }

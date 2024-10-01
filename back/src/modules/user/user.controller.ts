@@ -1,10 +1,12 @@
-import { Body, Controller, HttpException, HttpStatus, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Req } from "@nestjs/common";
 import { UserService } from "@am/db/service/user.service";
 import { UserEntity } from "@am/db/entities";
 import * as bcrypt from "bcrypt";
-import { RefreshTokenCredentialsDto, UserCredentialsDto, UserTokensDTO } from "./user.dto";
+import { RefreshTokenCredentialsDto, UserCredentialsDto, UserProfileDto, UserTokensDTO } from "./user.dto";
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { ApiErrorCodes, ErrorsDto } from "../errors/errors.dto";
+import { Auth } from "@am/core/guards/auth.guard";
+import { RequestModel } from "@am/models/request.model";
 
 
 
@@ -63,7 +65,7 @@ export class UserController {
 
     @Post('refresh')
     @ApiOkResponse({ description: 'The auth token has been successfully refreshed.', type: UserTokensDTO })
-    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto })
     public async refresh(
         @Body() { refresh, access }: RefreshTokenCredentialsDto,
     ): Promise<UserTokensDTO> {
@@ -74,5 +76,19 @@ export class UserController {
         }
 
         return response;
+    }
+
+    @Get('profile')
+    @Auth()
+    @ApiOkResponse({ description: 'Request of user profile.', type: UserProfileDto })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto })
+    public async profile(
+        @Req() request: RequestModel
+    ): Promise<UserProfileDto> {
+        return {
+            username: request.user.username,
+            email: request.user.email,
+            role: request.user.role,
+        };
     }
 }

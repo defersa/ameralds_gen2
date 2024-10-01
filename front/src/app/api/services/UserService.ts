@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 import type { RefreshTokenCredentialsDto } from '../models/RefreshTokenCredentialsDto';
 import type { UserCredentialsDto } from '../models/UserCredentialsDto';
+import type { UserProfileDto } from '../models/UserProfileDto';
 import type { UserTokensDTO } from '../models/UserTokensDTO';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -61,6 +62,19 @@ export class UserService {
             url: '/api/user/refresh',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
+    /**
+     * @returns UserProfileDto Request of user profile.
+     * @throws ApiError
+     */
+    public userControllerProfile(): Observable<UserProfileDto> {
+        return __request(OpenAPI, this.http, {
+            method: 'GET',
+            url: '/api/user/profile',
             errors: {
                 400: `Something went wrong.`,
             },

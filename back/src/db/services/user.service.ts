@@ -83,7 +83,7 @@ export class UserService {
             userId: user.id,
         }, accessTokenExpiredAt);
 
-        user.access.push(accessToken);
+        user.access = [...(user.access ?? []), accessToken];
         await this.userRepository.save(user);
 
         return {

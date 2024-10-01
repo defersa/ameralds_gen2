@@ -1,6 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, inject } from "@angular/core";
-import { FormGroup, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, ValidationErrors } from "@angular/forms";
+import {
+    FormControl,
+    FormGroup,
+    ReactiveFormsModule,
+    UntypedFormControl,
+    UntypedFormGroup,
+    ValidationErrors
+} from "@angular/forms";
 import { RecaptchaDirective } from "../../recaptcha/recaptcha.directive";
 import { AuthService } from "@am/services/auth.service";
 import { ProfileService } from "@am/services/profile.service";
@@ -9,6 +16,7 @@ import { MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 import { AmstoreInputPasswordComponent } from "@am/cdk/forms/input-password/input-password.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
+import { UserTokensDTO } from "@am/root/api";
 
 
 @Component({
@@ -39,14 +47,14 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
         super();
 
         this.authForm = new UntypedFormGroup({
-            username: new UntypedFormControl('', []),
-            password: new UntypedFormControl('', [])
+            email: new FormControl('', []),
+            password: new FormControl('', [])
         });
 
         // TODO: REWOOORK
         this.authForm.valueChanges.subscribe(() => {
             this.error = undefined;
-            this.authForm.controls.username.setErrors(this._removeAuthError(this.authForm.controls.username.errors));
+            this.authForm.controls.email.setErrors(this._removeAuthError(this.authForm.controls.email.errors));
             this.authForm.controls.password.setErrors(this._removeAuthError(this.authForm.controls.password.errors));
         });
     }
@@ -56,17 +64,13 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
             this.authForm.markAsTouched();
             return;
         }
-        this.profileService.authWithRecaptchaToken(this.authForm.value)
-            .subscribe(
-                (result: IAuthResponse) => {
-                    if (result.access) {
-                        this.authService.setToken(result);
-                        this.matDialogRef.close();
-                    }
 
-                    if (result.error || !result.access) {
-                        this.error = result.error || 'Неизвестная ошибка, попробуйте позже';
-                    }
+        this.profileService.authUser(this.authForm.value)
+        // this.profileService.authWithRecaptchaToken(this.authForm.value)
+            .subscribe(
+                (result: UserTokensDTO) => {
+                    this.authService.setToken(result);
+                    this.matDialogRef.close();
                 },
                 (error: HttpErrorResponse) => {
                     this.error = 'Неверный логин или пароль';

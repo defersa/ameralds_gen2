@@ -26,7 +26,7 @@ export class StoreInterceptor implements HttpInterceptor {
         if (token) {
             const cloned = request.clone({
                 headers: request.headers.set("Authorization",
-                    "JWT " + token)
+                    "Bearer " + token)
             });
 
             return next.handle(cloned)
