@@ -1,7 +1,14 @@
 import { Module } from "@nestjs/common";
 import { process } from "@am/core/declare/process";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ImageEntity, TokenAccessEntity, TokenEntity, TokenRefreshEntity, UserEntity } from "@am/db/entities";
+import {
+    CategoryEntity,
+    ImageEntity, LabelLangEntity, NumberLangEntity, SizeEntity, TextLangEntity,
+    TokenAccessEntity,
+    TokenEntity,
+    TokenRefreshEntity,
+    UserEntity
+} from "@am/db/entities";
 
 
 @Module({
@@ -20,8 +27,13 @@ import { ImageEntity, TokenAccessEntity, TokenEntity, TokenRefreshEntity, UserEn
                 TokenRefreshEntity,
                 ImageEntity,
                 UserEntity,
+                CategoryEntity,
+                LabelLangEntity,
+                NumberLangEntity,
+                TextLangEntity,
+                SizeEntity,
             ],
-            logging: true,
+            // logging: true,
         }),
     ],
 })

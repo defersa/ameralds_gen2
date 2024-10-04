@@ -5,6 +5,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
+import type { LogoutCredentialsDto } from '../models/LogoutCredentialsDto';
 import type { RefreshTokenCredentialsDto } from '../models/RefreshTokenCredentialsDto';
 import type { UserCredentialsDto } from '../models/UserCredentialsDto';
 import type { UserProfileDto } from '../models/UserProfileDto';
@@ -60,6 +61,24 @@ export class UserService {
         return __request(OpenAPI, this.http, {
             method: 'POST',
             url: '/api/user/refresh',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns any User has been logout.
+     * @throws ApiError
+     */
+    public userControllerLogout(
+        requestBody: LogoutCredentialsDto,
+    ): Observable<any> {
+        return __request(OpenAPI, this.http, {
+            method: 'POST',
+            url: '/api/user/logout',
             body: requestBody,
             mediaType: 'application/json',
             errors: {

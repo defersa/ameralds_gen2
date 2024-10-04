@@ -16,7 +16,6 @@ import { join } from "path";
 import { process } from "@am/core/declare/process";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { getPathWithDir } from "./utils/path-with-dir";
-import * as sharp from "sharp";
 import { APP_CONFIG, AppConfigInterface } from "@am/core/config/app-config.module";
 import { ImageService } from "@am/db/service/image.service";
 import { ImageEntity } from "@am/db/entities";

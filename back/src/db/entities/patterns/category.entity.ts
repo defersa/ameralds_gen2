@@ -7,5 +7,5 @@ import { LabelLangEntity } from "../common/label-lang.entity";
 export class CategoryEntity extends BaseModel {
     @OneToOne(() => LabelLangEntity, { onDelete: 'CASCADE'})
     @JoinColumn()
-    public label: number;
+    public label: LabelLangEntity;
 }

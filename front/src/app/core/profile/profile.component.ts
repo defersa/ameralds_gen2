@@ -3,7 +3,6 @@ import { BehaviorSubject } from 'rxjs';
 
 import { AuthService } from 'src/app/services/auth.service';
 import { IUser } from "@am/interface/profile.interface";
-import { ProfileService } from "@am/services/profile.service";
 
 import { AmstoreLoginComponent } from './login/login.component';
 import { DialogService } from "../dialog/dialog.service";
@@ -46,7 +45,6 @@ export class ProfileComponent {
 
     constructor(
         private authService: AuthService,
-        private profileService: ProfileService,
         private _dialog: DialogService,
     ) {
     }
@@ -59,6 +57,6 @@ export class ProfileComponent {
     }
 
     public logout(): void {
-        this.authService.logout();
+        this.authService.deleteToken();
     }
 }

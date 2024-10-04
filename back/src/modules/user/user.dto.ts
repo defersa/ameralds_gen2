@@ -47,6 +47,8 @@ export class RefreshTokenCredentialsDto {
     public refresh: string;
 }
 
+export class LogoutCredentialsDto extends RefreshTokenCredentialsDto {}
+
 export class UserProfileDto {
     @ApiProperty({
         description: 'Email of user',

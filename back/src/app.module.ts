@@ -11,6 +11,7 @@ import { DbSharedModule } from "./db/db-shared.module";
 import { RolesGuard } from "@am/core/guards/role.guard";
 import { AuthGuard } from "@am/core/guards/auth.guard";
 import { AppConfigModule } from "@am/core/config/app-config.module";
+import { CategoriesModule } from "./modules/categories/categories.module";
 
 
 @Module({
@@ -26,6 +27,7 @@ import { AppConfigModule } from "@am/core/config/app-config.module";
             },
         ]),
         UserModule,
+        CategoriesModule,
         DbSharedModule,
     ],
     controllers: [AppController],

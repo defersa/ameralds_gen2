@@ -10,6 +10,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 export { EnumApiErrorCodes } from './models/EnumApiErrorCodes';
 export { EnumUserRole } from './models/EnumUserRole';
 export type { ErrorsDto } from './models/ErrorsDto';
+export type { LogoutCredentialsDto } from './models/LogoutCredentialsDto';
 export type { RefreshTokenCredentialsDto } from './models/RefreshTokenCredentialsDto';
 export type { UserCredentialsDto } from './models/UserCredentialsDto';
 export type { UserProfileDto } from './models/UserProfileDto';

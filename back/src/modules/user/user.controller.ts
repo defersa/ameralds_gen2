@@ -2,7 +2,13 @@ import { Body, Controller, Get, HttpException, HttpStatus, Post, Req } from "@ne
 import { UserService } from "@am/db/service/user.service";
 import { UserEntity } from "@am/db/entities";
 import * as bcrypt from "bcrypt";
-import { RefreshTokenCredentialsDto, UserCredentialsDto, UserProfileDto, UserTokensDTO } from "./user.dto";
+import {
+    LogoutCredentialsDto,
+    RefreshTokenCredentialsDto,
+    UserCredentialsDto,
+    UserProfileDto,
+    UserTokensDTO
+} from "./user.dto";
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { ApiErrorCodes, ErrorsDto } from "../errors/errors.dto";
 import { Auth } from "@am/core/guards/auth.guard";
@@ -76,6 +82,17 @@ export class UserController {
         }
 
         return response;
+    }
+
+
+    @Post('logout')
+    @ApiOkResponse({ description: 'User has been logout.', type: null })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto })
+    public async logout(
+        @Req() request: RequestModel,
+        @Body() { refresh, access }: LogoutCredentialsDto,
+    ): Promise<void> {
+        return this.userService.logout(request.user, access, refresh);
     }
 
     @Get('profile')

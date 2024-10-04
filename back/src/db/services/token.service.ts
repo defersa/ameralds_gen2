@@ -96,6 +96,10 @@ export class TokenService {
 
             await this.tokenRepository.save(tokenEntity);
         }
+    }
 
+    public async setTokenInactive(token: TokenEntity): Promise<void> {
+        token.state = ModelState.INACTIVE;
+        await this.tokenRepository.save(token);
     }
 }

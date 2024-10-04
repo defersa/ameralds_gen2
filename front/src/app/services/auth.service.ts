@@ -1,106 +1,95 @@
 import { inject, Injectable } from "@angular/core";
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject } from "rxjs";
 import { IAuthResponse, IRefreshToken } from "@am/interface/profile.interface";
-import { getAction, HttpAuthActions, RestSuffixFragments } from "@am/utils/action-builder";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpErrorResponse } from "@angular/common/http";
 import { UBehaviorSubject } from "@am/utils/u-behavior.subject";
 import { LocalStorage } from "@am/decorators/local.decorator";
 import { Router } from "@angular/router";
 import { UserService } from "@am/root/api";
+import { jwtDecode } from "jwt-decode";
 
 
-const AUTH_TOKEN_NAME: string = 'authToken';
+const ACCESS_TOKEN_NAME: string = 'accessToken';
 const REFRESH_TOKEN_NAME: string = 'refreshToken';
-const EXPIRATION_DELTA: string = 'expirationDelta'
-const REFRESH_EXPIRATION_DELTA: string = 'refreshExpirationDelta';
-
-const TOKEN_TIME_ALIVE_DAYS: number = 7;
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
-    @LocalStorage(AUTH_TOKEN_NAME)
-    private localAuthToken!: string;
+    @LocalStorage(ACCESS_TOKEN_NAME)
+    private localAccessToken!: string;
 
     @LocalStorage(REFRESH_TOKEN_NAME)
     private localRefreshToken!: string;
 
-    @LocalStorage(EXPIRATION_DELTA)
-    private localExpirationDelta!: string;
+    public accessExpiredAt(): Date {
+        const expiredAt: string = this.localAccessToken ? jwtDecode<{ expiredAt: string }>(this.localAccessToken)?.expiredAt : null;
 
-    @LocalStorage(REFRESH_EXPIRATION_DELTA)
-    private localRefreshExpirationDelta!: string;
+        return expiredAt ? new Date(expiredAt) : null;
+    }
+
+    public refreshExpiredAt(): Date {
+        const expiredAt: string = this.localAccessToken ? jwtDecode<{ expiredAt: string }>(this.localRefreshToken)?.expiredAt : null;
+
+        return expiredAt ? new Date(expiredAt) : null;
+    }
 
     private userService: UserService = inject(UserService);
-    private httpClient: HttpClient = inject(HttpClient);
     private router: Router = inject(Router);
 
-
-    public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(!!this.localAuthToken);
-    public readonly token$: BehaviorSubject<string> = new BehaviorSubject<string>(this.localAuthToken);
+    public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(!!this.localAccessToken);
+    public readonly token$: BehaviorSubject<string> = new BehaviorSubject<string>(this.localAccessToken);
 
     public setToken(tokens: IAuthResponse): void {
         this.setAuthToken(tokens.access);
         this.localRefreshToken = tokens.refresh;
-
-        this.setExpirationDelta();
-        this.setRefreshExpirationDelta();
     }
 
     public logout(): void {
         this.token$.next(null);
         this.authStatus$.next(false);
 
-        this.localAuthToken = '';
-        this.localRefreshToken = '';
-        this.localExpirationDelta = '';
-        this.localRefreshExpirationDelta = '';
+        this.localAccessToken = null;
+        this.localRefreshToken = null;
 
         this.router.navigate(['/']);
     }
 
+    public deleteToken(): void {
+        this.userService.userControllerLogout({ access: this.localAccessToken, refresh: this.localRefreshToken })
+            .subscribe(() => this.logout());
+    }
+
     public setAuthToken(token: string): void {
         this.token$.next(token);
-        this.localAuthToken = token;
+        this.localAccessToken = token;
         this.authStatus$.next(true);
     }
 
-
-    public setExpirationDelta(rememberMe: boolean = true): void {
-        const nextExpiration: Date = new Date();
-        this.localExpirationDelta = String(nextExpiration.setDate(nextExpiration.getDate() + AuthService.getDaysOfRemember(rememberMe)));
-    }
-
-    public setRefreshExpirationDelta(rememberMe: boolean = true): void {
-        const nextExpiration: Date = new Date();
-        this.localRefreshExpirationDelta = String(nextExpiration.setDate(nextExpiration.getDate() + AuthService.getDaysOfRemember(rememberMe)));
-    }
-
-    public static getDaysOfRemember(flag: boolean): number {
-        return flag ? TOKEN_TIME_ALIVE_DAYS : 0;
-    }
-
-    public tryRefreshToken(): void {
-        if (
-            this.authStatus$.getValue() &&
-            Number(this.localExpirationDelta) > Date.now() &&
-            Number(this.localRefreshExpirationDelta) > Date.now()
-        ) {
-            this.userService.userControllerRefresh({ access: this.localAuthToken, refresh: this.localRefreshToken })
-                .subscribe(
-                    (result: IRefreshToken) => {
-                        this.setExpirationDelta();
-                        this.setAuthToken(result.access);
-                    },
-                    (error: HttpErrorResponse) => {
-                        console.error(error.message);
-
-                        this.logout();
-                    });
+    public tryToRefresh(): void {
+        if (!this.authStatus$.getValue()) {
             return;
         }
 
-        this.logout();
+        if (this.accessExpiredAt().valueOf() > Date.now()) {
+            return;
+        }
+        
+        if (
+            this.refreshExpiredAt().valueOf() < Date.now()
+        ) {
+            return this.logout();
+        }
+
+        this.userService.userControllerRefresh({ access: this.localAccessToken, refresh: this.localRefreshToken })
+            .subscribe(
+                (result: IRefreshToken) => {
+                    this.setAuthToken(result.access);
+                },
+                (error: HttpErrorResponse) => {
+                    console.error(error.message);
+
+                    this.logout();
+                });
     }
 }

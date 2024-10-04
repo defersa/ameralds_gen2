@@ -6,6 +6,7 @@ import * as bcrypt from "bcrypt";
 import { TokenService } from "@am/db/service/token.service";
 import { addDays } from "date-fns";
 import { UserTokensDTO } from "../../modules/user/user.dto";
+import { ModelState } from "../abstract/abstract.model";
 
 
 @Injectable({
@@ -23,7 +24,11 @@ export class UserService {
 
     public getUserByEmail(email: string): Promise<UserEntity> {
         return this.userRepository.findOne({
-            where: { email }
+            where: { email },
+            relations: {
+                access: true,
+                refresh: true,
+            }
         });
     }
 
@@ -52,8 +57,13 @@ export class UserService {
             userId: user.id,
         }, refreshTokenExpiredAt);
 
+        console.log(user)
+        console.log(user.access)
+
         user.access = [...(user.access ?? []), accessToken];
         user.refresh = [...(user.refresh ?? []), refreshToken];
+
+        console.log(user.access)
 
         await this.userRepository.save(user);
 
@@ -93,6 +103,14 @@ export class UserService {
     }
 
 
+    public async logout(user: UserEntity, access: string, refresh: string): Promise<void> {
+        const accessEntity: TokenAccessEntity = user.access.find((token: TokenAccessEntity) => token.value === access);
+        const refreshEntity: TokenRefreshEntity = user.refresh.find((token: TokenRefreshEntity) => token.value === refresh);
+
+        await this.tokenService.setTokenInactive(accessEntity);
+        await this.tokenService.setTokenInactive(refreshEntity);
+    }
+
     public async getUserByToken(token: string): Promise<UserEntity> {
         const decodedToken: Record<string, string> = this.tokenService.decodeToken(token);
         const expiredAt: Date = new Date(decodedToken.expiredAt);
@@ -108,6 +126,10 @@ export class UserService {
                 access: {
                     value: token
                 }
+            },
+            relations: {
+                access: true,
+                refresh: true,
             }
         } as FindOneOptions<UserEntity>);
     }

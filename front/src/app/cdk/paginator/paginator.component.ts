@@ -31,14 +31,11 @@ export class AmstorePaginatorComponent extends AmstoreColor {
 
     public goToPageEvent: OutputEmitterRef<number> = output<number>();
 
-    // TODO: Ад, переделать
     public pageList: Signal<number[]> = computed(() => {
         const startPosition: number = this.page() - PAGES_AROUND < 1 ? 1 : this.page() - PAGES_AROUND;
         const endPosition: number = this.page() + PAGES_AROUND > this.pageCount() ? this.pageCount() : this.page() + PAGES_AROUND;
 
         // TODO: Add logic to increase when corner
-
-        console.log(this.page(), this.pageCount())
 
         return Array.from({ length: endPosition - startPosition + 1 }).map((item: unknown, index: number) => startPosition + index);
     });
