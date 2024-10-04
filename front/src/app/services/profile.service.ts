@@ -4,7 +4,7 @@ import { BehaviorSubject, from, Observable, of } from 'rxjs';
 import {
     getAction,
     HttpAuthActions,
-    RestSuffixFragments, UB
+    RestSuffixFragments,
 } from '../utils/action-builder';
 import { UserEnum } from '../utils/router-builder';
 import { AuthService } from './auth.service';
@@ -18,7 +18,6 @@ import {
     IAuthResponse,
     IUser,
 } from "@am/interface/profile.interface";
-import { AuthRegistrationRequest } from "@am/interface/request/auth-request.interface";
 import { IResultRequest } from "@am/interface/request.interface";
 import { UBehaviorSubject } from "@am/utils/u-behavior.subject";
 import { LocalStorage } from "@am/decorators/local.decorator";

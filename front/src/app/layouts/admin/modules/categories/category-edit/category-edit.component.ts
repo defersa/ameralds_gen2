@@ -51,7 +51,7 @@ export class CategoryEditComponent implements OnInit {
     public save(): void {
         (this.id ?
             this.categories.editCategory(this.form.getRawValue()) :
-            this.categories.saveCategory(this.form.getRawValue())).subscribe(() => this.getBack());
+            this.categories.createCategory(this.form.getRawValue()).subscribe(() => this.getBack()));
     }
 
     public delete(): void {

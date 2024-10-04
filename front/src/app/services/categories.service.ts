@@ -1,12 +1,11 @@
 import { OptionType } from '@am/interface/cdk.interface';
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from "@angular/core";
 import { combineLatest, Observable, OperatorFunction, pipe } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { CategoryType } from '@am/interface/category.interface';
 import {
     IItemResponse,
-    IListResponse,
     IPaginatedResponse,
     IResultRequest
 } from '@am/interface/request.interface';
@@ -14,6 +13,7 @@ import { UB } from '@am/utils/action-builder';
 import { SnackService } from "@am/services/snackbar.service";
 import { BehaviorObservable, GetDataAction } from "@am/utils/data-action.subject";
 import { LangService, LangType } from "@am/services/lang.service";
+import { CategoriesService as CategoriesServiceController, type CategoryDto } from "@am/root/api";
 
 
 @Injectable({
@@ -22,6 +22,8 @@ import { LangService, LangType } from "@am/services/lang.service";
 export class CategoriesService {
     public categories$: BehaviorObservable<CategoryType[]> = GetDataAction([], () => this.getAllCategories());
     public categoriesList$: Observable<OptionType[]> = this.getCategoriesListObs();
+
+    private categoriesService: CategoriesServiceController = inject(CategoriesServiceController);
 
     constructor(
         private httpClient: HttpClient,
@@ -51,6 +53,10 @@ export class CategoriesService {
         return this.httpClient
             .patch<IResultRequest>(UB(['api', 'categories']), values)
             .pipe(this.retakeAndMessage('Категория изменена!'));
+    }
+
+    public createCategory(value: { en: string; ru: string}): Observable<CategoryDto> {
+        return this.categoriesService.categoriesControllerCreate(value)
     }
 
      public saveCategory(values: Record<string, unknown>): Observable<IItemResponse<CategoryType>> {
