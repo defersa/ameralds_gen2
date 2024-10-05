@@ -3,6 +3,7 @@ import { Repository } from "typeorm";
 import { DataSourceService } from "../data-source.service";
 import { CategoryEntity, LabelLangEntity } from "@am/db/entities";
 import { CommonEntitiesService } from "@am/db/service/common-entities.service";
+import { ModelState } from "../abstract/abstract.model";
 
 
 @Injectable()
@@ -23,5 +24,14 @@ export class CategoriesService {
         category.label = label;
 
         return this.categoriesRepository.save(category);
+    }
+
+    public async getAllCategories(): Promise<CategoryEntity[]> {
+        return this.categoriesRepository.find({
+            where: {
+                state: ModelState.ACTIVE,
+            },
+            relations: { label: true },
+        })
     }
 }

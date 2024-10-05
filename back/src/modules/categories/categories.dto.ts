@@ -17,3 +17,11 @@ export class CategoryDto {
     })
     public id: number;
 }
+
+export class CategoriesDto {
+    @ApiProperty({
+        description: 'List of categories',
+        type: Array<CategoryDto>,
+    })
+    public items: CategoryDto[];
+}
