@@ -1,91 +1,80 @@
-import { OptionType } from '@am/interface/cdk.interface';
-import { HttpClient } from '@angular/common/http';
+import { OptionType } from "@am/interface/cdk.interface";
 import { inject, Injectable } from "@angular/core";
-import { combineLatest, Observable, OperatorFunction, pipe } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
-import { CategoryType } from '@am/interface/category.interface';
+import { combineLatest, Observable, OperatorFunction, pipe } from "rxjs";
+import { map, tap } from "rxjs/operators";
 import {
-    IItemResponse,
-    IPaginatedResponse,
     IResultRequest
-} from '@am/interface/request.interface';
-import { UB } from '@am/utils/action-builder';
+} from "@am/interface/request.interface";
 import { SnackService } from "@am/services/snackbar.service";
 import { BehaviorObservable, GetDataAction } from "@am/utils/data-action.subject";
 import { LangService, LangType } from "@am/services/lang.service";
-import { CategoriesService as CategoriesServiceController, type CategoryDto } from "@am/root/api";
+import {
+    type CategoriesDto,
+    type CategoriesPaginatedPageDto,
+    CategoriesService as CategoriesServiceController,
+    type CategoryDto
+} from "@am/root/api";
 
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: "root"
 })
 export class CategoriesService {
-    public categories$: BehaviorObservable<CategoryType[]> = GetDataAction([], () => this.getAllCategories());
+    private categoriesService: CategoriesServiceController = inject(CategoriesServiceController);
+    private snack: SnackService = inject(SnackService);
+    private langService: LangService = inject(LangService);
+
+    public categories$: BehaviorObservable<CategoryDto[]> = GetDataAction([], () => this.getAllCategories());
     public categoriesList$: Observable<OptionType[]> = this.getCategoriesListObs();
 
-    private categoriesService: CategoriesServiceController = inject(CategoriesServiceController);
-
-    constructor(
-        private httpClient: HttpClient,
-        private snack: SnackService,
-        private langService: LangService,
-    ) {
+    public getCategory(id: number): Observable<CategoryDto> {
+        return this.categoriesService.categoriesControllerEntity(id);
     }
 
-    public getCategory(id: number): Observable<CategoryType> {
-        return this.httpClient.get<IItemResponse<CategoryType>>(UB(['api', 'categories', id]))
-            .pipe(map((result: IItemResponse<CategoryType>) => result.item));
+    public getCategories(page: number): Observable<CategoriesPaginatedPageDto> {
+        return this.categoriesService.categoriesControllerPage(page);
     }
 
-    public getCategories(page: number): Observable<IPaginatedResponse<CategoryType>> {
-        return this.httpClient.get<IPaginatedResponse<CategoryType>>(UB(['api', 'categories', 'paginated']), {
-            params: {
-                page
-            }
-        });
+    public getAllCategories(): Observable<CategoryDto[]> {
+        return this.categoriesService.categoriesControllerAll()
+            .pipe(
+                map((response: CategoriesDto) => response.items)
+            );
     }
 
-    public getAllCategories(): Observable<CategoryType[]> {
-        return this.httpClient.get<CategoryType[]>(UB(['api', 'categories', 'all']));
+    public editCategory(values: { id: number; ru: string; en: string }): Observable<CategoryDto> {
+        return this.categoriesService.categoriesControllerEdit(
+            values.id,
+            {
+                en: values.en,
+                ru: values.ru
+            })
+            .pipe(this.retakeAndMessage("Категория изменена"));
     }
 
-    public editCategory(values: Record<string, unknown>): Observable<IResultRequest> {
-        return this.httpClient
-            .patch<IResultRequest>(UB(['api', 'categories']), values)
-            .pipe(this.retakeAndMessage('Категория изменена!'));
-    }
-
-    public createCategory(value: { en: string; ru: string}): Observable<CategoryDto> {
+    public createCategory(value: { en: string; ru: string }): Observable<CategoryDto> {
         return this.categoriesService.categoriesControllerCreate(value)
-    }
-
-     public saveCategory(values: Record<string, unknown>): Observable<IItemResponse<CategoryType>> {
-        return this.httpClient
-            .post<IItemResponse<CategoryType>>(UB(['api', 'categories']), values)
-            .pipe(this.retakeAndMessage('Категория добавлена!'));
+            .pipe(this.retakeAndMessage("Категория добавлена"));
     }
 
     public deleteCategory(id: number): Observable<IResultRequest> {
-        return this.httpClient
-            .delete<IResultRequest>(UB(['api', 'sizes', id]))
-            .pipe(this.retakeAndMessage('Размер изменен!'));
+        return this.categoriesService.categoriesControllerRemove(id)
+            .pipe(this.retakeAndMessage("Категория удалена"));
     }
 
-    private retakeAndMessage<T extends { result: boolean }>(message: string): OperatorFunction<T, T> {
+    private retakeAndMessage<T>(message: string): OperatorFunction<T, T> {
         return pipe(
-            this.snack.getSnackTap(message),
-            tap(() => {
-                this.categories$.retake();
-            })
-        )
+            this.snack.informAfterResult(message),
+            tap(() => this.categories$.retake())
+        );
     }
 
     private getCategoriesListObs(): Observable<OptionType[]> {
         return combineLatest([this.langService.lang$, this.categories$]).pipe(
-            map(([lang, values]: [LangType, CategoryType[]]) => values.map((item: CategoryType) => ({
-                label: item.name[lang],
+            map(([lang, values]: [LangType, CategoryDto[]]) => values.map((item: CategoryDto) => ({
+                label: item.label[lang],
                 value: item.id
-            }))),
-        )
+            })))
+        );
     }
 }

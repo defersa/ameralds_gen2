@@ -22,7 +22,7 @@ export abstract class AbstractPatternsIndex extends FilteredPage {
         }),
         switchMap((variables: Params) => this.pattern.getPatterns(variables)),
         map((result: IPaginatedResponse<IPattern>) => {
-                this.pageCount = result.pageCount;
+                this.pageCount = result.count;
                 return result.items;
             }
         ));

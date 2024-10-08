@@ -2,11 +2,11 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute } from '@angular/router';
 import { CategoriesService } from '@am/services/categories.service';
-import { CategoryType } from '@am/interface/category.interface';
 import { map } from "rxjs/operators";
 import { Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
+import type { CategoryDto } from "@am/root/api";
 
 
 @Component({
@@ -41,7 +41,7 @@ export class CategoryEditComponent implements OnInit {
     public ngOnInit(): void {
         if (this.id && typeof this.id === 'number') {
             this.categories.getCategory(this.id)
-                .pipe(map((result: CategoryType) => ({ ...result.name, id: result.id })))
+                .pipe(map((result: CategoryDto) => ({ ...result.label, id: result.id })))
                 .subscribe((result: Record<string, string | number>) => {
                     this.form.setValue(result);
                 });
@@ -51,7 +51,8 @@ export class CategoryEditComponent implements OnInit {
     public save(): void {
         (this.id ?
             this.categories.editCategory(this.form.getRawValue()) :
-            this.categories.createCategory(this.form.getRawValue()).subscribe(() => this.getBack()));
+            this.categories.createCategory(this.form.getRawValue()))
+                .subscribe(() => this.getBack());
     }
 
     public delete(): void {

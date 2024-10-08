@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { LabelEntityDto } from "../../common/common.dto";
+import { LabelEntityDto, PaginatedPageDto } from "../../common/common.dto";
 
 
 export class CreateCategoryDto extends LabelEntityDto {}
@@ -16,12 +16,28 @@ export class CategoryDto {
         type: 'string',
     })
     public id: number;
+
+    @ApiProperty({
+        description: 'Date of creating at',
+        type: Date,
+    })
+    public createdAt: Date;
 }
 
 export class CategoriesDto {
     @ApiProperty({
         description: 'List of categories',
-        type: Array<CategoryDto>,
+        type: CategoryDto,
+        isArray: true,
+    })
+    public items: CategoryDto[];
+}
+
+export class CategoriesPaginatedPageDto extends PaginatedPageDto {
+    @ApiProperty({
+        description: 'Categories list',
+        type: CategoryDto,
+        isArray: true,
     })
     public items: CategoryDto[];
 }

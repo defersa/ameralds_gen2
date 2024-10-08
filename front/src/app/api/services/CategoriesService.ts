@@ -5,6 +5,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
+import type { CategoriesDto } from '../models/CategoriesDto';
+import type { CategoriesPaginatedPageDto } from '../models/CategoriesPaginatedPageDto';
 import type { CategoryDto } from '../models/CategoryDto';
 import type { CreateCategoryDto } from '../models/CreateCategoryDto';
 import { OpenAPI } from '../core/OpenAPI';
@@ -14,6 +16,19 @@ import { request as __request } from '../core/request';
 })
 export class CategoriesService {
     constructor(public readonly http: HttpClient) {}
+    /**
+     * @returns CategoriesDto Get all categories.
+     * @throws ApiError
+     */
+    public categoriesControllerAll(): Observable<CategoriesDto> {
+        return __request(OpenAPI, this.http, {
+            method: 'GET',
+            url: '/api/all',
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
     /**
      * @param requestBody
      * @returns CategoryDto The category has been successfully created.
@@ -25,6 +40,86 @@ export class CategoriesService {
         return __request(OpenAPI, this.http, {
             method: 'POST',
             url: '/api/create',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
+    /**
+     * @param id Params of entity
+     * @returns any The category has been successfully removed.
+     * @throws ApiError
+     */
+    public categoriesControllerRemove(
+        id: number,
+    ): Observable<any> {
+        return __request(OpenAPI, this.http, {
+            method: 'DELETE',
+            url: '/api/{id}',
+            path: {
+                'id': id,
+            },
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
+    /**
+     * @param id Params of entity
+     * @returns CategoryDto Category returned.
+     * @throws ApiError
+     */
+    public categoriesControllerEntity(
+        id: number,
+    ): Observable<CategoryDto> {
+        return __request(OpenAPI, this.http, {
+            method: 'GET',
+            url: '/api/{id}',
+            path: {
+                'id': id,
+            },
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
+    /**
+     * @param page Paginated page
+     * @returns CategoriesPaginatedPageDto The category has been successfully removed.
+     * @throws ApiError
+     */
+    public categoriesControllerPage(
+        page: number,
+    ): Observable<CategoriesPaginatedPageDto> {
+        return __request(OpenAPI, this.http, {
+            method: 'GET',
+            url: '/api/list/{page}',
+            path: {
+                'page': page,
+            },
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
+    /**
+     * @param id Params of entity
+     * @param requestBody
+     * @returns CategoryDto The category has been successfully edited.
+     * @throws ApiError
+     */
+    public categoriesControllerEdit(
+        id: number,
+        requestBody: CreateCategoryDto,
+    ): Observable<CategoryDto> {
+        return __request(OpenAPI, this.http, {
+            method: 'PATCH',
+            url: '/api/edit/{id}',
+            path: {
+                'id': id,
+            },
             body: requestBody,
             mediaType: 'application/json',
             errors: {

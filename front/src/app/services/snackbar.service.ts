@@ -25,6 +25,12 @@ export class SnackService {
         )
     }
 
+    public informAfterResult<T>(message: string, duration: number = DEFAULT_DURATION): OperatorFunction<T, T> {
+        return pipe(
+            tap(() => this.snackBar.open(message, undefined, { duration })),
+        )
+    }
+
     public open(message: string, duration: number = DEFAULT_DURATION): void {
         this.snackBar.open(message, undefined, { duration });
     }

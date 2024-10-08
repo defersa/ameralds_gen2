@@ -7,6 +7,8 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { CategoriesDto } from './models/CategoriesDto';
+export type { CategoriesPaginatedPageDto } from './models/CategoriesPaginatedPageDto';
 export type { CategoryDto } from './models/CategoryDto';
 export type { CreateCategoryDto } from './models/CreateCategoryDto';
 export { EnumApiErrorCodes } from './models/EnumApiErrorCodes';

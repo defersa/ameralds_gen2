@@ -44,7 +44,7 @@ export class IndexComponent extends FilteredPage {
         }),
         switchMap((variables: Params) => this.adminOrder.getOrders(variables)),
         map((result: IPaginatedResponse<IAdminOrderShort>) => {
-                this.pageCount = result.pageCount;
+                this.pageCount = result.count;
                 return result.items;
             }
         ));

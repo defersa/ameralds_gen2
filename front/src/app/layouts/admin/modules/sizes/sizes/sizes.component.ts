@@ -38,7 +38,7 @@ export class SizesComponent extends FilteredPage {
         }),
         switchMap((page: number) => this.sizes.getSizes(page)),
         map((result: IPaginatedResponse<SizeType>) => {
-                this.pageCount = result.pageCount;
+                this.pageCount = result.count;
                 return result.items;
             }
         ));

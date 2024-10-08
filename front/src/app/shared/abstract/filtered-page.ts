@@ -1,6 +1,6 @@
 import { DestroyRef, Directive, inject } from "@angular/core";
 import { ActivatedRoute, Event, Navigation, NavigationEnd, Params, Router } from "@angular/router";
-import { filter, map } from "rxjs/operators";
+import { filter, map, tap } from "rxjs/operators";
 import { BehaviorSubject } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
@@ -15,7 +15,7 @@ export abstract class FilteredPage {
 
     protected filterSet$: BehaviorSubject<FiltersSet> = new BehaviorSubject(null);
 
-    public constructor() {
+    constructor() {
         this.initFiltersWithParams();
         this.initQueryUpdateHandler();
     }
@@ -37,22 +37,19 @@ export abstract class FilteredPage {
     }
 
     private initFiltersWithParams(): void {
-        // TODO: REEEEWORK
-        this.router.events
+        this.activateRoute
+            .queryParams
             .pipe(
-                filter((event: Event) => event instanceof NavigationEnd),
-                map(() => this.router.getCurrentNavigation()),
-                filter((navigation: Navigation) => !navigation.extras?.state?.["skip"] || navigation.trigger === "popstate"),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
-            .subscribe(() => this.setFilter(this.initFilters(this.activateRoute.snapshot.queryParams)));
+            .subscribe((params: Params) => this.setFilter(this.initFilters(params)))
     }
 
     private initQueryUpdateHandler(): void {
         this.filterSet$
             .pipe(
                 filter(Boolean),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe((params: FiltersSet) =>
                 this.router.navigate([], {

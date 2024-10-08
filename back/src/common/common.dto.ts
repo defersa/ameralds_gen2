@@ -22,3 +22,33 @@ export class LabelEntityDto {
     })
     public en: string;
 }
+
+export class PaginatedPageDto {
+    @ApiProperty({
+        description: 'Current page',
+        type: 'number',
+    })
+    public page: number;
+
+    @ApiProperty({
+        description: 'Count of pages',
+        type: 'number',
+    })
+    public count: number;
+}
+
+export class ParamsEntityDto {
+    @ApiProperty({
+        description: 'Params of entity',
+        type: 'number',
+    })
+    public id: number;
+}
+
+export class ParamsPaginatedDto {
+    @ApiProperty({
+        description: 'Paginated page',
+        type: 'number',
+    })
+    public page: number;
+}

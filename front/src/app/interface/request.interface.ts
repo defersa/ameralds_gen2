@@ -13,7 +13,7 @@ export type IdRequest = {
 
 export type IPaginatedResponse<T> = {
     page: number;
-    pageCount: number;
+    count: number;
     items: T[];
 }
 

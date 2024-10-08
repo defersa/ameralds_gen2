@@ -12,5 +12,9 @@ export type CategoryDto = {
      * English label
      */
     id: string;
+    /**
+     * Date of creating at
+     */
+    createdAt: string;
 };
 

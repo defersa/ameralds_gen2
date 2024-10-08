@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { CategoriesService } from "@am/db/service/categories.service";
 import { ErrorsDto } from "../errors/errors.dto";
-import { CategoriesDto, CategoryDto, CreateCategoryDto } from "./categories.dto";
+import { CategoriesDto, CategoriesPaginatedPageDto, CategoryDto, CreateCategoryDto } from "./categories.dto";
 import { Roles } from "@am/core/guards/role.guard";
-import { UserRole } from "@am/db/entities";
+import { CategoryEntity, UserRole } from "@am/db/entities";
+import { ParamsPaginatedDto, ParamsEntityDto } from "../../common/common.dto";
 
 
 @Controller()
@@ -30,5 +31,44 @@ export class CategoriesController {
         @Body() { en, ru }: CreateCategoryDto,
     ): Promise<CategoryDto> {
         return this.categoriesService.createCategory(ru, en);
+    }
+
+    @Delete(':id')
+    @Roles(UserRole.ADMIN)
+    @ApiOkResponse({ description: 'The category has been successfully removed.', type: null })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    public async remove(
+        @Param() params: ParamsEntityDto,
+    ): Promise<CategoryEntity> {
+        return this.categoriesService.removeCategory(params.id);
+    }
+
+    @Get(':id')
+    @ApiOkResponse({ description: 'Category returned.', type: CategoryDto })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    public async entity(
+        @Param() params: ParamsEntityDto,
+    ): Promise<CategoryEntity> {
+        return this.categoriesService.getCategory(params.id);
+    }
+
+    @Get('list/:page')
+    @Roles(UserRole.ADMIN)
+    @ApiOkResponse({ description: 'The category has been successfully removed.', type: CategoriesPaginatedPageDto })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    public async page(
+        @Param() params: ParamsPaginatedDto,
+    ): Promise<CategoriesPaginatedPageDto> {
+        return this.categoriesService.paginatedCategories(Number(params.page));
+    }
+
+    @Patch('edit/:id')
+    @ApiOkResponse({ description: 'The category has been successfully edited.', type: CategoryDto })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    public async edit(
+        @Param() params: ParamsEntityDto,
+        @Body() { en, ru }: CreateCategoryDto,
+    ): Promise<CategoryEntity> {
+        return this.categoriesService.editCategory(params.id, ru, en);
     }
 }

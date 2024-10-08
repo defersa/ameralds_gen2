@@ -22,4 +22,8 @@ export class CommonEntitiesService {
 
         return this.labelRepository.save(label);
     }
+
+    public removeLabel(label: LabelLangEntity): Promise<LabelLangEntity> {
+        return this.labelRepository.remove(label);
+    }
 }
