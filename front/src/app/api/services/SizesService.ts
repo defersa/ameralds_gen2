@@ -5,25 +5,25 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
-import type { CategoriesDto } from '../models/CategoriesDto';
-import type { CategoriesPaginatedPageDto } from '../models/CategoriesPaginatedPageDto';
-import type { CategoryDto } from '../models/CategoryDto';
-import type { CreateCategoryDto } from '../models/CreateCategoryDto';
+import type { CreateSizeDto } from '../models/CreateSizeDto';
+import type { SizeDto } from '../models/SizeDto';
+import type { SizesDto } from '../models/SizesDto';
+import type { SizesPaginatedPageDto } from '../models/SizesPaginatedPageDto';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 @Injectable({
     providedIn: 'root',
 })
-export class CategoriesService {
+export class SizesService {
     constructor(public readonly http: HttpClient) {}
     /**
-     * @returns CategoriesDto Get all categories.
+     * @returns SizesDto Get all sizes.
      * @throws ApiError
      */
-    public categoriesControllerAll(): Observable<CategoriesDto> {
+    public sizesControllerAll(): Observable<SizesDto> {
         return __request(OpenAPI, this.http, {
             method: 'GET',
-            url: '/api/categories/all',
+            url: '/api/sizes/all',
             errors: {
                 400: `Something went wrong.`,
             },
@@ -31,15 +31,15 @@ export class CategoriesService {
     }
     /**
      * @param requestBody
-     * @returns CategoryDto The category has been successfully created.
+     * @returns SizeDto The size has been successfully created.
      * @throws ApiError
      */
-    public categoriesControllerCreate(
-        requestBody: CreateCategoryDto,
-    ): Observable<CategoryDto> {
+    public sizesControllerCreate(
+        requestBody: CreateSizeDto,
+    ): Observable<SizeDto> {
         return __request(OpenAPI, this.http, {
             method: 'POST',
-            url: '/api/categories/create',
+            url: '/api/sizes/create',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -49,15 +49,15 @@ export class CategoriesService {
     }
     /**
      * @param id Params of entity
-     * @returns any The category has been successfully removed.
+     * @returns any The size has been successfully removed.
      * @throws ApiError
      */
-    public categoriesControllerRemove(
+    public sizesControllerRemove(
         id: number,
     ): Observable<any> {
         return __request(OpenAPI, this.http, {
             method: 'DELETE',
-            url: '/api/categories/{id}',
+            url: '/api/sizes/{id}',
             path: {
                 'id': id,
             },
@@ -68,15 +68,15 @@ export class CategoriesService {
     }
     /**
      * @param id Params of entity
-     * @returns CategoryDto Category returned.
+     * @returns SizeDto Size returned.
      * @throws ApiError
      */
-    public categoriesControllerEntity(
+    public sizesControllerEntity(
         id: number,
-    ): Observable<CategoryDto> {
+    ): Observable<SizeDto> {
         return __request(OpenAPI, this.http, {
             method: 'GET',
-            url: '/api/categories/{id}',
+            url: '/api/sizes/{id}',
             path: {
                 'id': id,
             },
@@ -87,15 +87,15 @@ export class CategoriesService {
     }
     /**
      * @param page Paginated page
-     * @returns CategoriesPaginatedPageDto The category has been successfully removed.
+     * @returns SizesPaginatedPageDto The size has been successfully removed.
      * @throws ApiError
      */
-    public categoriesControllerPage(
+    public sizesControllerPage(
         page: number,
-    ): Observable<CategoriesPaginatedPageDto> {
+    ): Observable<SizesPaginatedPageDto> {
         return __request(OpenAPI, this.http, {
             method: 'GET',
-            url: '/api/categories/list/{page}',
+            url: '/api/sizes/list/{page}',
             path: {
                 'page': page,
             },
@@ -107,16 +107,16 @@ export class CategoriesService {
     /**
      * @param id Params of entity
      * @param requestBody
-     * @returns CategoryDto The category has been successfully edited.
+     * @returns SizeDto The category has been successfully edited.
      * @throws ApiError
      */
-    public categoriesControllerEdit(
+    public sizesControllerEdit(
         id: number,
-        requestBody: CreateCategoryDto,
-    ): Observable<CategoryDto> {
+        requestBody: CreateSizeDto,
+    ): Observable<SizeDto> {
         return __request(OpenAPI, this.http, {
             method: 'PATCH',
-            url: '/api/categories/edit/{id}',
+            url: '/api/sizes/edit/{id}',
             path: {
                 'id': id,
             },

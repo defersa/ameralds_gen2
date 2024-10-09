@@ -8,7 +8,7 @@ import { CategoryEntity, UserRole } from "@am/db/entities";
 import { ParamsPaginatedDto, ParamsEntityDto } from "../../common/common.dto";
 
 
-@Controller()
+@Controller('categories')
 @ApiTags('categories')
 export class CategoriesController {
     constructor(

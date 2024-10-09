@@ -35,7 +35,7 @@ export class CategoriesDto {
 
 export class CategoriesPaginatedPageDto extends PaginatedPageDto {
     @ApiProperty({
-        description: 'Categories list',
+        description: 'Paginated categories',
         type: CategoryDto,
         isArray: true,
     })

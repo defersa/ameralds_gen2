@@ -1,24 +1,22 @@
 <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
 
-@if (form) {
-    <div class="amstore-category-add" [formGroup]="form">
-        <h1>{{id ? "Изменить" : "Добавить"}} размер</h1>
+<div class="amstore-category-add" [formGroup]="form">
+    <h1>{{id ? "Изменить" : "Добавить"}} размер</h1>
+
+    @if (id) {
+        <p>id: {{id}}</p>
+    }
+
+    <amstore-forms-input formControlName="value"
+                         name="value"
+                         type="number"
+                         label="Значение"/>
+
+    <div class="d-flex flex-row-reverse justify-content-between">
+        <amstore-button size="large" [disabled]="form.invalid" (click)="save()">Сохранить</amstore-button>
 
         @if (id) {
-            <p>id: {{id}}</p>
+            <amstore-button size="large" (click)="delete()">Удалить</amstore-button>
         }
-
-        <amstore-forms-input [formControl]="controlValue"
-                             name="value"
-                             type="number"
-                             label="Значение"/>
-
-        <div class="d-flex flex-row-reverse justify-content-between">
-            <amstore-button size="large" (click)="save()">Сохранить</amstore-button>
-
-            @if (id) {
-                <amstore-button size="large" (click)="delete()">Удалить</amstore-button>
-            }
-        </div>
     </div>
-}
+</div>

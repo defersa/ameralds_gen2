@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CategoryDto } from './CategoryDto';
-export type CategoriesPaginatedPageDto = {
+import type { SizeDto } from './SizeDto';
+export type SizesPaginatedPageDto = {
     /**
      * Current page
      */
@@ -13,8 +13,8 @@ export type CategoriesPaginatedPageDto = {
      */
     count: number;
     /**
-     * Paginated categories
+     * Paginated sizes
      */
-    items: Array<CategoryDto>;
+    items: Array<SizeDto>;
 };
 

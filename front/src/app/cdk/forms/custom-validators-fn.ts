@@ -28,12 +28,12 @@ export class CustomValidatorFns {
     public static getNotUniqBehaviorValue: <T>(subject: { getValue: () => T[] }, fieldName: string) =>
         ValidatorFn = function <T>(subject: { getValue: () => T[] }, fieldName: string): ValidatorFn {
         return (control: AbstractControl) => {
-            const values: unknown[] = subject.getValue().map((item: T) => item[fieldName]);
+            const values: unknown[] = subject.getValue()?.map((item: T) => Number(item[fieldName])) || [];
 
             if (!control) {
                 return null;
             }
-            if (values.includes(control.value)) {
+            if (values.includes(Number(control.value))) {
                 return { notUniq: { value: control.value } };
             }
             return null;

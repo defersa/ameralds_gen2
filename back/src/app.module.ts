@@ -12,6 +12,7 @@ import { RolesGuard } from "@am/core/guards/role.guard";
 import { AuthGuard } from "@am/core/guards/auth.guard";
 import { AppConfigModule } from "@am/core/config/app-config.module";
 import { CategoriesModule } from "./modules/categories/categories.module";
+import { SizesModule } from "./modules/sizes/sizes.module";
 
 
 @Module({
@@ -28,6 +29,7 @@ import { CategoriesModule } from "./modules/categories/categories.module";
         ]),
         UserModule,
         CategoriesModule,
+        SizesModule,
         DbSharedModule,
     ],
     controllers: [AppController],

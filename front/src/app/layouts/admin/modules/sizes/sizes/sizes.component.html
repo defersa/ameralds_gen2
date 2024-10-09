@@ -8,7 +8,7 @@
         <div class="amstore-sizes-container-row" [routerLink]="['edit', item.id]">
             <div class="amstore-sizes-container-col-small">{{item.id}}</div>
             <div class="amstore-sizes-container-col-small">{{item.value}}</div>
-            <div class="amstore-sizes-container-col-large">{{item.create_date | date : 'dd.MM.YYYY hh:mm:ss'}}</div>
+            <div class="amstore-sizes-container-col-large">{{item.createdAt | date : 'dd.MM.YYYY hh:mm:ss'}}</div>
         </div>
     }
 </div>

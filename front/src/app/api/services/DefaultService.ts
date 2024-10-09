@@ -63,26 +63,6 @@ export class DefaultService {
         });
     }
     /**
-     * @returns any
-     * @throws ApiError
-     */
-    public appControllerFakeHandlerOne(): Observable<any> {
-        return __request(OpenAPI, this.http, {
-            method: 'GET',
-            url: '/api/categories/all',
-        });
-    }
-    /**
-     * @returns any
-     * @throws ApiError
-     */
-    public appControllerFakeHandlerTwo(): Observable<any> {
-        return __request(OpenAPI, this.http, {
-            method: 'GET',
-            url: '/api/sizes/all',
-        });
-    }
-    /**
      * @param page
      * @returns any
      * @throws ApiError

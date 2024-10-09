@@ -22,6 +22,8 @@ import type { CategoryDto } from "@am/root/api";
 })
 export class CategoryEditComponent implements OnInit {
     protected readonly location: Location = inject(Location);
+    private route: ActivatedRoute = inject(ActivatedRoute);
+    private categories: CategoriesService = inject(CategoriesService);
 
     public id: number;
 
@@ -30,15 +32,9 @@ export class CategoryEditComponent implements OnInit {
         ru: new FormControl(),
         en: new FormControl()
     });
-
-    constructor(
-        private route: ActivatedRoute,
-        private categories: CategoriesService,
-    ) {
-        this.id = Number(this.route.snapshot.paramMap.get('id')) ?? null;
-    }
-
     public ngOnInit(): void {
+        this.id = Number(this.route.snapshot.paramMap.get('id')) ?? null;
+
         if (this.id && typeof this.id === 'number') {
             this.categories.getCategory(this.id)
                 .pipe(map((result: CategoryDto) => ({ ...result.label, id: result.id })))

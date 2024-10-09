@@ -12,8 +12,6 @@ import {
 import { combineLatest, Observable, of, Subject } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 
-import { AmstoreViewerService } from '@am/shared/viewer/viewer.service';
-
 import { CategoryType } from '@am/interface/category.interface';
 import { OptionType } from '@am/interface/cdk.interface';
 import { ImageAddRequest, ImageModelSmall, IIndexedBlob, IIndexedImage } from '@am/interface/image.interface';
@@ -49,6 +47,7 @@ import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.compon
 import { AmstoreUploadFileComponent } from "@am/cdk/forms/upload-file/upload-file.component";
 import { AsyncPipe } from "@angular/common";
 import { AmstoreSelectComponent } from "@am/cdk/forms/select/select.component";
+import { SizeDto } from "@am/root/api";
 
 
 @Component({
@@ -150,7 +149,7 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
 
     public initSizes(): void {
         this._sizeService.sizes$
-            .subscribe((items: SizeType[]) => {
+            .subscribe((items: SizeDto[]) => {
                 this.sizeArrayComponentList = [
                     {
                         name: 'id',
@@ -162,7 +161,7 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
                         name: 'size',
                         component: 'select',
                         label: 'Размер',
-                        items: items.map((item: SizeType) => ({ label: String(item.value), value: item.id })),
+                        items: items.map((item: SizeDto) => ({ label: String(item.value), value: item.id })),
                         classes: 'col-12',
                         validator: [Validators.required, this._arrayValidatorsFns.getNotUniqValue('size')]
                     },

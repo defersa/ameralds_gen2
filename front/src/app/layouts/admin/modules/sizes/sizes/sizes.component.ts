@@ -11,6 +11,7 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { AsyncPipe, DatePipe } from "@angular/common";
 import { AmstorePaginatorComponent } from "@am/cdk/paginator/paginator.component";
 import { AmstoreButtonRoundComponent } from "@am/cdk/buttons/round/round.component";
+import type { CategoriesPaginatedPageDto, CategoryDto, SizeDto, SizesPaginatedPageDto } from "@am/root/api";
 
 
 @Component({
@@ -29,20 +30,16 @@ import { AmstoreButtonRoundComponent } from "@am/cdk/buttons/round/round.compone
     ]
 })
 export class SizesComponent extends FilteredPage {
-    public items$: Observable<SizeType[]> = this.filterSet$.pipe(
-        filter((result: FiltersSet) => !!result),
-        map((result: FiltersSet) => {
-            this.page = Number(result['page']) || 1;
-
-            return this.page;
-        }),
-        switchMap((page: number) => this.sizes.getSizes(page)),
-        map((result: IPaginatedResponse<SizeType>) => {
+    public items$: Observable<SizeDto[]> = this.filterSet$.pipe(
+        filter(Boolean),
+        switchMap((result: FiltersSet) => this.sizes.getSizes(result.page as number ?? 1)),
+        map((result: SizesPaginatedPageDto) => {
                 this.pageCount = result.count;
+                this.page = result.page;
+
                 return result.items;
             }
         ));
-
 
     public pageCount: number = 1;
     public page: number;
