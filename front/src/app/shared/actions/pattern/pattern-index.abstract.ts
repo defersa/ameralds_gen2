@@ -6,22 +6,16 @@ import { filter, map, switchMap } from "rxjs/operators";
 import { Params } from "@angular/router";
 import { PatternService } from "@am/services/pattern.service";
 import { IPaginatedResponse } from "@am/interface/request.interface";
+import { PatternsService } from "@am/services/patterns.service";
+import type { PatternEntityDto, PatternsPaginatedPageDto, SizeDto, SizesPaginatedPageDto } from "@am/root/api";
 
 
 @Directive()
 export abstract class AbstractPatternsIndex extends FilteredPage {
-    public items$: Observable<IPattern[]> = this.filterSet$.pipe(
-        filter((result: FiltersSet) => !!result),
-        map((result: FiltersSet) => {
-            this.page = Number(result['page']) || 1;
-
-            return {
-                ...result,
-                page: this.page,
-            };
-        }),
-        switchMap((variables: Params) => this.pattern.getPatterns(variables)),
-        map((result: IPaginatedResponse<IPattern>) => {
+    public items$: Observable<PatternEntityDto[]> = this.filterSet$.pipe(
+        filter(Boolean),
+        switchMap((variables: Params) => this.patternsService.getPatterns(variables.page as number ?? 1)),
+        map((result: PatternsPaginatedPageDto) => {
                 this.pageCount = result.count;
                 return result.items;
             }
@@ -32,7 +26,7 @@ export abstract class AbstractPatternsIndex extends FilteredPage {
     public page: number = 1;
     public filters: Record<string, unknown>;
 
-    protected pattern: PatternService = inject(PatternService);
+    protected patternsService: PatternsService = inject(PatternsService);
 
     public setFilterWithPage(filters: Record<string, unknown>): void {
         this.setFilter({

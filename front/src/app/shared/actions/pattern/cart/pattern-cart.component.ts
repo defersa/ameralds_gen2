@@ -10,6 +10,7 @@ import { AmstoreChipsCheckboxComponent } from "@am/cdk/forms/chips-checkbox/chip
 import { AmstoreSlideComponent } from "@am/cdk/slide/slide.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
+import type { PatternEntityDto } from "@am/root/api";
 
 
 @Component({
@@ -26,7 +27,7 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
     standalone: true
 })
 export class PatternCartComponent implements OnInit {
-    public pattern: InputSignal<IPattern> = input();
+    public pattern: InputSignal<PatternEntityDto> = input();
     public isEmpty: boolean = false;
 
     protected destroyRef: DestroyRef = inject(DestroyRef);
@@ -37,11 +38,11 @@ export class PatternCartComponent implements OnInit {
         sizes: new FormControl([])
     });
 
-    public sizeItems: Signal<SelectOption[]> = computed(() =>
-        this.pattern().sizes.map((item: PattenSizeFiles) => ({
-            label: String(item.size.value),
-            value: item.id
-        })));
+    // public sizeItems: Signal<SelectOption[]> = computed(() =>
+    //     this.pattern().sizes.map((item: PattenSizeFiles) => ({
+    //         label: String(item.size.value),
+    //         value: item.id
+    //     })));
 
     public ngOnInit(): void {
         this.form.valueChanges

@@ -3,7 +3,7 @@ import { process } from "@am/core/declare/process";
 import { existsSync, mkdirSync } from "fs";
 
 
-export function getPathWithDir(path: string[]): string {
+export function getPathWithDir(...path: string[]): string {
     [...path]
         .filter((item: string, index: number) => index + 1 !== path.length)
         .reduce((path: string, part: string) => {
@@ -18,3 +18,7 @@ export function getPathWithDir(path: string[]): string {
 
     return join(process.cwd(), ...path);
 }
+
+const a: string[] = ['1', '3', '4']
+
+getPathWithDir(...a)

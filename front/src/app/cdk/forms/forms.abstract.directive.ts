@@ -68,12 +68,3 @@ export class AmstoreFormsBaseDirective extends AmstoreColor implements ControlVa
     }
 }
 
-@Component({
-    selector: 'amstore-forms-label',
-    template: '<ng-content></ng-content>'
-})
-export class AmstoreFormLabel {
-
-    constructor() {
-    }
-}

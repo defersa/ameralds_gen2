@@ -14,6 +14,6 @@ export class AmstoreCardDirective {
     protected viewer: AmstoreViewerService = inject(AmstoreViewerService);
 
     public openViewer(images: ImageModelSmall[], index: number): void {
-        this.viewer.openImageViewer(images, index);
+        // this.viewer.openImageViewer(images, index);
     }
 }

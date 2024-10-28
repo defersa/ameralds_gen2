@@ -1,17 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { DataSourceService } from "../data-source.service";
-import { LabelLangEntity } from "@am/db/entities";
+import { LabelLangEntity, TextLangEntity } from "@am/db/entities";
 
 
 @Injectable()
 export class CommonEntitiesService {
     private labelRepository: Repository<LabelLangEntity>;
+    private textRepository: Repository<TextLangEntity>;
 
     constructor(
         private dataSource: DataSourceService,
     ) {
         this.labelRepository = this.dataSource.getRepository<LabelLangEntity>(LabelLangEntity);
+        this.textRepository = this.dataSource.getRepository<TextLangEntity>(TextLangEntity);
     }
 
     public createLabel(ru: string, en: string): Promise<LabelLangEntity> {
@@ -24,6 +26,27 @@ export class CommonEntitiesService {
     }
 
     public removeLabel(label: LabelLangEntity): Promise<LabelLangEntity> {
+        if (!label) {
+            return;
+        }
+
         return this.labelRepository.remove(label);
+    }
+
+    public createText(ru: string, en: string): Promise<TextLangEntity> {
+        const label: TextLangEntity = this.textRepository.create({
+            en,
+            ru,
+        });
+
+        return this.textRepository.save(label);
+    }
+
+    public removeText(label: TextLangEntity): Promise<TextLangEntity> {
+        if (!label) {
+            return;
+        }
+
+        return this.textRepository.remove(label);
     }
 }

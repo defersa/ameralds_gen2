@@ -7,8 +7,7 @@ import { OptionType } from "@am/interface/cdk.interface";
 import { BehaviorObservable, GetDataAction, GetOptionsObservable } from "@am/utils/data-action.subject";
 import { SnackService } from "@am/services/snackbar.service";
 import {
-    SizesService as SizesServiceController,
-    type SizesPaginatedPageDto, type SizeDto, type SizesDto
+    type SizesPaginatedPageDto, type SizeDto, type SizesDto, SizesProducer
 } from "@am/root/api";
 
 
@@ -17,7 +16,7 @@ import {
 })
 export class SizesService {
     private snack: SnackService = inject(SnackService)
-    private sizesService: SizesServiceController = inject(SizesServiceController);
+    private sizesService: SizesProducer = inject(SizesProducer);
 
     public sizes$: BehaviorObservable<SizeDto[]> = GetDataAction([], () => this.getAllSizes());
     public sizesList$: Observable<OptionType[]> = GetOptionsObservable(this.sizes$);

@@ -10,8 +10,7 @@ import { BehaviorObservable, GetDataAction } from "@am/utils/data-action.subject
 import { LangService, LangType } from "@am/services/lang.service";
 import {
     type CategoriesDto,
-    type CategoriesPaginatedPageDto,
-    CategoriesService as CategoriesServiceController,
+    type CategoriesPaginatedPageDto, CategoriesProducer,
     type CategoryDto
 } from "@am/root/api";
 
@@ -20,12 +19,13 @@ import {
     providedIn: "root"
 })
 export class CategoriesService {
-    private categoriesService: CategoriesServiceController = inject(CategoriesServiceController);
+    private categoriesService: CategoriesProducer = inject(CategoriesProducer);
     private snack: SnackService = inject(SnackService);
     private langService: LangService = inject(LangService);
 
     public categories$: BehaviorObservable<CategoryDto[]> = GetDataAction([], () => this.getAllCategories());
-    public categoriesList$: Observable<OptionType[]> = this.getCategoriesListObs();
+    public categoriesList$: Observable<OptionType[]> = this.getCategoriesList();
+    public categoriesById$: Observable<Record<number, OptionType>> = this.getCategoriesByIds();
 
     public getCategory(id: number): Observable<CategoryDto> {
         return this.categoriesService.categoriesControllerEntity(id);
@@ -69,12 +69,23 @@ export class CategoriesService {
         );
     }
 
-    private getCategoriesListObs(): Observable<OptionType[]> {
+    private getCategoriesList(): Observable<OptionType[]> {
         return combineLatest([this.langService.lang$, this.categories$]).pipe(
             map(([lang, values]: [LangType, CategoryDto[]]) => values.map((item: CategoryDto) => ({
                 label: item.label[lang],
                 value: item.id
             })))
+        );
+    }
+
+    private getCategoriesByIds(): Observable<Record<number, OptionType>> {
+        return combineLatest([this.langService.lang$, this.categories$]).pipe(
+            map(([lang, values]: [LangType, CategoryDto[]]) =>
+                Object.fromEntries(values.map((item: CategoryDto) => [item.id, {
+                    label: item.label[lang],
+                    value: item.id
+                }]))
+            ),
         );
     }
 }

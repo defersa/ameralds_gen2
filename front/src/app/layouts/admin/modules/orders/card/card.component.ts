@@ -12,6 +12,7 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { AmstoreSnapshotPatternComponent } from "@am/shared/snapshot/pattern/pattern.component";
 import { AmstoreChipComponent } from "@am/cdk/chip/chip.component";
 
+
 type IAdminOrderWithStatus = IAdminOrder & {
     purchases: (IPurchaseSaved & {
         sizesWithStatus: {
@@ -38,8 +39,8 @@ type IAdminOrderWithStatus = IAdminOrder & {
 })
 export class CardComponent implements OnInit {
     public readonly location: Location = inject(Location);
-    public adminOrder: AdminOrderService = inject(AdminOrderService);
-    public route: ActivatedRoute = inject(ActivatedRoute);
+    public readonly adminOrder: AdminOrderService = inject(AdminOrderService);
+    public readonly route: ActivatedRoute = inject(ActivatedRoute);
 
     public id: number;
 

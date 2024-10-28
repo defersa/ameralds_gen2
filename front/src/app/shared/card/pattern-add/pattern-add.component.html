@@ -1,9 +1,11 @@
 <div class="amstore-card-images-wrapper">
-    <amstore-button class="amstore-card-edit-image-add" (click)="openImagesEdit()">Изменить <br> изображения
+    <amstore-button class="amstore-card-edit-image-add" (click)="openImagesEdit()">
+        Изменить <br> изображения
     </amstore-button>
 
-    <amstore-blob-image-list [blobImages]="blobImages" [savedImages]="savedImages"></amstore-blob-image-list>
+    <amstore-image-list [images]="images"/>
 </div>
+
 <div class="amstore-card-container" [formGroup]="patternForm">
     <div class="amstore-card-container-header">
         <h1>Добавить/Изменить</h1>
@@ -18,9 +20,10 @@
                 </ng-container>
 
                 <ng-container formGroupName="price">
-                    <amstore-forms-input formControlName="ru" type="number" label="Р"/>
+                    <amstore-forms-input formControlName="ru" type="number" label="₽"/>
                 </ng-container>
             </div>
+
             <div class="col-6">
                 <ng-container formGroupName="name">
                     <amstore-forms-input formControlName="en" label="Name"/>
@@ -42,30 +45,33 @@
     <div class="amstore-card-container-line">
         <h3>Цветовая схема:</h3>
 
-        <amstore-form-upload-file format=".jpg" formGroupName="colors"/>
+        <amstore-form-upload format=".jpg" formControlName="color"/>
     </div>
 
+    <div class="amstore-card-container-line" >
+        <h3>Размеры и файлы:</h3>
+
+        <amstore-pattern-sizes [formArray]="patternForm.get('sizes') | asFormArray "/>
+    </div>
 
     <div class="amstore-card-container-line">
         <h3>Категории:</h3>
 
-        @if (categoriesList$ | async; as categoryList) {
-            <amstore-form-select [items]="categoryList"
-                                 label="Категории"
-                                 [multiple]="true"
-                                 formControlName="category"/>
-        }
+        <amstore-form-select [items]="categoriesList$ | async"
+                             label="Категории"
+                             [multiple]="true"
+                             formControlName="categories"/>
     </div>
 
-    @if (sizeArrayComponentList.length > 0) {
-        <div class="amstore-card-container-line" >
-            <h3>Размеры и файлы:</h3>
+<!--    @if (sizeArrayComponentList.length > 0) {-->
+<!--        <div class="amstore-card-container-line" >-->
+<!--            <h3>Размеры и файлы:</h3>-->
 
-            <amstore-form-array [controlArray]="sizeArrayControl"
-                                [arrayComponentList]="sizeArrayComponentList"
-                                [model]="sizeArrayModel"/>
-        </div>
-    }
+<!--            <amstore-form-array [controlArray]="sizeArrayControl"-->
+<!--                                [arrayComponentList]="sizeArrayComponentList"-->
+<!--                                [model]="sizeArrayModel"/>-->
+<!--        </div>-->
+<!--    }-->
 
     <div class="amstore-row amstore-card-container-buttons">
         <amstore-button (click)="save()" size="large">Сохранить</amstore-button>

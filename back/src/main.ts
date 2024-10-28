@@ -1,12 +1,14 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { INestApplication } from "@nestjs/common";
 import { process } from "@am/core/declare/process";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { join } from "path";
+import helmet from "helmet";
 
 
 async function bootstrap() {
-    const app: INestApplication = await NestFactory.create(AppModule);
+    const app: NestExpressApplication = await NestFactory.create(AppModule);
 
     app.setGlobalPrefix('api');
 
@@ -20,6 +22,11 @@ async function bootstrap() {
         const document = SwaggerModule.createDocument(app, config);
         SwaggerModule.setup('swagger', app, document, { jsonDocumentUrl: 'swagger/schema' });
     }
+
+    app.use(helmet());
+    app.useStaticAssets(join(__dirname, '../../uploads/public'), {
+        prefix: '/uploads/public/'
+    })
 
     await app.listen(3000);
 }

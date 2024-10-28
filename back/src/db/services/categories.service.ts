@@ -1,10 +1,11 @@
-import { Injectable } from "@nestjs/common";
-import { Repository } from "typeorm";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { In, Repository } from "typeorm";
 import { DataSourceService } from "../data-source.service";
 import { CategoryEntity, LabelLangEntity } from "@am/db/entities";
 import { CommonEntitiesService } from "@am/db/service/common-entities.service";
 import { ModelState } from "../abstract/abstract.model";
 import { CategoriesPaginatedPageDto } from "../../modules/categories/categories.dto";
+import { ApiEntityNames, ApiErrorCodes } from "../../modules/errors/errors.dto";
 
 
 @Injectable()
@@ -37,7 +38,7 @@ export class CategoriesService {
         });
 
         if (!category) {
-            return null;
+            throw new HttpException({ code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.CATEGORY }, HttpStatus.BAD_REQUEST);
         }
 
         await this.commonEntitiesService.removeLabel(category.label);
@@ -56,7 +57,7 @@ export class CategoriesService {
         });
 
         if (!category) {
-            return null;
+            throw new HttpException({ code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.CATEGORY }, HttpStatus.BAD_REQUEST);
         }
 
         category.state = ModelState.INACTIVE;
@@ -91,6 +92,18 @@ export class CategoriesService {
         return this.categoriesRepository.findOne({
             where: {
                 id,
+                state: ModelState.ACTIVE,
+            },
+            relations: {
+                label: true,
+            },
+        });
+    }
+
+    public async getCategoriesByIds(ids: number[]): Promise<CategoryEntity[]> {
+        return this.categoriesRepository.find({
+            where: {
+                id: In(ids),
                 state: ModelState.ACTIVE,
             },
             relations: {

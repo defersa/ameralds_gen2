@@ -3,7 +3,7 @@
         {{ label() }}
     </mat-label>
 
-    <mat-select [formControl]="control" [multiple]="multiple">
+    <mat-select [formControl]="control" [multiple]="multiple()">
         @for (item of items(); track item) {
             <mat-option [value]="item.value">{{item.label}}</mat-option>
         }

@@ -1,35 +1,18 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from "@angular/core";
 import { Observable } from 'rxjs';
 import { MatDialog } from "@angular/material/dialog";
-import { AmstoreViewerComponent } from './viewer.component';
-import {
-    AmstoreImageListEditorComponent
-} from "@am/shared/viewer/image-list-editor/image-list-editor.component";
 import { AmstoreViewerDialogComponent } from "@am/shared/viewer/viewer-dialog/viewer-dialog.component";
-import { IIndexedBlob, IIndexedImage } from "@am/interface/image.interface";
+import { AmstoreImagesEditorComponent } from "@am/shared/viewer/images-editor/images-editor.component";
+import { ImageDto } from "@am/root/api";
 
 
-// TODO: Not for root
 @Injectable({
     providedIn: 'root'
 })
 export class AmstoreViewerService {
+    private _dialog: MatDialog = inject(MatDialog);
 
-    constructor(
-        private _dialog: MatDialog) { }
-
-    public open(images: unknown[], index: number): void {
-        this._dialog.open(AmstoreViewerComponent, {
-            data: {
-                images,
-                index
-            },
-            width: '80vw',
-            hasBackdrop: true
-        });
-    }
-
-    public openImageViewer(images: unknown[], index: number): Observable<any> {
+    public openImageViewer(images: ImageDto[], index: number): Observable<any> {
         return this._dialog.open(AmstoreViewerDialogComponent, {
             data: {
                 images,
@@ -44,11 +27,10 @@ export class AmstoreViewerService {
         }).afterClosed();
     }
 
-    public openImageEditor(currentImages: IIndexedImage[], blobImages: IIndexedBlob[]): Observable<any> {
-        return this._dialog.open(AmstoreImageListEditorComponent, {
+    public openImagesEditor(images: ImageDto[]): Observable<ImageDto[]> {
+        return this._dialog.open(AmstoreImagesEditorComponent, {
             data: {
-                currentImages,
-                blobImages
+                images,
             },
             width: '100vw',
             height: '100vh',

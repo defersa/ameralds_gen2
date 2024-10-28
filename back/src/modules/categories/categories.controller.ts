@@ -54,7 +54,7 @@ export class CategoriesController {
 
     @Get('list/:page')
     @Roles(UserRole.ADMIN)
-    @ApiOkResponse({ description: 'The category has been successfully removed.', type: CategoriesPaginatedPageDto })
+    @ApiOkResponse({ description: 'The list of categories successfully returned.', type: CategoriesPaginatedPageDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async page(
         @Param() params: ParamsPaginatedDto,

@@ -2,6 +2,7 @@ import { Component, inject, input, InputSignal } from "@angular/core";
 import { ImageModelSmall } from "@am/interface/image.interface";
 import { AmstoreViewerService } from "@am/shared/viewer/viewer.service";
 import { OutsideSrcDirective } from "@am/shared/outside-src/outside-src.directive";
+import type { ImageDto } from "@am/root/api";
 
 
 @Component({
@@ -14,11 +15,11 @@ import { OutsideSrcDirective } from "@am/shared/outside-src/outside-src.directiv
     ]
 })
 export class ImageListComponent {
-    public images: InputSignal<ImageModelSmall[]> = input();
+    public images: InputSignal<ImageDto[]> = input();
 
     protected viewer: AmstoreViewerService = inject(AmstoreViewerService);
 
-    public openViewer(images: ImageModelSmall[], index: number): void {
+    public openViewer(images: ImageDto[], index: number): void {
         this.viewer.openImageViewer(images, index);
     }
 }

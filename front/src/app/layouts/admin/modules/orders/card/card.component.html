@@ -19,27 +19,27 @@
         </amstore-info>
 
         @for (purchase of order.purchases; track purchase) {
-            <amstore-snapshot-pattern [pattern]="purchase.pattern">
-                <p>
-                    Купленные размеры:
-                </p>
+<!--            <amstore-snapshot-pattern [pattern]="purchase.pattern">-->
+<!--                <p>-->
+<!--                    Купленные размеры:-->
+<!--                </p>-->
 
-                <div class="order-card__purchase-row">
-                    @for (size of purchase.sizesWithStatus; track size) {
-                        <amstore-chip [stroked]="!size.status">
-                            {{size.value}} бср
-                        </amstore-chip>
-                    }
-                </div>
+<!--                <div class="order-card__purchase-row">-->
+<!--                    @for (size of purchase.sizesWithStatus; track size) {-->
+<!--                        <amstore-chip [stroked]="!size.status">-->
+<!--                            {{size.value}} бср-->
+<!--                        </amstore-chip>-->
+<!--                    }-->
+<!--                </div>-->
 
-                <p>
-                    Подбор:
-                </p>
+<!--                <p>-->
+<!--                    Подбор:-->
+<!--                </p>-->
 
-                <div class="order-card__purchase-row">
-                    <amstore-chip [stroked]="!purchase.colors">{{purchase.colors ? 'Куплен' : 'Не куплен'}}</amstore-chip>
-                </div>
-            </amstore-snapshot-pattern>
+<!--                <div class="order-card__purchase-row">-->
+<!--                    <amstore-chip [stroked]="!purchase.colors">{{purchase.colors ? 'Куплен' : 'Не куплен'}}</amstore-chip>-->
+<!--                </div>-->
+<!--            </amstore-snapshot-pattern>-->
         }
     </div>
 

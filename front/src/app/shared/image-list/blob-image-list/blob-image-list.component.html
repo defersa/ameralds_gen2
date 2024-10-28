@@ -1,9 +1,0 @@
-<div class="amstore-images">
-    @for (image of savedImages; track image) {
-        <img [outsideSrc]="image?.image?.image_small" [style.order]="image.index" class="amstore-card-img">
-    }
-
-    @for (image of blobImages; track image) {
-        <img [src]="image?.src" [style.order]="image.index" class="amstore-card-img">
-    }
-</div>

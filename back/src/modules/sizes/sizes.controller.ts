@@ -59,7 +59,7 @@ export class SizesController {
 
     @Get('list/:page')
     @Roles(UserRole.ADMIN)
-    @ApiOkResponse({ description: 'The size has been successfully removed.', type: SizesPaginatedPageDto })
+    @ApiOkResponse({ description: 'The list of sizes successfully returned.', type: SizesPaginatedPageDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async page(
         @Param() params: ParamsPaginatedDto,

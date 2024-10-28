@@ -1,0 +1,21 @@
+@import "spacing";
+
+
+.amstore-pattern {
+  &-size {
+    display: flex;
+    flex-direction: column;
+    gap: get-spacing(1);
+    padding: get-spacing(4) 0;
+
+    &-meta {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    &-id {
+      width: 140px;
+    }
+  }
+}

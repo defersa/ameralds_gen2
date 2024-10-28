@@ -1,5 +1,3 @@
 <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
 
-@if (asyncPattern | async; as pattern) {
-    <amstore-pattern-add-card [data]="pattern" (onBack)="getBack()"/>
-}
+<amstore-pattern-add-card [data]="pattern$ | async" (onBack)="getBack()"/>

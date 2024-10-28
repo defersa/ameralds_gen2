@@ -1,5 +1,5 @@
 <div class="amstore-images">
     @for (image of images(); track image) {
-        <img [outsideSrc]="image.image_full" (click)="openViewer(images(), $index)" class="amstore-card-img">
+        <img [src]="image.preview" (click)="openViewer(images(), $index)" class="amstore-card-img">
     }
 </div>

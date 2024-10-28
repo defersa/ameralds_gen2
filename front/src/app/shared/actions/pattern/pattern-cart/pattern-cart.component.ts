@@ -64,11 +64,11 @@ export class PatternCartComponent extends AbstractPatternCard {
         const bought: number[] = toSignal(this.profileService.boughtPatterns$)();
         const pattern: IPattern = this.pattern();
 
-        if (goods.patterns.find((value: IPattern) => value.id === pattern.id)) {
-            return 'remove';
-        } else  if (bought.find((value: number) => value === pattern.id)) {
-            return 'bought';
-        }
+        // if (goods.patterns.find((value: IPattern) => value.id === pattern.id)) {
+        //     return 'remove';
+        // } else  if (bought.find((value: number) => value === pattern.id)) {
+        //     return 'bought';
+        // }
 
         return 'buy';
     });
@@ -86,20 +86,20 @@ export class PatternCartComponent extends AbstractPatternCard {
         buy: {
             label: 'Купить',
             action: () => {
-                this.goodsService.addProduct(
-                    ProductType.Patterns, this.pattern())
-                    .subscribe((result: GoodsModifire) => {
-                    });
+                // this.goodsService.addProduct(
+                //     ProductType.Patterns, this.pattern())
+                //     .subscribe((result: GoodsModifire) => {
+                //     });
             },
             color: 'primary'
         },
         remove: {
             label: 'Удалить из корзины',
             action: () => {
-                this.goodsService.removeProduct(
-                    ProductType.Patterns, this.pattern().id)
-                    .subscribe((result: GoodsModifire) => {
-                    });
+                // this.goodsService.removeProduct(
+                //     ProductType.Patterns, this.pattern().id)
+                //     .subscribe((result: GoodsModifire) => {
+                //     });
             },
             color: 'warn'
         },

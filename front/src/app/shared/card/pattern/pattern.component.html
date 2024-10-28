@@ -1,10 +1,10 @@
 <div class="amstore-card-images-wrapper">
-    <amstore-image-list [images]="images"/>
+    <amstore-image-list [images]="images()"/>
 </div>
 
 <div class="amstore-card-container">
     <div class="amstore-card-container-header">
-        <h1>{{title}}</h1>
+        <h1>{{ title() }}</h1>
 
         <div class="amstore-card-container-heart">
             <amstore-icon iconName="heart" [size]="32" [isBlack]="true"/>
@@ -30,8 +30,8 @@
     <div class="amstore-card-container-line">
         <h3>Категории:</h3>
         <div class="amstore-row">
-            @for (category of categories; track category) {
-                <amstore-chip [isDark]="true" size="large">{{category.name}}</amstore-chip>
+            @for (category of categories(); track category) {
+                <amstore-chip [isDark]="true" size="large">{{category.label}}</amstore-chip>
             }
         </div>
     </div>

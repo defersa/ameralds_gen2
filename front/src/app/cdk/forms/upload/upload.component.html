@@ -1,0 +1,33 @@
+<div class="amstore-form-upload-file-container">
+    <input type="file"
+           #imageInput
+           name="uploadimage"
+           [accept]="format"
+           (change)="dropFiles($event.target)"
+           [multiple]="false"
+           style="display: none;">
+
+    <b>{{ name || 'Пусто' }}</b>
+
+    <strong class="amstore-text-accent">{{ format() }}</strong>
+
+    @if (name) {
+        <amstore-button color="warn" (click)="clearControl()">
+            <amstore-icon iconName="cross" [contrast]="true" [size]="24" />
+        </amstore-button>
+
+        <amstore-button color="primary" (click)="downloadFile()">
+            <amstore-icon iconName="download" [contrast]="true" [size]="24"/>
+        </amstore-button>
+    } @else {
+        <amstore-button color="accent" (click)="callInputDialog()">
+            <amstore-icon iconName="upload" [contrast]="true" [size]="24"/>
+        </amstore-button>
+    }
+</div>
+
+@if (errorStatusChanges$ | async) {
+    <div [style.color]="'red'">
+        {{ control.errors | errors }}
+    </div>
+}

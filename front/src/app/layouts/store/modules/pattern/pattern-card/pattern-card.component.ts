@@ -4,9 +4,12 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { PatternService } from '@am/services/pattern.service';
 import { IPattern } from '@am/interface/pattern.interface';
 import { DestroyService } from "@am/utils/destroy.service";
-import { Location } from "@angular/common";
+import { AsyncPipe, Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { AmstorePatternCardComponent } from "@am/shared/card/pattern/pattern.component";
+import { Observable } from "rxjs";
+import type { PatternEntityDto } from "@am/root/api";
+import { PatternsService } from "@am/services/patterns.service";
 
 
 type PatterButtonStatus = {
@@ -24,17 +27,17 @@ type PatterButtonStatus = {
     imports: [
         AmstoreButtonComponent,
         RouterLink,
-        AmstorePatternCardComponent
+        AmstorePatternCardComponent,
+        AsyncPipe
     ]
 })
-export class PatternCardComponent implements OnInit {
-    protected readonly location: Location = inject(Location);
-    public pattern: IPattern | undefined;
+export class PatternCardComponent {
+    private readonly location: Location = inject(Location);
+    private readonly route: ActivatedRoute = inject(ActivatedRoute);
+    private readonly patternsService: PatternsService = inject(PatternsService);
+
+    public pattern$: Observable<PatternEntityDto>;
     public id: number;
-
-    private route: ActivatedRoute = inject(ActivatedRoute);
-    private patternService: PatternService = inject(PatternService);
-
     public button: PatterButtonStatus = {
         label: '',
         action: () => { },
@@ -43,11 +46,8 @@ export class PatternCardComponent implements OnInit {
 
     constructor() {
         this.id = Number(this.route.snapshot.paramMap.get('id'));
-    }
 
-    public ngOnInit(): void {
-        this.patternService.getPattern(this.id)
-            .subscribe((result: IPattern) => this.pattern = result );
+        this.pattern$ = this.id ? this.patternsService.getPattern(this.id) : null;
     }
 
     public getBack(): void {

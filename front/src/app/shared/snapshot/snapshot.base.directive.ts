@@ -7,6 +7,7 @@ import {
 import { AmstoreColor } from "@am/cdk/core/color";
 import { ImageModelSmall } from "@am/interface/image.interface";
 import { AmstoreViewerService } from "@am/shared/viewer/viewer.service";
+import { ImageDto } from "@am/root/api";
 
 
 @Directive({
@@ -34,7 +35,7 @@ export class AmstoreSnapshotBaseDirective extends AmstoreColor {
         });
     }
 
-    public openViewer(images: ImageModelSmall[], index: number): void {
+    public openViewer(images: ImageDto[], index: number): void {
         this._viewer.openImageViewer(images, index);
     }
 }

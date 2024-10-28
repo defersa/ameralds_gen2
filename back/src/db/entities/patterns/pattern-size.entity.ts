@@ -2,7 +2,7 @@ import { Entity, ManyToOne, OneToOne } from "typeorm";
 import { BaseModel } from "../../abstract/abstract.model";
 import { SizeEntity } from "./size.entity";
 import { PatternEntity } from "./pattern.entity";
-import { FileEntity } from "../files/file.entity"
+import { PrivateFileEntity } from "../files/file.entity";
 
 
 @Entity({ schema: 'patterns' })
@@ -13,15 +13,15 @@ export class PatternSizeEntity extends BaseModel {
     @ManyToOne(() => PatternEntity, { onDelete: 'CASCADE' })
     public pattern: PatternEntity;
 
-    @OneToOne(() => FileEntity, { onDelete: 'CASCADE', nullable: true })
-    public cbb: FileEntity;
+    @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
+    public cbb: PrivateFileEntity;
 
-    @OneToOne(() => FileEntity, { onDelete: 'CASCADE', nullable: true })
-    public pdf: FileEntity;
+    @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
+    public pdf: PrivateFileEntity;
 
-    @OneToOne(() => FileEntity, { onDelete: 'CASCADE', nullable: true })
-    public png: FileEntity;
+    @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
+    public png: PrivateFileEntity;
 
-    @OneToOne(() => FileEntity, { onDelete: 'CASCADE', nullable: true })
-    public jbb: FileEntity;
+    @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
+    public jbb: PrivateFileEntity;
 }

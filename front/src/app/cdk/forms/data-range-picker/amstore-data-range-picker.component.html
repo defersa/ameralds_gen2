@@ -1,6 +1,6 @@
 <mat-form-field>
     <mat-label>
-        <ng-content selector="amstore-forms-label" />
+        {{ label() }}
     </mat-label>
 
     <mat-date-range-input [rangePicker]="picker">

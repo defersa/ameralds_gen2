@@ -3,7 +3,7 @@
         <amstore-icon iconName="left-arrow" [size]="32" [contrast]="true"/>
     </div>
 
-    <img [outsideSrc]="data.images[data.index].image_full">
+    <img [src]="data.images[data.index].full">
 
     <div (click)="nextImage($event)">
         <amstore-icon iconName="right-arrow" [size]="32" [contrast]="true"/>
@@ -12,6 +12,6 @@
 
 <div class="amstore-viewer-snippet-images">
     @for (image of data.images; track image) {
-        <img [outsideSrc]="image.image_small" [class.image-active]="$index === data.index" (click)="goToIndex($index, $event)">
+        <img [src]="image.preview" [class.image-active]="$index === data.index" (click)="goToIndex($index, $event)">
     }
 </div>

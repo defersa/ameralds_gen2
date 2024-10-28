@@ -12,4 +12,10 @@ export class ImageEntity extends BaseModel {
 
     @Column({ type: "varchar", width: 200 })
     public full: string;
+
+    @Column({ type: 'boolean', default: false })
+    public using: boolean;
+
+    @Column({ type: 'int', default: 0 })
+    public index: number;
 }

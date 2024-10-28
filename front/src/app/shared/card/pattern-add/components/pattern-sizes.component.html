@@ -1,0 +1,23 @@
+@for (group of formArray().controls; track group) {
+    <div [formGroup]="group | asFormGroup" class="amstore-pattern-size">
+        <div class="amstore-pattern-size-meta">
+            <amstore-forms-input formControlName="id" label="Id" class="amstore-pattern-size-id"/>
+            <amstore-form-select [items]="sizesList$ | async"
+                                 label="Размер"
+                                 formControlName="size"/>
+        </div>
+
+        <amstore-form-upload format=".cbb" formControlName="cbb"/>
+        <amstore-form-upload format=".png" formControlName="png"/>
+        <amstore-form-upload format=".pdf" formControlName="pdf"/>
+        <amstore-form-upload format=".jbb" formControlName="jbb"/>
+
+        <amstore-button (click)="deleteSize($index)" color="warn">
+            Удалить
+        </amstore-button>
+    </div>
+}
+
+<amstore-button (click)="addSize()">
+    Добавить
+</amstore-button>

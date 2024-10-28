@@ -8,6 +8,8 @@ import { EMPTY_PATTERN } from "@am/shared/mocks/pattern";
 import { AsyncPipe, Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { AmstorePatternAddCardComponent } from "@am/shared/card/pattern-add/pattern-add.component";
+import { PatternsService } from "@am/services/patterns.service";
+import type { PatternEntityDto } from "@am/root/api";
 
 
 @Component({
@@ -22,19 +24,17 @@ import { AmstorePatternAddCardComponent } from "@am/shared/card/pattern-add/patt
     ]
 })
 export class PatternEditComponent {
-    public id: number;
     public images: ImageModelSmall[] = [];
-    public asyncPattern: Observable<IPattern>;
+    public pattern$: Observable<PatternEntityDto>;
 
     private readonly location: Location = inject(Location);
-    private route: ActivatedRoute = inject(ActivatedRoute);
-    private patternService: PatternService = inject(PatternService);
+    private readonly route: ActivatedRoute = inject(ActivatedRoute);
+    private readonly patternsService: PatternsService = inject(PatternsService);
 
     constructor() {
-        this.id = Number(this.route.snapshot.paramMap.get('id'));
+        const id: number = Number(this.route.snapshot.paramMap.get('id'));
 
-        this.asyncPattern = !this.id ? of(EMPTY_PATTERN) :
-            this.patternService.getPatternEdit(this.id);
+        this.pattern$ = id ? this.patternsService.getPattern(id) : null;
     }
 
     public getBack(): void {

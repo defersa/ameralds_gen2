@@ -1,9 +1,10 @@
 import { IPattern } from "./pattern.interface"
 import { ILangNumber } from "@am/interface/lang.interface";
+import type { PatternEntityDto } from "@am/root/api";
 
 export type GoodsCard = {
     jewels: ProductLite[];
-    patterns: IPattern[];
+    patterns: PatternEntityDto[];
     id: number;
 }
 export type GoodsModifire = {

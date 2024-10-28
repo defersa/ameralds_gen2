@@ -6,3 +6,9 @@
         margin: get-spacing(default) auto;
     }
 }
+
+:host {
+    h3 {
+        margin: get-spacing(4) 0;
+    }
+}

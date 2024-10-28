@@ -2,18 +2,18 @@ import { AfterLoad, Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne 
 import { BaseModel } from "../../abstract/abstract.model";
 import { LabelLangEntity } from "../common/label-lang.entity";
 import { TextLangEntity } from "../common/text-lang.entity";
-import { FileEntity } from "../files/file.entity";
+import { PrivateFileEntity } from "../files/file.entity";
 import { ImageEntity } from "../image/image.entity";
 import { CategoryEntity } from "./category.entity";
 
 
 @Entity({ schema: 'patterns' })
 export class PatternEntity extends BaseModel {
-    @OneToOne(() => LabelLangEntity, { onDelete: 'CASCADE'})
+    @OneToOne(() => LabelLangEntity, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn()
     public name: LabelLangEntity;
 
-    @OneToOne(() => TextLangEntity, { onDelete: 'CASCADE'})
+    @OneToOne(() => TextLangEntity, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn()
     public description: TextLangEntity;
 
@@ -45,9 +45,9 @@ export class PatternEntity extends BaseModel {
     })
     public images: ImageEntity[];
 
-    @OneToOne(() => FileEntity, { onDelete: 'CASCADE'})
+    @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn({ foreignKeyConstraintName: 'patternColor' })
-    public color: FileEntity;
+    public color: PrivateFileEntity;
 
     @Column({ type: 'boolean', default: false })
     public hidden: boolean;

@@ -21,7 +21,13 @@ import {
 import { IResultRequest } from "@am/interface/request.interface";
 import { UBehaviorSubject } from "@am/utils/u-behavior.subject";
 import { LocalStorage } from "@am/decorators/local.decorator";
-import { EnumUserRole, UserCredentialsDto, type UserProfileDto, UserService, UserTokensDTO } from "@am/root/api";
+import {
+    EnumUserRole,
+    UserCredentialsDto,
+    UserProducer,
+    type UserProfileDto,
+    UserTokensDTO
+} from "@am/root/api";
 
 
 declare var grecaptcha: ReCAPTCHA;
@@ -38,7 +44,7 @@ export class ProfileService {
     private authService: AuthService = inject(AuthService);
     private goodsService: GoodsService = inject(GoodsService);
     private httpClient: HttpClient = inject(HttpClient);
-    private userService: UserService = inject(UserService);
+    private userService: UserProducer = inject(UserProducer);
 
     public profile$: BehaviorSubject<IUser> = new BehaviorSubject<IUser>(null);
     public userStatus$: UBehaviorSubject<UserEnum> = new UBehaviorSubject<UserEnum>(this.localUserStatus as UserEnum || UserEnum.Unauthorized);

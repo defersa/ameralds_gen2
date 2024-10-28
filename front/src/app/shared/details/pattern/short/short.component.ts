@@ -1,6 +1,6 @@
-import { Component, input, Input, InputSignal } from "@angular/core";
+import { Component, computed, inject, input, Input, InputSignal, Signal } from "@angular/core";
 import { IPattern } from "@am/interface/pattern.interface";
-import { ILangText } from "@am/interface/lang.interface";
+import { ILangText, LangType } from "@am/interface/lang.interface";
 import { MONEY_UNIT } from "@am/utils/constants";
 import { expandAnimation } from "@am/cdk/animations/expand";
 import { AmstoreChipComponent } from "@am/cdk/chip/chip.component";
@@ -10,6 +10,11 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { RouterLink } from "@angular/router";
 import { LangTextComponent } from "@am/shared/lang-text/lang-text.component";
 import { LangNumberComponent } from "@am/shared/lang-text/lang-number.component";
+import type { PatternEntityDto } from "@am/root/api";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { OptionType } from "@am/interface/cdk.interface";
+import { LangService } from "@am/services/lang.service";
+import { CategoriesService } from "@am/services/categories.service";
 
 
 @Component({
@@ -31,9 +36,20 @@ import { LangNumberComponent } from "@am/shared/lang-text/lang-number.component"
     ]
 })
 export class ShortPatternDetailsComponent {
-    public pattern: InputSignal<IPattern> = input();
+    public pattern: InputSignal<PatternEntityDto> = input();
     public routerLink: InputSignal<(string | number)[]> = input();
 
-    public readonly moneyUnit: ILangText = MONEY_UNIT;
-    public showSale: boolean = false;
+    private langService: LangService = inject(LangService)
+    private categoriesService: CategoriesService = inject(CategoriesService);
+
+    public lang: Signal<LangType> = toSignal(this.langService.lang$);
+    public categoriesById: Signal<Record<number, OptionType>> = toSignal(this.categoriesService.categoriesById$);
+    public categories: Signal<OptionType[]> = computed(() => {
+        const categoriesById: Record<number, OptionType> = this.categoriesById();
+        const pattern: PatternEntityDto = this.pattern();
+
+        return pattern.categories
+            .map((category: number) => categoriesById[category])
+            .filter(Boolean);
+    });
 }

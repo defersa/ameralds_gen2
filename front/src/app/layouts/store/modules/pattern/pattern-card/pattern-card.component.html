@@ -7,6 +7,6 @@
         color="accent">Изменить</amstore-button>
 </div>
 
-@if (pattern) {
-    <amstore-pattern-card [data]="pattern"/>
+@if (pattern$ | async; as pattern) {
+    <amstore-pattern-card [pattern]="pattern"/>
 }

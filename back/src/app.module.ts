@@ -1,6 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
 import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
 import { EnvConfigModule } from "@am/core/config/env-config.module";
 import { AmJwtModule } from "@am/core/jwt/jwt.module";
 import { DbModule } from "./db/db.module";
@@ -13,6 +12,10 @@ import { AuthGuard } from "@am/core/guards/auth.guard";
 import { AppConfigModule } from "@am/core/config/app-config.module";
 import { CategoriesModule } from "./modules/categories/categories.module";
 import { SizesModule } from "./modules/sizes/sizes.module";
+import { PatternsModule } from "./modules/patterns/patterns.module";
+import { ImagesModule } from "./modules/images/images.module";
+import { ScheduleModule } from "@nestjs/schedule";
+import { FilesModule } from "./modules/files/files.module";
 
 
 @Module({
@@ -27,14 +30,17 @@ import { SizesModule } from "./modules/sizes/sizes.module";
                 module: UserModule,
             },
         ]),
+        ScheduleModule.forRoot(),
         UserModule,
         CategoriesModule,
         SizesModule,
+        PatternsModule,
+        ImagesModule,
+        FilesModule,
         DbSharedModule,
     ],
     controllers: [AppController],
     providers: [
-        AppService,
         {
             provide: APP_GUARD,
             useClass: RolesGuard,

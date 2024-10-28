@@ -1,6 +1,6 @@
 <div class="amstore-snapshot-images">
-    @if (pattern().images[0]) {
-        <img [outsideSrc]="pattern().images[0].image_full" (click)="openViewer(pattern().images, 0)">
+    @if (pattern()?.images[0]) {
+        <img [src]="pattern().images[0].preview" (click)="openViewer(pattern().images, 0)">
     }
 </div>
 

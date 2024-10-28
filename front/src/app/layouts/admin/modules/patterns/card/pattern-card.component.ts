@@ -1,12 +1,13 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
-import { PatternService } from '@am/services/pattern.service';
-import { IPattern } from '@am/interface/pattern.interface';
-import { Location } from "@angular/common";
+import { AsyncPipe, Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { AmstorePatternCardComponent } from "@am/shared/card/pattern/pattern.component";
 import { PatternCartComponent } from "@am/shared/actions/pattern/cart/pattern-cart.component";
+import { Observable } from "rxjs";
+import { PatternsService } from "@am/services/patterns.service";
+import type { PatternEntityDto } from "@am/root/api";
 
 
 @Component({
@@ -18,24 +19,21 @@ import { PatternCartComponent } from "@am/shared/actions/pattern/cart/pattern-ca
         AmstoreButtonComponent,
         RouterLink,
         AmstorePatternCardComponent,
-        PatternCartComponent
+        PatternCartComponent,
+        AsyncPipe
     ]
 })
-export class PatternCardComponent implements OnInit {
-    public pattern: IPattern | undefined;
-    public id: number;
-    protected readonly location: Location = inject(Location);
-    private route: ActivatedRoute = inject(ActivatedRoute);
-    private patternService: PatternService = inject(PatternService);
+export class PatternCardComponent {
+    public pattern$: Observable<PatternEntityDto>;
+
+    private readonly location: Location = inject(Location);
+    private readonly route: ActivatedRoute = inject(ActivatedRoute);
+    private readonly patternsService: PatternsService = inject(PatternsService);
 
     constructor() {
-        this.id = Number(this.route.snapshot.paramMap.get('id'));
-    }
+        const id: number = Number(this.route.snapshot.paramMap.get('id'));
 
-    ngOnInit(): void {
-        this.patternService
-            .getPattern(this.id)
-            .subscribe((result: IPattern) => this.pattern = result );
+        this.pattern$ = id ? this.patternsService.getPattern(id) : null;
     }
 
     public getBack(): void {

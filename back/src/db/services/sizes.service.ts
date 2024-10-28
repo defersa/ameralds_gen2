@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { DataSourceService } from "../data-source.service";
 import { SizeEntity } from "@am/db/entities";
 import { ModelState } from "../abstract/abstract.model";
 import { SizesPaginatedPageDto } from "../../modules/sizes/sizes.dto";
+import { ApiEntityNames, ApiErrorCodes } from "../../modules/errors/errors.dto";
 
 
 @Injectable()
@@ -77,12 +78,18 @@ export class SizesService {
     }
 
     public async getSize(id: number): Promise<SizeEntity> {
-        return this.sizesRepository.findOne({
+        const size: SizeEntity = await this.sizesRepository.findOne({
             where: {
                 id,
                 state: ModelState.ACTIVE,
             },
         });
+
+        if (!size) {
+            throw new HttpException({ code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.SIZE }, HttpStatus.BAD_REQUEST);
+        }
+
+        return size;
     }
 
     public async getAllSizes(): Promise<SizeEntity[]> {

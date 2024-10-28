@@ -1,13 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 
-export class SuccessCreateDto {
+export class EntityDto {
     @ApiProperty({
-        description: 'Id of created entity',
-        type: 'string',
+        description: 'Id of entity',
+        type: 'number',
     })
     public id: number;
 }
+
+export class SuccessCreateDto extends EntityDto {}
 
 export class LabelEntityDto {
     @ApiProperty({

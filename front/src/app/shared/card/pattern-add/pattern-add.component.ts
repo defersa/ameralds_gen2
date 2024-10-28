@@ -1,53 +1,46 @@
 import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
-    Component,
-    ElementRef,
-    EventEmitter, inject,
-    Input,
-    OnDestroy,
+    Component, effect,
+    EventEmitter, inject, input,
+    InputSignal,
     OnInit,
     Output
 } from "@angular/core";
-import { combineLatest, Observable, of, Subject } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { filter } from "rxjs/operators";
 
-import { CategoryType } from '@am/interface/category.interface';
 import { OptionType } from '@am/interface/cdk.interface';
-import { ImageAddRequest, ImageModelSmall, IIndexedBlob, IIndexedImage } from '@am/interface/image.interface';
 import {
-    IPattern,
     PattenSizeFiles,
-    PatternSaveResultResponse,
     PatternSaveSizeResult
 } from '@am/interface/pattern.interface';
-import { AmstoreFormArrayComponent, ArrayComponent } from "@am/cdk/forms/array/array.component";
 import {
-    AbstractControl,
+    AmstoreFormArrayComponent
+} from "@am/cdk/forms/array/array.component";
+import {
+    FormArray,
+    FormControl, FormGroup,
     ReactiveFormsModule,
-    UntypedFormArray,
-    UntypedFormControl,
     UntypedFormGroup,
     Validators
 } from "@angular/forms";
-import { SizesService } from '@am/services/sizes.service';
-import { SizeType } from '@am/interface/size.interface';
-import { ArrayValidatorFns } from '@am/cdk/forms/array/array-validators-fn';
 import { CategoriesService } from '@am/services/categories.service';
 import { PatternService } from '@am/services/pattern.service';
 
 import { AmstoreCardDirective } from '../card.directive';
 import { IResultRequest } from "@am/interface/request.interface";
-import { ImagesService } from "@am/services/images.service";
-import { SnackService } from "@am/services/snackbar.service";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
-import { BlobImageListComponent } from "@am/shared/image-list/blob-image-list/blob-image-list.component";
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
-import { AmstoreUploadFileComponent } from "@am/cdk/forms/upload-file/upload-file.component";
 import { AsyncPipe } from "@angular/common";
 import { AmstoreSelectComponent } from "@am/cdk/forms/select/select.component";
-import { SizeDto } from "@am/root/api";
+import { type CreatePatternDto, ImageDto, type PatternEntityDto } from "@am/root/api";
+import { PatternsService } from "@am/services/patterns.service";
+import { ImageListComponent } from "@am/shared/image-list/image-list.component";
+import { AmstoreUploadComponent } from "@am/cdk/forms/upload/upload.component";
+import { AmstorePatternSizesComponent } from "@am/shared/card/pattern-add/components/pattern-sizes.component";
+import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
 
 
 @Component({
@@ -57,69 +50,60 @@ import { SizeDto } from "@am/root/api";
     standalone: true,
     imports: [
         AmstoreButtonComponent,
-        BlobImageListComponent,
         AmstoreInputComponent,
         AmstoreCheckboxComponent,
         ReactiveFormsModule,
-        AmstoreUploadFileComponent,
         AsyncPipe,
         AmstoreSelectComponent,
-        AmstoreFormArrayComponent
+        AmstoreFormArrayComponent,
+        ImageListComponent,
+        AmstoreUploadComponent,
+        AmstorePatternSizesComponent,
+        FormArrayPipe
     ],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AmstorePatternAddCardComponent extends AmstoreCardDirective implements OnDestroy, OnInit {
-    public savedImages: IIndexedImage[] = [];
-    public blobImages: IIndexedBlob[] = [];
+export class AmstorePatternAddCardComponent extends AmstoreCardDirective implements OnInit {
+    public images: ImageDto[] = [];
 
     public categoriesList$: Observable<OptionType[]>;
 
-    @Input()
-    public set data(value: IPattern) {
-        this.savedImages = value.images.map((item: ImageModelSmall, index: number) => ({ image: item, index }));
-
-        this._data = value;
-
-        this._fillPatternForm(value);
-    };
+    public data: InputSignal<PatternEntityDto> = input();
 
     @Output()
     public onBack: EventEmitter<void> = new EventEmitter<void>();
 
-    private _data: IPattern | null = null;
-
     public patternForm: UntypedFormGroup;
 
-    public sizeArrayControl: UntypedFormArray = new UntypedFormArray([]);
-    public sizeArrayComponentList: ArrayComponent[] = [];
-    public sizeArrayModel: Record<string, unknown>[] = [];
-
-    protected destroyed: Subject<void> = new Subject<void>();
-
-    public elementRef: ElementRef = inject(ElementRef);
     private _changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
-    private _sizeService: SizesService = inject(SizesService);
     private _categoriesService: CategoriesService = inject(CategoriesService);
-    private _imageService: ImagesService = inject(ImagesService);
     private _patternService: PatternService = inject(PatternService);
-    private _arrayValidatorsFns: ArrayValidatorFns = inject(ArrayValidatorFns);
-    private _snackService: SnackService = inject(SnackService);
+    private _patternsService: PatternsService = inject(PatternsService);
 
     constructor() {
         super();
 
-        this.patternForm = new UntypedFormGroup({
-            name: new UntypedFormGroup({
-                en: new UntypedFormControl(null, [Validators.required]),
-                ru: new UntypedFormControl(null, [Validators.required]),
+        this.patternForm = new FormGroup({
+            name: new FormGroup({
+                en: new FormControl('', [Validators.required]),
+                ru: new FormControl('', [Validators.required]),
             }),
-            price: new UntypedFormGroup({
-                en: new UntypedFormControl(null, [Validators.required]),
-                ru: new UntypedFormControl(null, [Validators.required]),
+            description: new FormGroup({
+                en: new FormControl(''),
+                ru: new FormControl(''),
             }),
-            hidden: new UntypedFormControl(null, [Validators.required]),
-            category: new UntypedFormControl(null, [Validators.required]),
-            colors: new UntypedFormControl(null, [Validators.required])
+            price: new FormGroup({
+                en: new FormControl(null, [Validators.required]),
+                ru: new FormControl(null, [Validators.required]),
+            }),
+            hidden: new FormControl(null),
+            categories: new FormControl([], [Validators.required]),
+            color: new FormControl(null),
+            sizes: new FormArray([]),
+        });
+
+        effect(() => {
+            this._fillPatternForm(this.data());
         });
     }
 
@@ -129,128 +113,148 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
         this.initSizes();
     }
 
-    public getLangControl(groupName: string, controlName: string): UntypedFormControl {
-        return (this.patternForm.get(groupName) as UntypedFormGroup).get(controlName) as UntypedFormControl;
-    }
+    private _fillPatternForm(value: PatternEntityDto): void {
+        if (!value) {
+            return;
+        }
 
-    private _fillPatternForm(value: IPattern): void {
+        this.images = value.images;
+
         this.patternForm.setValue({
-            price: value.price,
-            name: value.name,
+            price: { en: 0, ru: 0 },
+            name: { ru: value.name.ru, en: value.name.en },
+            description: { ru: value.description.ru, en: value.description.en },
             hidden: value.hidden,
-            category: value.category.map((item: CategoryType) => item.id),
-            colors: value.colors
+            categories: value.categories,
+            color: value.color,
+            sizes: [],
         });
-        this.sizeArrayModel = value.sizes.map((item: Record<string, unknown>) => ({
-            ...item,
-            size: (item.size as Record<string, number>).id
-        }));
     }
 
     public initSizes(): void {
-        this._sizeService.sizes$
-            .subscribe((items: SizeDto[]) => {
-                this.sizeArrayComponentList = [
-                    {
-                        name: 'id',
-                        label: 'ID',
-                        component: 'label',
-                        classes: 'col-12'
-                    },
-                    {
-                        name: 'size',
-                        component: 'select',
-                        label: 'Размер',
-                        items: items.map((item: SizeDto) => ({ label: String(item.value), value: item.id })),
-                        classes: 'col-12',
-                        validator: [Validators.required, this._arrayValidatorsFns.getNotUniqValue('size')]
-                    },
-                    {
-                        name: 'cbb',
-                        label: '.cbb',
-                        component: 'file',
-                        classes: 'col-12',
-                        validator: [Validators.required]
-                    },
-                    {
-                        name: 'png',
-                        label: '.png',
-                        component: 'file',
-                        classes: 'col-12',
-                        validator: [Validators.required]
-                    },
-                    {
-                        name: 'pdf',
-                        label: '.pdf',
-                        component: 'file',
-                        classes: 'col-12',
-                        validator: [Validators.required]
-                    },
-                    {
-                        name: 'jbb',
-                        label: '.jbb',
-                        component: 'file',
-                        classes: 'col-12',
-                        validator: [Validators.required]
-                    }
-                ];
-                this._changeDetector.markForCheck();
-            });
+        // this._sizeService.sizes$
+        //     .subscribe((items: SizeDto[]) => {
+        //         this.sizeArrayComponentList = [
+        //             {
+        //                 name: 'id',
+        //                 label: 'ID',
+        //                 component: 'label',
+        //                 classes: 'col-12'
+        //             },
+        //             {
+        //                 name: 'size',
+        //                 component: 'select',
+        //                 label: 'Размер',
+        //                 items: items.map((item: SizeDto) => ({ label: String(item.value), value: item.id })),
+        //                 classes: 'col-12',
+        //                 validator: [Validators.required]
+        //             },
+        //             {
+        //                 name: 'cbb',
+        //                 label: '.cbb',
+        //                 component: 'file',
+        //                 classes: 'col-12',
+        //                 validator: [Validators.required]
+        //             },
+        //             {
+        //                 name: 'png',
+        //                 label: '.png',
+        //                 component: 'file',
+        //                 classes: 'col-12',
+        //                 validator: [Validators.required]
+        //             },
+        //             {
+        //                 name: 'pdf',
+        //                 label: '.pdf',
+        //                 component: 'file',
+        //                 classes: 'col-12',
+        //                 validator: [Validators.required]
+        //             },
+        //             {
+        //                 name: 'jbb',
+        //                 label: '.jbb',
+        //                 component: 'file',
+        //                 classes: 'col-12',
+        //                 validator: [Validators.required]
+        //             }
+        //         ];
+        //         this._changeDetector.markForCheck();
+        //     });
     }
 
-    public ngOnDestroy(): void {
-        this.destroyed.next();
-        this.destroyed.complete();
-    }
 
     public openImagesEdit(): void {
-        this.viewer.openImageEditor(this.savedImages, this.blobImages)
-            .subscribe((images: null | [IIndexedImage[], IIndexedBlob[]]) => {
-                if (!images) {
-                    return;
-                }
-                [this.savedImages, this.blobImages] = images;
+        this.viewer.openImagesEditor(this.images)
+            .pipe(
+                filter(Boolean),
+            )
+            .subscribe((images: ImageDto[]) => {
+                this.images = images;
                 this._changeDetector.markForCheck();
             });
     }
 
     public save(): void {
-        const isSizeArrayInvalid: boolean = this.sizeArrayControl.controls.reduce((acc: boolean, item: AbstractControl) => acc || item.invalid, false);
-        if (isSizeArrayInvalid || this.patternForm.invalid) {
-            this.sizeArrayControl.markAllAsTouched();
+        if (this.patternForm.invalid) {
             this.patternForm.markAllAsTouched();
 
-            this._snackService.open('Не все поля заполнены корректно');
             return;
         }
 
-        let id = this._data ? this._data.id : null;
-        let value: Record<string, unknown> = {
-            id,
-            patternSizes: this.sizeArrayControl.getRawValue(),
-            ...this.patternForm.getRawValue(),
+        const id: number = this.data()?.id;
+        const rawValues: typeof this.patternForm.value = this.patternForm.value;
+        const values: CreatePatternDto = {
+            ...rawValues,
+            images: this.images.map((image: ImageDto) => image.id),
+            color: rawValues.color?.id,
         };
 
-        combineLatest([
-            of(null),
-            ...this.blobImages.map((image: IIndexedBlob) => {
-                return this._imageService.uploadImage(image.image)
-                    .pipe(map((item: ImageAddRequest) => ({ id: item.image.id, index: image.index })));
-            })
-        ])
-            .pipe(
-                tap((blobRequest: ({ id: number; index: number; } | null)[]) => value = { ...value, images: this._formatImageEntity(blobRequest) }),
-                switchMap(() => id ? this._patternService.updatePattern(value) : this._patternService.createPattern(value)),
-                tap((result: PatternSaveResultResponse) => id = result.id),
-                switchMap((result: PatternSaveResultResponse) => combineLatest([
-                    ...result.sizes.map((item: PatternSaveSizeResult) =>
-                        this._getSetPatternRequest(item, value.patternSizes)),
-                    this._getSetColorRequest(id, value.colors)
-                ])),
-                map(() => ({ result: true })),
-                this._snackService.getSnackTap('Все сохранено'),
-            )
-            .subscribe(() => this.onBack.emit());
+        let updateRequest: Observable<unknown> = this._patternsService
+            .createPattern(values);
+
+        if (id) {
+            updateRequest = this._patternsService
+                .editPattern(id, values);
+        }
+
+        updateRequest.subscribe(() => this.onBack.emit());
+
+        // const isSizeArrayInvalid: boolean = this.sizeArrayControl.controls.reduce((acc: boolean, item: AbstractControl) => acc || item.invalid, false);
+        // if (isSizeArrayInvalid || this.patternForm.invalid) {
+        //     this.sizeArrayControl.markAllAsTouched();
+        //     this.patternForm.markAllAsTouched();
+        //
+        //     this._snackService.open('Не все поля заполнены корректно');
+        //     return;
+        // }
+        //
+        // let id = this._data ? this._data.id : null;
+        // let value: Record<string, unknown> = {
+        //     id,
+        //     patternSizes: this.sizeArrayControl.getRawValue(),
+        //     ...this.patternForm.getRawValue(),
+        // };
+        //
+        // combineLatest([
+        //     of(null),
+        //     ...this.blobImages.map((image: IIndexedBlob) => {
+        //         return this._imageService.uploadImage(image.image)
+        //             .pipe(map((item: ImageAddRequest) => ({ id: item.image.id, index: image.index })));
+        //     })
+        // ])
+        //     .pipe(
+        //         tap((blobRequest: ({ id: number; index: number; } | null)[]) => value = { ...value, images: this._formatImageEntity(blobRequest) }),
+        //         switchMap(() => id ? this._patternService.updatePattern(value) : this._patternService.createPattern(value)),
+        //         tap((result: PatternSaveResultResponse) => id = result.id),
+        //         switchMap((result: PatternSaveResultResponse) => combineLatest([
+        //             ...result.sizes.map((item: PatternSaveSizeResult) =>
+        //                 this._getSetPatternRequest(item, value.patternSizes)),
+        //             this._getSetColorRequest(id, value.color)
+        //         ])),
+        //         map(() => ({ result: true })),
+        //         this._snackService.getSnackTap('Все сохранено'),
+        //     )
+        //     .subscribe(() => this.onBack.emit());
     }
 
     private _getSetPatternRequest(saveSizeResult: PatternSaveSizeResult, patternSizes: unknown): Observable<IResultRequest> {
@@ -280,21 +284,9 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
         const fileList: FormData = new FormData();
         fileList.append('patternId', String(patternId));
         if (color instanceof Blob) {
-            fileList.append('colors', color);
+            fileList.append('color', color);
         }
 
         return this._patternService.setPatternColorFile(fileList);
-    }
-
-    private _formatImageEntity(blobRequest: ({ id: number; index: number; } | null)[]): number[] {
-        const blobImages: { id: number; index: number; }[] =
-            blobRequest.filter((item: { id: number; index: number; } | null) => item !== null) as { id: number; index: number; }[];
-
-        return [
-            ...this.savedImages.map((item: IIndexedImage) => ({ id: item.image.id, index: item.index })),
-            ...blobImages
-        ]
-            .sort((a: { id: number; index: number; }, b: { id: number; index: number; }) => a.index - b.index)
-            .map((item: { id: number; index: number; }) => item.id);
     }
 }

@@ -8,7 +8,7 @@ import { AmstoreColor } from '../core/color';
     styleUrls: ['./chip.component.scss'],
     standalone: true,
     host: {
-        class: 'amstore-chip',
+        class: 'amstore-chip amstore-chip-test',
         '[class.amstore-chip-small]': 'size() === "small"',
         '[class.amstore-chip-medium]': 'size() === "medium"',
         '[class.amstore-chip-large]': 'size() === "large"',

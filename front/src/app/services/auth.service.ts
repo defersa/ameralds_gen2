@@ -5,8 +5,8 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { UBehaviorSubject } from "@am/utils/u-behavior.subject";
 import { LocalStorage } from "@am/decorators/local.decorator";
 import { Router } from "@angular/router";
-import { UserService } from "@am/root/api";
 import { jwtDecode } from "jwt-decode";
+import { UserProducer } from "@am/root/api";
 
 
 const ACCESS_TOKEN_NAME: string = 'accessToken';
@@ -34,7 +34,7 @@ export class AuthService {
         return expiredAt ? new Date(expiredAt) : null;
     }
 
-    private userService: UserService = inject(UserService);
+    private userService: UserProducer = inject(UserProducer);
     private router: Router = inject(Router);
 
     public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(!!this.localAccessToken);

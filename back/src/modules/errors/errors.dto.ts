@@ -11,6 +11,15 @@ export enum ApiErrorCodes {
     EXPIRED = 'EXPIRED',
 }
 
+
+export enum ApiEntityNames {
+    CATEGORY = 'category',
+    SIZE = 'size',
+    PATTERN = 'pattern',
+    PATTERN_SIZE = 'patternSize',
+    FILE = 'file',
+}
+
 export class ErrorsDto {
     @ApiProperty({
         description: 'Code of error',
@@ -18,4 +27,11 @@ export class ErrorsDto {
         enumName: 'EnumApiErrorCodes',
     })
     public code: ApiErrorCodes;
+
+    @ApiProperty({
+        description: 'Error entity name',
+        enum: ApiEntityNames,
+        enumName: 'EnumApiEntityNames',
+    })
+    public entity?: ApiEntityNames;
 }
