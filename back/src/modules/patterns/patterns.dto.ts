@@ -2,9 +2,39 @@ import { ApiProperty } from "@nestjs/swagger";
 import { EntityDto, LabelEntityDto, PaginatedPageDto } from "../../common/common.dto";
 import { ImageDto } from "../images/images.dto";
 import { FileDto } from "../files/files.dto";
-import { OneToOne } from "typeorm";
-import { PrivateFileEntity } from "@am/db/entities";
 
+
+export class PatternSizeDto extends EntityDto {
+    @ApiProperty({
+        description: 'Size id',
+        type: 'number',
+    })
+    public size: number;
+
+    @ApiProperty({
+        description: 'Cbb file id',
+        type: 'number',
+    })
+    public cbb: number;
+
+    @ApiProperty({
+        description: 'Pdf file id',
+        type: 'number',
+    })
+    public pdf: number;
+
+    @ApiProperty({
+        description: 'Png file id',
+        type: 'number',
+    })
+    public png: number;
+
+    @ApiProperty({
+        description: 'Jbb file id',
+        type: 'number',
+    })
+    public jbb: number;
+}
 
 export class CreatePatternDto {
     @ApiProperty({
@@ -44,6 +74,13 @@ export class CreatePatternDto {
         isArray: true,
     })
     public categories: number[];
+
+    @ApiProperty({
+        description: 'Sizes of pattern',
+        type: PatternSizeDto,
+        isArray: true,
+    })
+    public sizes: PatternSizeDto[];
 }
 
 export class PatternEntityDto extends EntityDto {
@@ -84,6 +121,13 @@ export class PatternEntityDto extends EntityDto {
         type: FileDto,
     })
     public color: FileDto;
+
+    @ApiProperty({
+        description: 'Sizes of pattern',
+        type: PatternSizeDto,
+        isArray: true,
+    })
+    public sizes: PatternSizeDto;
 }
 
 export class PatternsPaginatedPageDto extends PaginatedPageDto {
@@ -93,36 +137,4 @@ export class PatternsPaginatedPageDto extends PaginatedPageDto {
         isArray: true,
     })
     public items: PatternEntityDto[];
-}
-
-export class CreatePatternSizeDto extends EntityDto {
-    @ApiProperty({
-        description: 'Size id',
-        type: 'number',
-    })
-    public size: number;
-
-    @ApiProperty({
-        description: 'Cbb file id',
-        type: 'number',
-    })
-    public cbb: number;
-
-    @ApiProperty({
-        description: 'Pdf file id',
-        type: 'number',
-    })
-    public pdf: number;
-
-    @ApiProperty({
-        description: 'Png file id',
-        type: 'number',
-    })
-    public png: number;
-
-    @ApiProperty({
-        description: 'Jbb file id',
-        type: 'number',
-    })
-    public jbb: number;
 }

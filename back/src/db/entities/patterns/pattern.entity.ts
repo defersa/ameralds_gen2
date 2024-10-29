@@ -1,10 +1,11 @@
-import { AfterLoad, Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne } from "typeorm";
+import { AfterLoad, Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne } from "typeorm";
 import { BaseModel } from "../../abstract/abstract.model";
 import { LabelLangEntity } from "../common/label-lang.entity";
 import { TextLangEntity } from "../common/text-lang.entity";
 import { PrivateFileEntity } from "../files/file.entity";
 import { ImageEntity } from "../image/image.entity";
 import { CategoryEntity } from "./category.entity";
+import { PatternSizeEntity } from "./pattern-size.entity";
 
 
 @Entity({ schema: 'patterns' })
@@ -44,6 +45,9 @@ export class PatternEntity extends BaseModel {
         }
     })
     public images: ImageEntity[];
+
+    @OneToMany(() => PatternSizeEntity, (size: PatternSizeEntity) => size.pattern)
+    public sizes: PatternSizeEntity[];
 
     @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn({ foreignKeyConstraintName: 'patternColor' })

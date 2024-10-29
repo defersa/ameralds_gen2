@@ -10,7 +10,7 @@ export class PatternSizeEntity extends BaseModel {
     @ManyToOne(() => SizeEntity, { onDelete: 'CASCADE' })
     public size: SizeEntity;
 
-    @ManyToOne(() => PatternEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => PatternEntity, (pattern: PatternEntity) => pattern.sizes, { onDelete: 'CASCADE' })
     public pattern: PatternEntity;
 
     @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })

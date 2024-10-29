@@ -9,13 +9,19 @@ import {
     TextLangEntity
 } from "@am/db/entities";
 import { DataSourceService } from "../data-source.service";
-import { CreatePatternDto, PatternEntityDto, PatternsPaginatedPageDto } from "../../modules/patterns/patterns.dto";
+import {
+    CreatePatternDto,
+    PatternEntityDto,
+    PatternSizeDto,
+    PatternsPaginatedPageDto
+} from "../../modules/patterns/patterns.dto";
 import { CommonEntitiesService } from "@am/db/service/common-entities.service";
 import { CategoriesService } from "@am/db/service/categories.service";
 import { ModelState } from "../abstract/abstract.model";
 import { ApiErrorCodes } from "../../modules/errors/errors.dto";
 import { ImagesService } from "@am/db/service/images.service";
 import { FilesService } from "@am/db/service/files.service";
+import { PatternsSizeService } from "@am/db/service/pattern-sizes.service";
 
 
 @Injectable()
@@ -29,6 +35,7 @@ export class PatternsService {
         private categoriesService: CategoriesService,
         private imagesService: ImagesService,
         private filesService: FilesService,
+        private patternSizeService: PatternsSizeService,
     ) {
         this.patternsRepository = this.dataSource.getRepository<PatternEntity>(PatternEntity);
         this.patternsSizeRepository = this.dataSource.getRepository<PatternSizeEntity>(PatternSizeEntity);
@@ -40,6 +47,8 @@ export class PatternsService {
         const categories: CategoryEntity[] = await this.categoriesService.getCategoriesByIds(data.categories);
         const images: ImageEntity[] = await this.imagesService.getImagesByIds(data.images);
         const color: FileEntity = await this.filesService.getPrivateFile(data.color);
+        // const sizes: PatternSizeEntity[] = data.sizes
+        //     .map(async (size: PatternSizeDto) => await this.patternSizeService.createPatternSize(size));
 
         await this.imagesService.setUsageStatus(images, true);
         await this.filesService.setUsageStatus(color, true);
@@ -50,7 +59,8 @@ export class PatternsService {
             categories,
             hidden: data.hidden,
             images,
-            color
+            color,
+            sizes,
         });
 
         await this.patternsRepository.save(pattern);
@@ -107,6 +117,9 @@ export class PatternsService {
                 description: true,
                 images: true,
                 color: true,
+                sizes: {
+                    size: true,
+                },
             },
             order: {
                 images: {
@@ -136,6 +149,13 @@ export class PatternsService {
                 description: true,
                 images: true,
                 color: true,
+                sizes: {
+                    cbb: true,
+                    jbb: true,
+                    pdf: true,
+                    png: true,
+                    size: true,
+                },
             },
             order: {
                 images: {
