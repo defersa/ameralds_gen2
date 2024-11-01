@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { LabelEntityDto } from './LabelEntityDto';
+import type { PatternSizeDto } from './PatternSizeDto';
 export type CreatePatternDto = {
     /**
      * Name of pattern
@@ -28,5 +29,9 @@ export type CreatePatternDto = {
      * Categories of pattern
      */
     categories: Array<number>;
+    /**
+     * Sizes of pattern
+     */
+    sizes: Array<PatternSizeDto>;
 };
 

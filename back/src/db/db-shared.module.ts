@@ -19,9 +19,9 @@ const services: any[] = [
     CommonEntitiesService,
     CategoriesService,
     SizesService,
+    PatternsSizeService,
     PatternsService,
     FilesService,
-    PatternsSizeService,
 ];
 
 @Module({

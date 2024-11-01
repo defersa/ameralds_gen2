@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, OneToOne } from "typeorm";
+import { Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { BaseModel } from "../../abstract/abstract.model";
 import { SizeEntity } from "./size.entity";
 import { PatternEntity } from "./pattern.entity";
@@ -14,14 +14,18 @@ export class PatternSizeEntity extends BaseModel {
     public pattern: PatternEntity;
 
     @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn({ foreignKeyConstraintName: 'cbbFile' })
     public cbb: PrivateFileEntity;
 
     @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn({ foreignKeyConstraintName: 'pdfFile' })
     public pdf: PrivateFileEntity;
 
     @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn({ foreignKeyConstraintName: 'pngFile' })
     public png: PrivateFileEntity;
 
     @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn({ foreignKeyConstraintName: 'jbbFile' })
     public jbb: PrivateFileEntity;
 }

@@ -2,7 +2,7 @@
     <input type="file"
            #imageInput
            name="uploadimage"
-           [accept]="format"
+           [accept]="format()"
            (change)="dropFiles($event.target)"
            [multiple]="false"
            style="display: none;">

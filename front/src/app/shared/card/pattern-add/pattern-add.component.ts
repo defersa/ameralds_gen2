@@ -1,28 +1,29 @@
 import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
-    Component, effect,
-    EventEmitter, inject, input,
+    Component,
+    effect,
+    inject,
+    input,
     InputSignal,
     OnInit,
-    Output
+    output,
+    OutputEmitterRef,
+    Signal,
+    viewChild
 } from "@angular/core";
 import { Observable } from 'rxjs';
 import { filter } from "rxjs/operators";
 
 import { OptionType } from '@am/interface/cdk.interface';
 import {
-    PattenSizeFiles,
-    PatternSaveSizeResult
-} from '@am/interface/pattern.interface';
-import {
     AmstoreFormArrayComponent
 } from "@am/cdk/forms/array/array.component";
 import {
     FormArray,
-    FormControl, FormGroup,
+    FormControl,
+    FormGroup,
     ReactiveFormsModule,
-    UntypedFormGroup,
     Validators
 } from "@angular/forms";
 import { CategoriesService } from '@am/services/categories.service';
@@ -35,7 +36,7 @@ import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
 import { AsyncPipe } from "@angular/common";
 import { AmstoreSelectComponent } from "@am/cdk/forms/select/select.component";
-import { type CreatePatternDto, ImageDto, type PatternEntityDto } from "@am/root/api";
+import { type CreatePatternDto, ImageDto, type PatternEntityDto, type PatternSizeDto } from "@am/root/api";
 import { PatternsService } from "@am/services/patterns.service";
 import { ImageListComponent } from "@am/shared/image-list/image-list.component";
 import { AmstoreUploadComponent } from "@am/cdk/forms/upload/upload.component";
@@ -64,16 +65,17 @@ import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AmstorePatternAddCardComponent extends AmstoreCardDirective implements OnInit {
+    private patternSizesComponent: Signal<AmstorePatternSizesComponent> = viewChild("patternSizes", { read: AmstorePatternSizesComponent });
+
+    public data: InputSignal<PatternEntityDto> = input();
+    public onBack: OutputEmitterRef<void> = output();
+
     public images: ImageDto[] = [];
 
     public categoriesList$: Observable<OptionType[]>;
 
-    public data: InputSignal<PatternEntityDto> = input();
-
-    @Output()
-    public onBack: EventEmitter<void> = new EventEmitter<void>();
-
-    public patternForm: UntypedFormGroup;
+    public patternForm: FormGroup;
+    public sizeArrayForm: FormArray;
 
     private _changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
     private _categoriesService: CategoriesService = inject(CategoriesService);
@@ -83,6 +85,7 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
     constructor() {
         super();
 
+        this.sizeArrayForm = new FormArray([]);
         this.patternForm = new FormGroup({
             name: new FormGroup({
                 en: new FormControl('', [Validators.required]),
@@ -99,7 +102,6 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
             hidden: new FormControl(null),
             categories: new FormControl([], [Validators.required]),
             color: new FormControl(null),
-            sizes: new FormArray([]),
         });
 
         effect(() => {
@@ -122,13 +124,14 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
 
         this.patternForm.setValue({
             price: { en: 0, ru: 0 },
-            name: { ru: value.name.ru, en: value.name.en },
-            description: { ru: value.description.ru, en: value.description.en },
+            name: { ru: value.name?.ru || '', en: value.name?.en || '' },
+            description: { ru: value.description?.ru || '', en: value.description?.en || '' },
             hidden: value.hidden,
             categories: value.categories,
             color: value.color,
-            sizes: [],
         });
+
+        this.patternSizesComponent().setSizes(value.sizes);
     }
 
     public initSizes(): void {
@@ -195,7 +198,7 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
     }
 
     public save(): void {
-        if (this.patternForm.invalid) {
+        if (this.patternForm.invalid || this.sizeArrayForm.invalid) {
             this.patternForm.markAllAsTouched();
 
             return;
@@ -207,6 +210,7 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
             ...rawValues,
             images: this.images.map((image: ImageDto) => image.id),
             color: rawValues.color?.id,
+            sizes: this.prepareSizesValues(),
         };
 
         let updateRequest: Observable<unknown> = this._patternsService
@@ -218,66 +222,19 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
         }
 
         updateRequest.subscribe(() => this.onBack.emit());
-
-        // const isSizeArrayInvalid: boolean = this.sizeArrayControl.controls.reduce((acc: boolean, item: AbstractControl) => acc || item.invalid, false);
-        // if (isSizeArrayInvalid || this.patternForm.invalid) {
-        //     this.sizeArrayControl.markAllAsTouched();
-        //     this.patternForm.markAllAsTouched();
-        //
-        //     this._snackService.open('Не все поля заполнены корректно');
-        //     return;
-        // }
-        //
-        // let id = this._data ? this._data.id : null;
-        // let value: Record<string, unknown> = {
-        //     id,
-        //     patternSizes: this.sizeArrayControl.getRawValue(),
-        //     ...this.patternForm.getRawValue(),
-        // };
-        //
-        // combineLatest([
-        //     of(null),
-        //     ...this.blobImages.map((image: IIndexedBlob) => {
-        //         return this._imageService.uploadImage(image.image)
-        //             .pipe(map((item: ImageAddRequest) => ({ id: item.image.id, index: image.index })));
-        //     })
-        // ])
-        //     .pipe(
-        //         tap((blobRequest: ({ id: number; index: number; } | null)[]) => value = { ...value, images: this._formatImageEntity(blobRequest) }),
-        //         switchMap(() => id ? this._patternService.updatePattern(value) : this._patternService.createPattern(value)),
-        //         tap((result: PatternSaveResultResponse) => id = result.id),
-        //         switchMap((result: PatternSaveResultResponse) => combineLatest([
-        //             ...result.sizes.map((item: PatternSaveSizeResult) =>
-        //                 this._getSetPatternRequest(item, value.patternSizes)),
-        //             this._getSetColorRequest(id, value.color)
-        //         ])),
-        //         map(() => ({ result: true })),
-        //         this._snackService.getSnackTap('Все сохранено'),
-        //     )
-        //     .subscribe(() => this.onBack.emit());
     }
 
-    private _getSetPatternRequest(saveSizeResult: PatternSaveSizeResult, patternSizes: unknown): Observable<IResultRequest> {
-        const sizes: PattenSizeFiles = (patternSizes as Record<string, unknown>[])
-            .find((size: Record<string, unknown>) => size.size === saveSizeResult.size.id) as PattenSizeFiles;
-
-        const fileList: FormData = new FormData();
-        fileList.append('patternSizeId', String(saveSizeResult.id));
-
-        if (sizes.cbb instanceof Blob) {
-            fileList.append('cbb', sizes.cbb);
-        }
-        if (sizes.jbb instanceof Blob) {
-            fileList.append('jbb', sizes.jbb);
-        }
-        if (sizes.png instanceof Blob) {
-            fileList.append('png', sizes.png);
-        }
-        if (sizes.pdf instanceof Blob) {
-            fileList.append('pdf', sizes.pdf);
-        }
-
-        return this._patternService.setPatternSizeFiles(fileList);
+    private prepareSizesValues(): PatternSizeDto[] {
+        return this.sizeArrayForm
+            .getRawValue()
+            .map((value: Record<string, { id: number }>) => ({
+                id: value.id as unknown as number,
+                size: value.size as unknown as number,
+                cbb: value.cbb.id,
+                jbb: value.jbb.id,
+                png: value.png.id,
+                pdf: value.pdf.id,
+            }));
     }
 
     private _getSetColorRequest(patternId: number, color: unknown): Observable<IResultRequest> {

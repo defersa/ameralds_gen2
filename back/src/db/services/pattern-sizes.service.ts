@@ -51,12 +51,7 @@ export class PatternsSizeService {
         return patternSize;
     }
 
-    public async editPattern(id: number, data: PatternSizeDto): Promise<PatternSizeEntity> {
-        const cbb: FileEntity = await this.filesService.getPrivateFile(data.cbb);
-        const jbb: FileEntity = await this.filesService.getPrivateFile(data.jbb);
-        const png: FileEntity = await this.filesService.getPrivateFile(data.png);
-        const pdf: FileEntity = await this.filesService.getPrivateFile(data.pdf);
-
+    public async editPatternSize(id: number, data: PatternSizeDto): Promise<PatternSizeEntity> {
         const patternSize: PatternSizeEntity = await this.patternsSizeRepository.findOne({
             where: {
                 id,
@@ -70,9 +65,22 @@ export class PatternsSizeService {
                 pdf: true,
             }});
 
+        console.log(patternSize)
+
         if (!patternSize) {
             throw new HttpException({ code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.PATTERN_SIZE }, HttpStatus.BAD_REQUEST);
         }
+
+        const cbb: FileEntity = await this.filesService.getPrivateFile(data.cbb);
+        const jbb: FileEntity = await this.filesService.getPrivateFile(data.jbb);
+        const png: FileEntity = await this.filesService.getPrivateFile(data.png);
+        const pdf: FileEntity = await this.filesService.getPrivateFile(data.pdf);
+
+        console.log(data)
+        console.log(cbb)
+        console.log(jbb)
+        console.log(png)
+        console.log(pdf)
 
         await this.filesService.setUsageStatus(patternSize.cbb, false);
         await this.filesService.setUsageStatus(patternSize.jbb, false);
@@ -84,6 +92,7 @@ export class PatternsSizeService {
         await this.filesService.setUsageStatus(jbb, true);
         await this.filesService.setUsageStatus(cbb, true);
 
+        patternSize.state = ModelState.ACTIVE;
         patternSize.cbb = cbb;
         patternSize.jbb = jbb;
         patternSize.png = png;
@@ -95,7 +104,7 @@ export class PatternsSizeService {
     }
 
 
-    private async removePatternSize(patternSize: PatternSizeEntity): Promise<PatternSizeEntity> {
+    public async removePatternSize(patternSize: PatternSizeEntity): Promise<PatternSizeEntity> {
         patternSize.state = ModelState.INACTIVE;
 
         await this.filesService.setUsageStatus(patternSize.cbb, false);

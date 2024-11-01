@@ -27,7 +27,6 @@ import { PatternsSizeService } from "@am/db/service/pattern-sizes.service";
 @Injectable()
 export class PatternsService {
     private patternsRepository: Repository<PatternEntity>;
-    private patternsSizeRepository: Repository<PatternSizeEntity>;
 
     constructor(
         private dataSource: DataSourceService,
@@ -38,7 +37,6 @@ export class PatternsService {
         private patternSizeService: PatternsSizeService,
     ) {
         this.patternsRepository = this.dataSource.getRepository<PatternEntity>(PatternEntity);
-        this.patternsSizeRepository = this.dataSource.getRepository<PatternSizeEntity>(PatternSizeEntity);
     }
 
     public async createPattern(data: CreatePatternDto): Promise<PatternEntity> {
@@ -47,8 +45,8 @@ export class PatternsService {
         const categories: CategoryEntity[] = await this.categoriesService.getCategoriesByIds(data.categories);
         const images: ImageEntity[] = await this.imagesService.getImagesByIds(data.images);
         const color: FileEntity = await this.filesService.getPrivateFile(data.color);
-        // const sizes: PatternSizeEntity[] = data.sizes
-        //     .map(async (size: PatternSizeDto) => await this.patternSizeService.createPatternSize(size));
+        const sizes: PatternSizeEntity[] = await Promise.all(data.sizes
+            .map(async (size: PatternSizeDto) => await this.patternSizeService.createPatternSize(size)));
 
         await this.imagesService.setUsageStatus(images, true);
         await this.filesService.setUsageStatus(color, true);
@@ -84,6 +82,7 @@ export class PatternsService {
             throw new HttpException({ code: ApiErrorCodes.NOT_EXIST }, HttpStatus.BAD_REQUEST);
         }
 
+        await Promise.all((pattern.sizes || []).map(async (size: PatternSizeEntity) => await this.patternSizeService.removePatternSize(size)));
         await this.imagesService.setUsageStatus(pattern.images, false);
         await this.filesService.setUsageStatus(pattern.color, false);
         await this.commonEntitiesService.removeLabel(pattern.name);
@@ -94,6 +93,13 @@ export class PatternsService {
         pattern.categories = await this.categoriesService.getCategoriesByIds(data.categories);
         pattern.images = await this.imagesService.getImagesByIds(data.images);
         pattern.color = await this.filesService.getPrivateFile(data.color);
+        pattern.sizes = await Promise.all((data.sizes || []).map(async (size: PatternSizeDto) => {
+            const id: number = size.id;
+
+            console.log(id)
+
+            return id ? this.patternSizeService.editPatternSize(id, size) : this.patternSizeService.createPatternSize(size);
+        }));
 
         await this.filesService.setUsageStatus(pattern.color, true);
         await this.imagesService.setUsageStatus(pattern.images, true);

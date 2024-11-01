@@ -39,4 +39,8 @@ export class PatternCardComponent {
     public getBack(): void {
         this.location.back();
     }
+
+    public heh(): void {
+        console.log('sdfsdf')
+    }
 }

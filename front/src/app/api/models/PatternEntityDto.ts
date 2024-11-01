@@ -5,6 +5,7 @@
 import type { FileDto } from './FileDto';
 import type { ImageDto } from './ImageDto';
 import type { LabelEntityDto } from './LabelEntityDto';
+import type { PatternSizeDto } from './PatternSizeDto';
 export type PatternEntityDto = {
     /**
      * Id of entity
@@ -34,5 +35,9 @@ export type PatternEntityDto = {
      * Color file of pattern
      */
     color: FileDto;
+    /**
+     * Sizes of pattern
+     */
+    sizes: Array<PatternSizeDto>;
 };
 

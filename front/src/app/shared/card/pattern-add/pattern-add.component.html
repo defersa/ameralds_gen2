@@ -51,7 +51,7 @@
     <div class="amstore-card-container-line" >
         <h3>Размеры и файлы:</h3>
 
-        <amstore-pattern-sizes [formArray]="patternForm.get('sizes') | asFormArray "/>
+        <amstore-pattern-sizes #patternSizes [formArray]="sizeArrayForm"/>
     </div>
 
     <div class="amstore-card-container-line">

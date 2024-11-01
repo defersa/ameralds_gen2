@@ -1,10 +1,12 @@
 <div class="amstore-pattern-card-actions">
     <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
 
-    <amstore-button
-        [routerLink]="['edit']"
-        [stroked]="true"
-        color="accent">Изменить</amstore-button>
+    <amstore-button routerLink="edit"
+                    (click)="heh()"
+                    [stroked]="true"
+                    color="accent">
+        Изменить
+    </amstore-button>
 </div>
 
 @if (pattern$ | async; as pattern) {

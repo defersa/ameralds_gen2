@@ -8,7 +8,6 @@ import { createReadStream, createWriteStream, WriteStream } from "fs";
 import { removeFile } from "../../utils/remove-file";
 import { ModelState } from "../abstract/abstract.model";
 import { ReadStream } from "typeorm/browser/platform/BrowserPlatformTools";
-import { ImageEntity } from "@am/db/entities";
 import { ApiEntityNames, ApiErrorCodes } from "../../modules/errors/errors.dto";
 
 
@@ -81,7 +80,7 @@ export class FilesService {
             throw new HttpException({ code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.FILE }, HttpStatus.BAD_REQUEST);
         }
 
-        return
+        return file;
     }
 
     public async getPrivateFileAsStream(id: number): Promise<ReadStream> {
