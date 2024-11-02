@@ -1,19 +1,21 @@
 import { Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { DataSourceService } from "../data-source.service";
-import { LabelLangEntity, TextLangEntity } from "@am/db/entities";
+import { LabelLangEntity, NumberLangEntity, TextLangEntity } from "@am/db/entities";
 
 
 @Injectable()
 export class CommonEntitiesService {
     private labelRepository: Repository<LabelLangEntity>;
     private textRepository: Repository<TextLangEntity>;
+    private numberRepository: Repository<NumberLangEntity>;
 
     constructor(
         private dataSource: DataSourceService,
     ) {
         this.labelRepository = this.dataSource.getRepository<LabelLangEntity>(LabelLangEntity);
         this.textRepository = this.dataSource.getRepository<TextLangEntity>(TextLangEntity);
+        this.numberRepository = this.dataSource.getRepository<NumberLangEntity>(NumberLangEntity);
     }
 
     public createLabel(ru: string, en: string): Promise<LabelLangEntity> {
@@ -48,5 +50,22 @@ export class CommonEntitiesService {
         }
 
         return this.textRepository.remove(label);
+    }
+
+    public createNumber(ru: number, en: number): Promise<NumberLangEntity> {
+        const numberEntity: NumberLangEntity = this.numberRepository.create({
+            en,
+            ru,
+        });
+
+        return this.numberRepository.save(numberEntity);
+    }
+
+    public removeNumber(numberEntity: NumberLangEntity): Promise<NumberLangEntity> {
+        if (!numberEntity) {
+            return;
+        }
+
+        return this.numberRepository.remove(numberEntity);
     }
 }

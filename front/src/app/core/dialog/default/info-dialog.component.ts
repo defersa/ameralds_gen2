@@ -1,19 +1,27 @@
 import { Component, inject } from "@angular/core";
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
+import {
+    MAT_DIALOG_DATA,
+    MatDialogActions,
+    MatDialogContainer, MatDialogContent,
+    MatDialogRef,
+    MatDialogTitle
+} from "@angular/material/dialog";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 
 
 @Component({
     selector: "amstore-default-dialog",
-    templateUrl: "./default.component.html",
-    styleUrls: ["./default.component.scss"],
+    templateUrl: "./info-dialog.component.html",
+    styleUrls: ["./info-dialog.component.scss"],
     standalone: true,
     imports: [
         MatDialogTitle,
-        AmstoreButtonComponent
+        AmstoreButtonComponent,
+        MatDialogActions,
+        MatDialogContent,
     ]
 })
-export class AmstoreDefaultDialogComponent {
+export class AmstoreInfoDialogComponent {
     public get title(): string {
         return this.data?.title || '';
     }
@@ -27,7 +35,7 @@ export class AmstoreDefaultDialogComponent {
     }
 
     public data: any = inject(MAT_DIALOG_DATA);
-    private matDialogRef: MatDialogRef<AmstoreDefaultDialogComponent> = inject(MatDialogRef<AmstoreDefaultDialogComponent>);
+    private matDialogRef: MatDialogRef<AmstoreInfoDialogComponent> = inject(MatDialogRef<AmstoreInfoDialogComponent>);
 
     public close(): void {
         this.matDialogRef.close();

@@ -6,6 +6,7 @@ import { PrivateFileEntity } from "../files/file.entity";
 import { ImageEntity } from "../image/image.entity";
 import { CategoryEntity } from "./category.entity";
 import { PatternSizeEntity } from "./pattern-size.entity";
+import { NumberLangEntity } from "../common/number-lang.entity";
 
 
 @Entity({ schema: 'patterns' })
@@ -17,6 +18,18 @@ export class PatternEntity extends BaseModel {
     @OneToOne(() => TextLangEntity, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn()
     public description: TextLangEntity;
+
+    @OneToOne(() => NumberLangEntity, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn()
+    public basePrice: NumberLangEntity;
+
+    @OneToOne(() => NumberLangEntity, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn()
+    public additionalPrice: NumberLangEntity;
+
+    @OneToOne(() => NumberLangEntity, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn()
+    public colorPrice: NumberLangEntity;
 
     @ManyToMany(() => CategoryEntity)
     @JoinTable({

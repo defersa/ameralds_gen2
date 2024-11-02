@@ -5,6 +5,7 @@
 import type { FileDto } from './FileDto';
 import type { ImageDto } from './ImageDto';
 import type { LabelEntityDto } from './LabelEntityDto';
+import type { NumberEntityDto } from './NumberEntityDto';
 import type { PatternSizeDto } from './PatternSizeDto';
 export type PatternEntityDto = {
     /**
@@ -19,6 +20,18 @@ export type PatternEntityDto = {
      * Description of pattern
      */
     description: LabelEntityDto;
+    /**
+     * Base price of pattern
+     */
+    basePrice: NumberEntityDto;
+    /**
+     * Additional price of pattern
+     */
+    additionalPrice: NumberEntityDto;
+    /**
+     * Color price of pattern
+     */
+    colorPrice: NumberEntityDto;
     /**
      * Pattern visible status
      */

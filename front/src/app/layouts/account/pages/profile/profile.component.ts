@@ -29,7 +29,7 @@ export class ProfileComponent {
     public sendVerify(): void {
         this.profile.sendVerify()
             .subscribe((result: unknown) =>
-                this.dialog.openDialog({
+                this.dialog.openInfoDialog({
                     maxWidth: "400px",
                     data: {
                         title: "Успешно",

@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { LabelEntityDto } from './LabelEntityDto';
+import type { NumberEntityDto } from './NumberEntityDto';
 import type { PatternSizeDto } from './PatternSizeDto';
 export type CreatePatternDto = {
     /**
@@ -13,6 +14,18 @@ export type CreatePatternDto = {
      * Description of pattern
      */
     description: LabelEntityDto;
+    /**
+     * Base price of pattern
+     */
+    basePrice: NumberEntityDto;
+    /**
+     * Additional price of pattern
+     */
+    additionalPrice: NumberEntityDto;
+    /**
+     * Color price of pattern
+     */
+    colorPrice: NumberEntityDto;
     /**
      * Pattern visible status
      */

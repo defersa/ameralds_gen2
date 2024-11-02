@@ -1,0 +1,19 @@
+<h1 mat-dialog-title>{{ title }}</h1>
+
+<mat-dialog-content>
+    @if (smallTitle) {
+        <h2>{{ smallTitle }}</h2>
+    }
+
+    <p [innerHTML]="text"></p>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+    <amstore-button (click)="close(true)" color="primary">
+        Ок
+    </amstore-button>
+
+    <amstore-button (click)="close()" color="warn" [stroked]="true">
+        Отменить
+    </amstore-button>
+</mat-dialog-actions>

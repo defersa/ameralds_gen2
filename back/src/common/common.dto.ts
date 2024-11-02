@@ -25,6 +25,20 @@ export class LabelEntityDto {
     public en: string;
 }
 
+export class NumberEntityDto {
+    @ApiProperty({
+        description: 'Russian number',
+        type: 'number',
+    })
+    public ru: number;
+
+    @ApiProperty({
+        description: 'English number',
+        type: 'number',
+    })
+    public en: number;
+}
+
 export class PaginatedPageDto {
     @ApiProperty({
         description: 'Current page',

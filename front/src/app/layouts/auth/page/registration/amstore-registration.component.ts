@@ -60,7 +60,7 @@ export class AmstoreRegistrationComponent {
             )
             .subscribe({
                 next: () => {
-                    this._dialogService.openDialog({
+                    this._dialogService.openInfoDialog({
                         maxWidth: "400px",
                         data: {
                             title: "Успешно",

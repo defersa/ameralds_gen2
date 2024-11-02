@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { EntityDto, LabelEntityDto, PaginatedPageDto } from "../../common/common.dto";
+import { EntityDto, LabelEntityDto, NumberEntityDto, PaginatedPageDto } from "../../common/common.dto";
 import { ImageDto } from "../images/images.dto";
 import { FileDto } from "../files/files.dto";
 
@@ -50,6 +50,24 @@ export class CreatePatternDto {
     public description: LabelEntityDto;
 
     @ApiProperty({
+        description: 'Base price of pattern',
+        type: NumberEntityDto,
+    })
+    public basePrice: NumberEntityDto;
+
+    @ApiProperty({
+        description: 'Additional price of pattern',
+        type: NumberEntityDto,
+    })
+    public additionalPrice: NumberEntityDto;
+
+    @ApiProperty({
+        description: 'Color price of pattern',
+        type: NumberEntityDto,
+    })
+    public colorPrice: NumberEntityDto;
+
+    @ApiProperty({
         description: 'Pattern visible status',
         type: 'boolean',
     })
@@ -95,6 +113,24 @@ export class PatternEntityDto extends EntityDto {
         type: LabelEntityDto,
     })
     public description: LabelEntityDto;
+
+    @ApiProperty({
+        description: 'Base price of pattern',
+        type: NumberEntityDto,
+    })
+    public basePrice: NumberEntityDto;
+
+    @ApiProperty({
+        description: 'Additional price of pattern',
+        type: NumberEntityDto,
+    })
+    public additionalPrice: NumberEntityDto;
+
+    @ApiProperty({
+        description: 'Color price of pattern',
+        type: NumberEntityDto,
+    })
+    public colorPrice: NumberEntityDto;
 
     @ApiProperty({
         description: 'Pattern visible status',

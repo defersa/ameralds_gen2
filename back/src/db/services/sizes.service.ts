@@ -18,12 +18,16 @@ export class SizesService {
     }
 
     public async createSize(value: number): Promise<SizeEntity> {
+        await this.checkUnique(value);
+
         const size: SizeEntity = this.sizesRepository.create({ value });
 
         return this.sizesRepository.save(size);
     }
 
     public async editSize(id: number, value: number): Promise<SizeEntity> {
+        await this.checkUnique(value);
+
         const size: SizeEntity = await this.sizesRepository.findOne({
             where: {
                 id,
@@ -98,5 +102,18 @@ export class SizesService {
                 state: ModelState.ACTIVE,
             },
         });
+    }
+
+    private async checkUnique(value: number): Promise<void> {
+        const sameSize: SizeEntity = await this.sizesRepository.findOne({
+            where: {
+                value,
+                state: ModelState.ACTIVE,
+            },
+        });
+
+        if (sameSize) {
+            throw new HttpException({ code: ApiErrorCodes.NOT_UNIQUE, entity: ApiEntityNames.SIZE }, HttpStatus.BAD_REQUEST);
+        }
     }
 }

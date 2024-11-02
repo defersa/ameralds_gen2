@@ -12,27 +12,36 @@
     </div>
 
     <div class="amstore-card-container-line">
-        <h3>Имя и цена:</h3>
-        <div class="row">
-            <div class="col-6">
-                <ng-container formGroupName="name">
-                    <amstore-forms-input formControlName="ru" label="Имя"/>
-                </ng-container>
+        <h3>Основное:</h3>
 
-                <ng-container formGroupName="price">
-                    <amstore-forms-input formControlName="ru" type="number" label="₽"/>
-                </ng-container>
-            </div>
+        <p>Название:</p>
+        <div class="row" formGroupName="name">
+            <amstore-forms-input class="col-6" formControlName="ru" label="ru"/>
+            <amstore-forms-input class="col-6" formControlName="en" label="en"/>
+        </div>
 
-            <div class="col-6">
-                <ng-container formGroupName="name">
-                    <amstore-forms-input formControlName="en" label="Name"/>
-                </ng-container>
+        <p>Описание:</p>
+        <div class="row" formGroupName="description">
+            <amstore-forms-input class="col-6" formControlName="ru" label="ru"/>
+            <amstore-forms-input class="col-6" formControlName="en" label="en"/>
+        </div>
 
-                <ng-container formGroupName="price">
-                    <amstore-forms-input formControlName="en" type="number" label="$"/>
-                </ng-container>
-            </div>
+        <p>Базовая цена:</p>
+        <div class="row" formGroupName="basePrice">
+            <amstore-forms-input class="col-6" formControlName="ru" label="ru" type="number"/>
+            <amstore-forms-input class="col-6" formControlName="en" label="en" type="number"/>
+        </div>
+
+        <p>Цена за дополнительный размер:</p>
+        <div class="row" formGroupName="additionalPrice">
+            <amstore-forms-input class="col-6" formControlName="ru" label="ru" type="number"/>
+            <amstore-forms-input class="col-6" formControlName="en" label="en" type="number"/>
+        </div>
+
+        <p>Цена за подбор цвета:</p>
+        <div class="row" formGroupName="colorPrice">
+            <amstore-forms-input class="col-6" formControlName="ru" label="ru" type="number"/>
+            <amstore-forms-input class="col-6" formControlName="en" label="en" type="number"/>
         </div>
     </div>
 
@@ -63,17 +72,16 @@
                              formControlName="categories"/>
     </div>
 
-<!--    @if (sizeArrayComponentList.length > 0) {-->
-<!--        <div class="amstore-card-container-line" >-->
-<!--            <h3>Размеры и файлы:</h3>-->
-
-<!--            <amstore-form-array [controlArray]="sizeArrayControl"-->
-<!--                                [arrayComponentList]="sizeArrayComponentList"-->
-<!--                                [model]="sizeArrayModel"/>-->
-<!--        </div>-->
-<!--    }-->
 
     <div class="amstore-row amstore-card-container-buttons">
-        <amstore-button (click)="save()" size="large">Сохранить</amstore-button>
+        <amstore-button (click)="cancel()"
+                        [stroked]="true"
+                        color="warn">
+            Отменить
+        </amstore-button>
+
+        <amstore-button (click)="save()">
+            Сохранить
+        </amstore-button>
     </div>
 </div>

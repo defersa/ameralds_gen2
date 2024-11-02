@@ -12,4 +12,5 @@ export enum EnumApiErrorCodes {
     NOT_EXIST = 'NOT_EXIST',
     INCORRECT_PASSWORD = 'INCORRECT_PASSWORD',
     EXPIRED = 'EXPIRED',
+    NOT_UNIQUE = 'NOT_UNIQUE',
 }

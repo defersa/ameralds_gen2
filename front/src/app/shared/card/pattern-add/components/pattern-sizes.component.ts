@@ -5,7 +5,6 @@ import {
     inject,
     input,
     InputSignal,
-    OnInit
 } from "@angular/core";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { FormGroupPipe } from "@am/shared/pipes/form-group.pipe";
@@ -19,6 +18,8 @@ import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.c
 import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 import type { PatternSizeDto } from "@am/root/api";
+import { DialogService } from "@am/core/dialog/dialog.service";
+import { filter } from "rxjs/operators";
 
 
 @Component({
@@ -34,7 +35,7 @@ import type { PatternSizeDto } from "@am/root/api";
         AmstoreUploadComponent,
         AmstoreButtonComponent,
         IconsComponent,
-        AmstoreInputComponent
+        AmstoreInputComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -42,7 +43,8 @@ export class AmstorePatternSizesComponent {
     public formArray: InputSignal<FormArray> = input();
 
     private sizeService: SizesService = inject(SizesService);
-    private _changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
+    private changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
+    private dialog: DialogService = inject(DialogService);
 
     public sizesList$: Observable<OptionType[]> = this.sizeService.sizesList$;
 
@@ -67,11 +69,30 @@ export class AmstorePatternSizesComponent {
 
         sizes.forEach((size: PatternSizeDto) => this.addSize(size));
 
-        this._changeDetector.markForCheck();
+        this.changeDetector.markForCheck();
     }
 
     public deleteSize(index: number): void {
         const needWarning: boolean = Boolean(this.formArray().at(index).get('id').value);
+
+        if (needWarning) {
+            this.dialog.openConfirmDialog({
+                maxWidth: "400px",
+                data: {
+                    title: "Удаление размера",
+                    text: "Текущий размер был загружен. При его удалении для всех пользователей, которые его купили, он перестанет быть доступным."
+                }
+            })
+                .beforeClosed()
+                .pipe(filter(Boolean))
+                .subscribe(() => {
+                    this.formArray().removeAt(index);
+
+                    this.changeDetector.markForCheck();
+                });
+
+            return;
+        }
 
         this.formArray().removeAt(index);
     }

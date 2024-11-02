@@ -3,3 +3,7 @@ $grid-gutter-width: 24px;
 
 @import "bootstrap-4-grid";
 @import "../cdk/cdk.base.scss";
+
+html {
+  --mat-dialog-actions-alignment: end;
+}

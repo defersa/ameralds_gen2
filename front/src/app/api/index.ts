@@ -21,6 +21,7 @@ export type { FileDto } from './models/FileDto';
 export type { ImageDto } from './models/ImageDto';
 export type { LabelEntityDto } from './models/LabelEntityDto';
 export type { LogoutCredentialsDto } from './models/LogoutCredentialsDto';
+export type { NumberEntityDto } from './models/NumberEntityDto';
 export type { PatternEntityDto } from './models/PatternEntityDto';
 export type { PatternSizeDto } from './models/PatternSizeDto';
 export type { PatternsPaginatedPageDto } from './models/PatternsPaginatedPageDto';

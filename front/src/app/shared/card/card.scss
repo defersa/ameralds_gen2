@@ -75,6 +75,7 @@ $card-border-radius: 8px;
 
         &-buttons {
             justify-content: flex-end;
+            gap: get-spacing(4);
         }
 
         &-info {

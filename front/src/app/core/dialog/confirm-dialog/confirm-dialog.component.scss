@@ -1,0 +1,15 @@
+@import "/src/app/styles/spacing.scss";
+
+p {
+    margin: get-spacing(4) 0;
+}
+
+amstore-button {
+    margin: get-spacing(2) 0;
+}
+
+mat-dialog-actions {
+    gap: get-spacing(2);
+    padding: get-spacing(5);
+    text-align: right;
+}

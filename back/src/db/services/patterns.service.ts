@@ -3,7 +3,7 @@ import { Repository } from "typeorm";
 import {
     CategoryEntity, FileEntity,
     ImageEntity,
-    LabelLangEntity,
+    LabelLangEntity, NumberLangEntity,
     PatternEntity,
     PatternSizeEntity,
     TextLangEntity
@@ -42,6 +42,9 @@ export class PatternsService {
     public async createPattern(data: CreatePatternDto): Promise<PatternEntity> {
         const name: LabelLangEntity = await this.commonEntitiesService.createLabel(data.name.ru, data.name.en);
         const description: TextLangEntity = await this.commonEntitiesService.createText(data.description.ru, data.description.en);
+        const basePrice: NumberLangEntity = await this.commonEntitiesService.createNumber(data.basePrice.ru, data.basePrice.en);
+        const additionalPrice: NumberLangEntity = await this.commonEntitiesService.createNumber(data.additionalPrice.ru, data.additionalPrice.en);
+        const colorPrice: NumberLangEntity = await this.commonEntitiesService.createNumber(data.colorPrice.ru, data.colorPrice.en);
         const categories: CategoryEntity[] = await this.categoriesService.getCategoriesByIds(data.categories);
         const images: ImageEntity[] = await this.imagesService.getImagesByIds(data.images);
         const color: FileEntity = await this.filesService.getPrivateFile(data.color);
@@ -54,6 +57,9 @@ export class PatternsService {
         const pattern: PatternEntity = this.patternsRepository.create({
             name,
             description,
+            basePrice,
+            additionalPrice,
+            colorPrice,
             categories,
             hidden: data.hidden,
             images,
@@ -85,18 +91,23 @@ export class PatternsService {
         await Promise.all((pattern.sizes || []).map(async (size: PatternSizeEntity) => await this.patternSizeService.removePatternSize(size)));
         await this.imagesService.setUsageStatus(pattern.images, false);
         await this.filesService.setUsageStatus(pattern.color, false);
-        await this.commonEntitiesService.removeLabel(pattern.name);
-        await this.commonEntitiesService.removeText(pattern.description);
+
+        const previousName: LabelLangEntity = pattern.name;
+        const previousDescription: LabelLangEntity = pattern.description;
+        const previousBasePrice: NumberLangEntity = pattern.basePrice;
+        const previousAdditionalPrice: NumberLangEntity = pattern.additionalPrice;
+        const previousColorPrice: NumberLangEntity = pattern.colorPrice;
 
         pattern.name = await this.commonEntitiesService.createLabel(data.name.ru, data.name.en);
         pattern.description = await this.commonEntitiesService.createText(data.description.ru, data.description.en);
+        pattern.basePrice = await this.commonEntitiesService.createNumber(data.basePrice.ru, data.basePrice.en);
+        pattern.additionalPrice = await this.commonEntitiesService.createNumber(data.additionalPrice.ru, data.additionalPrice.en);
+        pattern.colorPrice = await this.commonEntitiesService.createNumber(data.colorPrice.ru, data.colorPrice.en);
         pattern.categories = await this.categoriesService.getCategoriesByIds(data.categories);
         pattern.images = await this.imagesService.getImagesByIds(data.images);
         pattern.color = await this.filesService.getPrivateFile(data.color);
         pattern.sizes = await Promise.all((data.sizes || []).map(async (size: PatternSizeDto) => {
             const id: number = size.id;
-
-            console.log(id)
 
             return id ? this.patternSizeService.editPatternSize(id, size) : this.patternSizeService.createPatternSize(size);
         }));
@@ -105,6 +116,12 @@ export class PatternsService {
         await this.imagesService.setUsageStatus(pattern.images, true);
         await this.imagesService.updateIndex(pattern.images, data.images);
         await this.patternsRepository.save(pattern);
+
+        await this.commonEntitiesService.removeLabel(previousName);
+        await this.commonEntitiesService.removeText(previousDescription);
+        await this.commonEntitiesService.removeNumber(previousBasePrice);
+        await this.commonEntitiesService.removeNumber(previousAdditionalPrice);
+        await this.commonEntitiesService.removeNumber(previousColorPrice);
 
         return pattern;
     }
@@ -121,6 +138,9 @@ export class PatternsService {
             relations: {
                 name: true,
                 description: true,
+                basePrice: true,
+                additionalPrice: true,
+                colorPrice: true,
                 images: true,
                 color: true,
                 sizes: {
@@ -153,6 +173,9 @@ export class PatternsService {
             relations: {
                 name: true,
                 description: true,
+                basePrice: true,
+                additionalPrice: true,
+                colorPrice: true,
                 images: true,
                 color: true,
                 sizes: {

@@ -7,10 +7,10 @@ import { PrivateFileEntity } from "../files/file.entity";
 
 @Entity({ schema: 'patterns' })
 export class PatternSizeEntity extends BaseModel {
-    @ManyToOne(() => SizeEntity, { onDelete: 'CASCADE' })
+    @ManyToOne(() => SizeEntity, { onDelete: 'SET NULL', nullable: true })
     public size: SizeEntity;
 
-    @ManyToOne(() => PatternEntity, (pattern: PatternEntity) => pattern.sizes, { onDelete: 'CASCADE' })
+    @ManyToOne(() => PatternEntity, (pattern: PatternEntity) => pattern.sizes, { onDelete: 'SET NULL', nullable: true })
     public pattern: PatternEntity;
 
     @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })

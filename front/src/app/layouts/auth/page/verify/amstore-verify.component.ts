@@ -41,7 +41,7 @@ export class AmstoreVerifyComponent {
         ).subscribe((response: IResultRequest) => {
             fromPromise(this._router.navigate(['/']))
                 .subscribe(() => {
-                    this._dialog.openDialog({
+                    this._dialog.openInfoDialog({
                         data: {
                             title: response.result ? "Успешно" : "Ошибка",
                             text: response.result ? "Аккаунт был подтвержден. Теперь вам доступны все функции"

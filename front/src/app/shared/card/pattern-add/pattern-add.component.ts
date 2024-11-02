@@ -6,7 +6,6 @@ import {
     inject,
     input,
     InputSignal,
-    OnInit,
     output,
     OutputEmitterRef,
     Signal,
@@ -27,10 +26,8 @@ import {
     Validators
 } from "@angular/forms";
 import { CategoriesService } from '@am/services/categories.service';
-import { PatternService } from '@am/services/pattern.service';
 
 import { AmstoreCardDirective } from '../card.directive';
-import { IResultRequest } from "@am/interface/request.interface";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
@@ -64,23 +61,21 @@ import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AmstorePatternAddCardComponent extends AmstoreCardDirective implements OnInit {
+export class AmstorePatternAddCardComponent extends AmstoreCardDirective {
     private patternSizesComponent: Signal<AmstorePatternSizesComponent> = viewChild("patternSizes", { read: AmstorePatternSizesComponent });
 
     public data: InputSignal<PatternEntityDto> = input();
     public onBack: OutputEmitterRef<void> = output();
 
-    public images: ImageDto[] = [];
+    private changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
+    private categoriesService: CategoriesService = inject(CategoriesService);
+    private patternsService: PatternsService = inject(PatternsService);
 
-    public categoriesList$: Observable<OptionType[]>;
+    public categoriesList$: Observable<OptionType[]> = this.categoriesService.categoriesList$;
+    public images: ImageDto[] = [];
 
     public patternForm: FormGroup;
     public sizeArrayForm: FormArray;
-
-    private _changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
-    private _categoriesService: CategoriesService = inject(CategoriesService);
-    private _patternService: PatternService = inject(PatternService);
-    private _patternsService: PatternsService = inject(PatternsService);
 
     constructor() {
         super();
@@ -95,9 +90,17 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
                 en: new FormControl(''),
                 ru: new FormControl(''),
             }),
-            price: new FormGroup({
-                en: new FormControl(null, [Validators.required]),
-                ru: new FormControl(null, [Validators.required]),
+            basePrice: new FormGroup({
+                en: new FormControl(null, [Validators.required, Validators.min(0.01)]),
+                ru: new FormControl(null, [Validators.required, Validators.min(0.01)]),
+            }),
+            additionalPrice: new FormGroup({
+                en: new FormControl(null, [Validators.required, Validators.min(0.01)]),
+                ru: new FormControl(null, [Validators.required, Validators.min(0.01)]),
+            }),
+            colorPrice: new FormGroup({
+                en: new FormControl(null, [Validators.required, Validators.min(0.01)]),
+                ru: new FormControl(null, [Validators.required, Validators.min(0.01)]),
             }),
             hidden: new FormControl(null),
             categories: new FormControl([], [Validators.required]),
@@ -105,17 +108,11 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
         });
 
         effect(() => {
-            this._fillPatternForm(this.data());
+            this.fillPatternForm(this.data());
         });
     }
 
-    public ngOnInit(): void {
-        this.categoriesList$ = this._categoriesService.categoriesList$;
-
-        this.initSizes();
-    }
-
-    private _fillPatternForm(value: PatternEntityDto): void {
+    private fillPatternForm(value: PatternEntityDto): void {
         if (!value) {
             return;
         }
@@ -123,9 +120,11 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
         this.images = value.images;
 
         this.patternForm.setValue({
-            price: { en: 0, ru: 0 },
             name: { ru: value.name?.ru || '', en: value.name?.en || '' },
             description: { ru: value.description?.ru || '', en: value.description?.en || '' },
+            basePrice: { ru: value.basePrice?.ru || '', en: value.basePrice?.en || '' },
+            additionalPrice: { ru: value.additionalPrice?.ru || '', en: value.additionalPrice?.en || '' },
+            colorPrice: { ru: value.colorPrice?.ru || '', en: value.colorPrice?.en || '' },
             hidden: value.hidden,
             categories: value.categories,
             color: value.color,
@@ -134,58 +133,6 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
         this.patternSizesComponent().setSizes(value.sizes);
     }
 
-    public initSizes(): void {
-        // this._sizeService.sizes$
-        //     .subscribe((items: SizeDto[]) => {
-        //         this.sizeArrayComponentList = [
-        //             {
-        //                 name: 'id',
-        //                 label: 'ID',
-        //                 component: 'label',
-        //                 classes: 'col-12'
-        //             },
-        //             {
-        //                 name: 'size',
-        //                 component: 'select',
-        //                 label: 'Размер',
-        //                 items: items.map((item: SizeDto) => ({ label: String(item.value), value: item.id })),
-        //                 classes: 'col-12',
-        //                 validator: [Validators.required]
-        //             },
-        //             {
-        //                 name: 'cbb',
-        //                 label: '.cbb',
-        //                 component: 'file',
-        //                 classes: 'col-12',
-        //                 validator: [Validators.required]
-        //             },
-        //             {
-        //                 name: 'png',
-        //                 label: '.png',
-        //                 component: 'file',
-        //                 classes: 'col-12',
-        //                 validator: [Validators.required]
-        //             },
-        //             {
-        //                 name: 'pdf',
-        //                 label: '.pdf',
-        //                 component: 'file',
-        //                 classes: 'col-12',
-        //                 validator: [Validators.required]
-        //             },
-        //             {
-        //                 name: 'jbb',
-        //                 label: '.jbb',
-        //                 component: 'file',
-        //                 classes: 'col-12',
-        //                 validator: [Validators.required]
-        //             }
-        //         ];
-        //         this._changeDetector.markForCheck();
-        //     });
-    }
-
-
     public openImagesEdit(): void {
         this.viewer.openImagesEditor(this.images)
             .pipe(
@@ -193,7 +140,7 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
             )
             .subscribe((images: ImageDto[]) => {
                 this.images = images;
-                this._changeDetector.markForCheck();
+                this.changeDetector.markForCheck();
             });
     }
 
@@ -213,15 +160,25 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
             sizes: this.prepareSizesValues(),
         };
 
-        let updateRequest: Observable<unknown> = this._patternsService
+        let updateRequest: Observable<unknown> = this.patternsService
             .createPattern(values);
 
         if (id) {
-            updateRequest = this._patternsService
+            updateRequest = this.patternsService
                 .editPattern(id, values);
         }
 
         updateRequest.subscribe(() => this.onBack.emit());
+    }
+
+    public cancel(): void {
+        this.sizeArrayForm.markAsPristine();
+        this.sizeArrayForm.markAsUntouched();
+
+        this.patternForm.markAsPristine();
+        this.patternForm.markAsUntouched();
+
+        this.fillPatternForm(this.data());
     }
 
     private prepareSizesValues(): PatternSizeDto[] {
@@ -235,15 +192,5 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective impleme
                 png: value.png.id,
                 pdf: value.pdf.id,
             }));
-    }
-
-    private _getSetColorRequest(patternId: number, color: unknown): Observable<IResultRequest> {
-        const fileList: FormData = new FormData();
-        fileList.append('patternId', String(patternId));
-        if (color instanceof Blob) {
-            fileList.append('color', color);
-        }
-
-        return this._patternService.setPatternColorFile(fileList);
     }
 }
