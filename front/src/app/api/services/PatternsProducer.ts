@@ -73,6 +73,25 @@ export class PatternsProducer {
         });
     }
     /**
+     * @param ids Params with ids
+     * @returns PatternEntityDto
+     * @throws ApiError
+     */
+    public patternsControllerByIds(
+        ids: Array<number>,
+    ): Observable<Record<string, PatternEntityDto>> {
+        return __request(OpenAPI, this.http, {
+            method: 'GET',
+            url: '/api/patterns/ids/{ids}',
+            path: {
+                'ids': ids,
+            },
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
+    /**
      * @param id Params of entity
      * @param requestBody
      * @returns SuccessCreateDto The category has been successfully edited.

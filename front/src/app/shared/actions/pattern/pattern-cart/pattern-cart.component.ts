@@ -5,19 +5,20 @@ import { IPattern } from "@am/interface/pattern.interface";
 import { expandAnimation } from "@am/cdk/animations/expand";
 import { GoodsCard, GoodsModifire, ProductType } from "@am/interface/goods.intreface";
 import { ThemePalette } from "@am/cdk/core/color";
-import { GoodsService } from "@am/services/goods.service";
+import { CartService } from "@am/services/cart.service";
 import { combineLatest } from "rxjs";
 import { takeUntil } from "rxjs/operators";
 import { ProfileService } from "@am/services/profile.service";
 import { AbstractPatternCard } from "@am/shared/actions/pattern/pattern.abstract";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
-import { ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AmstoreSlideComponent } from "@am/cdk/slide/slide.component";
 import { AmstoreInfoComponent } from "@am/cdk/info/info.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { NgClass } from "@angular/common";
+import { LangService } from "@am/services/lang.service";
 
 type ButtonStatusMap = {
     label: string;
@@ -45,6 +46,9 @@ type ButtonStatusMap = {
     ]
 })
 export class PatternCartComponent extends AbstractPatternCard {
+    private cartService: CartService = inject(CartService);
+    private profileService: ProfileService = inject(ProfileService);
+
     public categories: Signal<IdName[]> = computed(() => {
         const pattern: IPattern = this.pattern();
         const lang: 'en' | 'ru' = toSignal(this.langService.lang$)();
@@ -56,11 +60,11 @@ export class PatternCartComponent extends AbstractPatternCard {
         const pattern: IPattern = this.pattern();
         const lang: 'en' | 'ru' = toSignal(this.langService.lang$)();
 
-        return pattern.price[lang] + (lang === 'en' ? '$' : '₽')
+        return pattern.price[lang];
     });
 
     public status: Signal<'buy' | 'remove' | 'bought'> = computed(() => {
-        const goods: GoodsCard = toSignal(this.goodsService.goods$)();
+        // const goods: GoodsCard = toSignal(this.cartService)();
         const bought: number[] = toSignal(this.profileService.boughtPatterns$)();
         const pattern: IPattern = this.pattern();
 
@@ -73,14 +77,18 @@ export class PatternCartComponent extends AbstractPatternCard {
         return 'buy';
     });
 
-    public get expandState(): 'collapsed' | 'expanded' {
-        return this.showSale ? 'expanded' : 'collapsed';
-    }
-
+    public readonly currency: Signal<string> = this.langService.currency;
+    public form: FormGroup;
     public showSale: boolean = false;
 
-    private goodsService: GoodsService = inject(GoodsService);
-    private profileService: ProfileService = inject(ProfileService);
+    constructor() {
+        super();
+
+        this.form = new FormGroup({
+            sizes: new FormControl<number[]>([]),
+            color: new FormControl<boolean>(false),
+        });
+    }
 
     public buttonStatus: Record<string, ButtonStatusMap> = {
         buy: {

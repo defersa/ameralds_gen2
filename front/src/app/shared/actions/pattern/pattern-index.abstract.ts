@@ -1,13 +1,10 @@
 import { Directive, inject } from "@angular/core";
 import { FilteredPage, FiltersSet } from "@am/shared/abstract/filtered-page";
 import { Observable } from "rxjs";
-import { IPattern } from "@am/interface/pattern.interface";
 import { filter, map, switchMap } from "rxjs/operators";
 import { Params } from "@angular/router";
-import { PatternService } from "@am/services/pattern.service";
-import { IPaginatedResponse } from "@am/interface/request.interface";
 import { PatternsService } from "@am/services/patterns.service";
-import type { PatternEntityDto, PatternsPaginatedPageDto, SizeDto, SizesPaginatedPageDto } from "@am/root/api";
+import type { PatternEntityDto, PatternsPaginatedPageDto } from "@am/root/api";
 
 
 @Directive()

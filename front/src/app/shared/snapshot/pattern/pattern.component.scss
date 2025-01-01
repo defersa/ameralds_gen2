@@ -1,8 +1,9 @@
+@use 'sass:math';
 @import "../../../styles/spacing";
 @import "../../../styles/theming-var";
 
 .amstore-button-base.amstore-snapshot-container-sale {
-    padding: get-spacing(1)/2;
+    padding: math.div(get-spacing(1), 2);
     min-width: auto;
     margin-right: get-spacing(1);
     animation: pulse 0.5s infinite alternate;

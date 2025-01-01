@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import {
     CategoryEntity, FileEntity,
     ImageEntity,
@@ -8,20 +8,20 @@ import {
     PatternSizeEntity,
     TextLangEntity
 } from "@am/db/entities";
-import { DataSourceService } from "../data-source.service";
+import { CommonEntitiesService } from "@am/db/service/common-entities.service";
+import { ImagesService } from "@am/db/service/images.service";
+import { FilesService } from "@am/db/service/files.service";
+import { DataSourceService } from "../../data-source.service";
+import { CategoriesService } from "@am/db/service/patterns/categories.service";
+import { PatternsSizeService } from "@am/db/service/patterns/pattern-sizes.service";
 import {
     CreatePatternDto,
     PatternEntityDto,
     PatternSizeDto,
     PatternsPaginatedPageDto
-} from "../../modules/patterns/patterns.dto";
-import { CommonEntitiesService } from "@am/db/service/common-entities.service";
-import { CategoriesService } from "@am/db/service/categories.service";
-import { ModelState } from "../abstract/abstract.model";
-import { ApiErrorCodes } from "../../modules/errors/errors.dto";
-import { ImagesService } from "@am/db/service/images.service";
-import { FilesService } from "@am/db/service/files.service";
-import { PatternsSizeService } from "@am/db/service/pattern-sizes.service";
+} from "../../../modules/patterns/patterns.dto";
+import { ModelState } from "../../abstract/abstract.model";
+import { ApiErrorCodes } from "../../../modules/errors/errors.dto";
 
 
 @Injectable()
@@ -162,6 +162,35 @@ export class PatternsService {
             count,
             items: patterns as unknown as PatternEntityDto[],
         };
+    }
+
+    public async patternsById(ids: number[]): Promise<Record<number, PatternEntityDto>> {
+        const patterns: PatternEntity[] = await this.patternsRepository.find({
+            where: {
+                id: In(ids),
+                state: ModelState.ACTIVE,
+            },
+            relations: {
+                name: true,
+                description: true,
+                basePrice: true,
+                additionalPrice: true,
+                colorPrice: true,
+                images: true,
+                color: true,
+                sizes: {
+                    size: true,
+                },
+            },
+            order: {
+                images: {
+                    index: "ASC",
+                },
+            },
+            loadRelationIds: { relations: ["categories"] },
+        });
+
+        return Object.fromEntries(patterns.map((item: PatternEntity) => [item.id, item as unknown as PatternEntityDto]));
     }
 
     public async getPattern(id: number): Promise<PatternEntityDto> {

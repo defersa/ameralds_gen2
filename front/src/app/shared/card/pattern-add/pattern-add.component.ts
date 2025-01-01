@@ -16,9 +16,6 @@ import { filter } from "rxjs/operators";
 
 import { OptionType } from '@am/interface/cdk.interface';
 import {
-    AmstoreFormArrayComponent
-} from "@am/cdk/forms/array/array.component";
-import {
     FormArray,
     FormControl,
     FormGroup,
@@ -53,7 +50,6 @@ import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
         ReactiveFormsModule,
         AsyncPipe,
         AmstoreSelectComponent,
-        AmstoreFormArrayComponent,
         ImageListComponent,
         AmstoreUploadComponent,
         AmstorePatternSizesComponent,

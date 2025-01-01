@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
-import { DataSourceService } from "../data-source.service";
 import { SizeEntity } from "@am/db/entities";
-import { ModelState } from "../abstract/abstract.model";
-import { SizesPaginatedPageDto } from "../../modules/sizes/sizes.dto";
-import { ApiEntityNames, ApiErrorCodes } from "../../modules/errors/errors.dto";
+import { DataSourceService } from "../../data-source.service";
+import { ModelState } from "../../abstract/abstract.model";
+import { SizesPaginatedPageDto } from "../../../modules/sizes/sizes.dto";
+import { ApiEntityNames, ApiErrorCodes } from "../../../modules/errors/errors.dto";
 
 
 @Injectable()

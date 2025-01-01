@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { CategoriesService } from "@am/db/service/categories.service";
 import { ErrorsDto } from "../errors/errors.dto";
 import { CategoriesDto, CategoriesPaginatedPageDto, CategoryDto, CreateCategoryDto } from "./categories.dto";
 import { Roles } from "@am/core/guards/role.guard";
 import { CategoryEntity, UserRole } from "@am/db/entities";
 import { ParamsPaginatedDto, ParamsEntityDto } from "../../common/common.dto";
+import { CategoriesService } from "@am/db/service/patterns/categories.service";
 
 
 @Controller('categories')

@@ -2,6 +2,8 @@ import { Column, Entity, OneToMany } from "typeorm";
 import { BaseModel } from "../abstract/abstract.model";
 import { TokenAccessEntity } from "./tokens/token-access.entity";
 import { TokenRefreshEntity } from "./tokens/token-refresh.entity";
+import { UserPatternEntity } from "./patterns/pattern-order.entity";
+import { UserOrderEntity } from "./purchases/order.entity";
 
 
 export enum UserStatus {
@@ -44,4 +46,10 @@ export class UserEntity extends BaseModel {
         default: UserRole.COMMON,
     })
     public role: UserRole;
+
+    @OneToMany(() => UserPatternEntity, (userPattern: UserPatternEntity) => userPattern.user)
+    public ownPatterns: UserPatternEntity[];
+
+    @OneToMany(() => UserOrderEntity, (order: UserOrderEntity) => order.user)
+    public orders: UserOrderEntity[];
 }

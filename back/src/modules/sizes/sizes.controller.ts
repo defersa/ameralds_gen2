@@ -10,7 +10,7 @@ import {
 import { Roles } from "@am/core/guards/role.guard";
 import { UserRole } from "@am/db/entities";
 import { ParamsPaginatedDto, ParamsEntityDto } from "../../common/common.dto";
-import { SizesService } from "@am/db/service/sizes.service";
+import { SizesService } from "@am/db/service/patterns/sizes.service";
 
 
 @Controller('sizes')

@@ -16,7 +16,7 @@ import {
     TokenAccessEntity,
     TokenEntity,
     TokenRefreshEntity,
-    UserEntity
+    UserEntity, OrderPatternEntity, UserPatternEntity, AdminOrderEntity, UserOrderEntity, UserPaymentEntity
 } from "@am/db/entities";
 
 
@@ -46,6 +46,13 @@ import {
                 PrivateFileEntity,
                 PatternEntity,
                 PatternSizeEntity,
+
+                OrderPatternEntity,
+                UserPatternEntity,
+
+                AdminOrderEntity,
+                UserOrderEntity,
+                UserPaymentEntity,
             ],
             // logging: true,
         }),

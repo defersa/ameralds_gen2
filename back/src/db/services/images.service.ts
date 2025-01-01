@@ -4,10 +4,9 @@ import * as sharp from "sharp";
 import { APP_CONFIG, AppConfigInterface } from "@am/core/config/app-config.module";
 import { DataSourceService } from "../data-source.service";
 import { In, Repository } from "typeorm";
-import { CategoryEntity, ImageEntity } from "@am/db/entities";
+import { ImageEntity } from "@am/db/entities";
 import { removeFile } from "../../utils/remove-file";
 import { join } from "path";
-import { ModelState } from "../abstract/abstract.model";
 import { Cron } from "@nestjs/schedule";
 
 

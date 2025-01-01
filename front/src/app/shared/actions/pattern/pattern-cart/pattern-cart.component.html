@@ -16,7 +16,7 @@
 </div>
 
 
-<div class="amstore-card-container-info" [@expand]="expandState">
+<div class="amstore-card-container-info" [@expand]="showSale ? 'expanded' : 'collapsed'">
     <amstore-info status="alert">
         Aкция:<br>
         На данный товар применяется акция - при покупке схем из списка цена на каждый товар уменьшается. Ознакомится с условиями акции можно по Ссылке. При удовлетворении условий цена автоматически просчитается.
@@ -24,7 +24,9 @@
 </div>
 
 
-<h2>{{price}}</h2>
+<h2>
+    {{ price() }} {{ currency() }}
+</h2>
 
 <div class="amstore-row amstore-card-container-buttons">
     <amstore-button color="warn" class="amstore-card-container-sale" [ngClass]="showSale ? '' : 'not-active'" (click)="showSale = !showSale" size="large">

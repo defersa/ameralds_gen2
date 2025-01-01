@@ -13,12 +13,11 @@ import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } fro
 import { ApiErrorCodes, ErrorsDto } from "../errors/errors.dto";
 import { Auth } from "@am/core/guards/auth.guard";
 import { RequestModel } from "@am/models/request.model";
-
+import { ShortOrderPatternDto } from "../orders/orders.dto";
 
 
 const passwordComplexCheck: RegExp = /(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{6,}/g;
 const emailCheck: RegExp = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
 
 @Controller('user')
 @ApiTags('user')
@@ -102,10 +101,6 @@ export class UserController {
     public async profile(
         @Req() request: RequestModel
     ): Promise<UserProfileDto> {
-        return {
-            username: request.user.username,
-            email: request.user.email,
-            role: request.user.role,
-        };
+        return await this.userService.getUser(request.user.id) as unknown as UserProfileDto;
     }
 }

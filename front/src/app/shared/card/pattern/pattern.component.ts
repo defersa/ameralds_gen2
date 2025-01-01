@@ -1,38 +1,22 @@
 import {
     ChangeDetectionStrategy,
-    ChangeDetectorRef,
-    Component, computed,
-    DestroyRef,
-    ElementRef,
-    inject, input,
-    Input, InputSignal, Signal
+    Component,
+    computed,
+    inject,
+    input,
+    InputSignal, Signal
 } from "@angular/core";
-import { UntypedFormControl } from '@angular/forms';
-import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 
 import { expandAnimation } from '@am/cdk/animations/expand';
-import { ThemePalette } from '@am/cdk/core/color';
 import { AmstoreViewerService } from '@am/shared/viewer/viewer.service';
-
 import { LangService } from '@am/services/lang.service';
-import { ProfileService } from '@am/services/profile.service';
-
-
-import { ImageModelSmall } from '@am/interface/image.interface';
-import { IPattern } from '@am/interface/pattern.interface';
-import { IdName } from '@am/interface/request.interface';
 import { LangType } from '@am/interface/lang.interface';
 
 import { AmstoreCardDirective } from '../card.directive';
-import { CategoryType } from '@am/interface/category.interface';
-import { SIZE_UNIT } from "@am/utils/constants";
-import { PatternService } from "@am/services/pattern.service";
-import { EMPTY_PATTERN } from "@am/shared/mocks/pattern";
 import { ImageListComponent } from "@am/shared/image-list/image-list.component";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { AmstoreChipComponent } from "@am/cdk/chip/chip.component";
-import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
+import { toSignal } from "@angular/core/rxjs-interop";
 import type { ImageDto, PatternEntityDto } from "@am/root/api";
 import { CategoriesService } from "@am/services/categories.service";
 import { OptionType } from "@am/interface/cdk.interface";

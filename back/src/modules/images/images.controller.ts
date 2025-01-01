@@ -1,12 +1,11 @@
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiCreatedResponse, ApiTags } from "@nestjs/swagger";
-import { Body, Controller, NestInterceptor, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Controller, NestInterceptor, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { Roles } from "@am/core/guards/role.guard";
 import { UserRole } from "@am/db/entities";
 import { ErrorsDto } from "../errors/errors.dto";
 import { ImagesService } from "@am/db/service/images.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ImageDto } from "./images.dto";
-import { CreatePatternDto } from "../patterns/patterns.dto";
 
 
 

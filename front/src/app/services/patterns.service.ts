@@ -37,4 +37,8 @@ export class PatternsService {
     public getPattern(id: number): Observable<PatternEntityDto> {
         return this.patternsProducer.patternsControllerEntity(id);
     }
+
+    public getPatternsByIds(ids: number[]): Observable<Record<string, PatternEntityDto>> {
+        return this.patternsProducer.patternsControllerByIds(ids);
+    }
 }

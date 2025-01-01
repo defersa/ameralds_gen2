@@ -7,7 +7,7 @@ import {
     Signal
 } from "@angular/core";
 import { GoodsCard } from '@am/interface/goods.intreface';
-import { GoodsService } from '@am/services/goods.service';
+import { CartService } from '@am/services/cart.service';
 import { ProfileService } from '@am/services/profile.service';
 
 import { AmstoreSnapshotBaseDirective } from '../snapshot.base.directive';
@@ -31,19 +31,19 @@ export class AmstoreSnapshotPatternComponent extends AmstoreSnapshotBaseDirectiv
     public pattern: InputSignal<PatternEntityDto> = input();
 
     public status: Signal<'buy' | 'remove' | 'bought'> = computed(() => {
-        const goods: GoodsCard = toSignal(this.goodsService.goods$)();
-        const bought: number[] = toSignal(this.profileService.boughtPatterns$)();
-        const pattern: PatternEntityDto = this.pattern();
-
-        if (goods.patterns.find((value: PatternEntityDto) => value.id === pattern.id)) {
-            return 'remove';
-        } else  if (bought.find((value: number) => value === pattern.id)) {
-            return 'bought';
-        }
+        // const goods: GoodsCard = toSignal(this.goodsService.goods$)();
+        // const bought: number[] = toSignal(this.profileService.boughtPatterns$)();
+        // const pattern: PatternEntityDto = this.pattern();
+        //
+        // if (goods.patterns.find((value: PatternEntityDto) => value.id === pattern.id)) {
+        //     return 'remove';
+        // } else  if (bought.find((value: number) => value === pattern.id)) {
+        //     return 'bought';
+        // }
 
         return 'buy';
     });
 
     private profileService: ProfileService = inject(ProfileService);
-    private goodsService: GoodsService = inject(GoodsService);
+    private goodsService: CartService = inject(CartService);
 }

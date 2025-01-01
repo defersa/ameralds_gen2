@@ -34,7 +34,7 @@ export class AuthService {
         return expiredAt ? new Date(expiredAt) : null;
     }
 
-    private userService: UserProducer = inject(UserProducer);
+    private userProducer: UserProducer = inject(UserProducer);
     private router: Router = inject(Router);
 
     public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(!!this.localAccessToken);
@@ -56,7 +56,8 @@ export class AuthService {
     }
 
     public deleteToken(): void {
-        this.userService.userControllerLogout({ access: this.localAccessToken, refresh: this.localRefreshToken })
+        this.userProducer
+            .userControllerLogout({ access: this.localAccessToken, refresh: this.localRefreshToken })
             .subscribe(() => this.logout());
     }
 
@@ -81,7 +82,7 @@ export class AuthService {
             return this.logout();
         }
 
-        this.userService.userControllerRefresh({ access: this.localAccessToken, refresh: this.localRefreshToken })
+        this.userProducer.userControllerRefresh({ access: this.localAccessToken, refresh: this.localRefreshToken })
             .subscribe(
                 (result: IRefreshToken) => {
                     this.setAuthToken(result.access);

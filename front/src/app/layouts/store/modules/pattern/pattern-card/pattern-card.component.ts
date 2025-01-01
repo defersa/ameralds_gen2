@@ -1,8 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
-import { PatternService } from '@am/services/pattern.service';
-import { IPattern } from '@am/interface/pattern.interface';
 import { DestroyService } from "@am/utils/destroy.service";
 import { AsyncPipe, Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";

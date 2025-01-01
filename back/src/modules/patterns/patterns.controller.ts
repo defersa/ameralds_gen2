@@ -1,11 +1,11 @@
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
-import { PatternsService } from "@am/db/service/patterns.service";
 import { Roles } from "@am/core/guards/role.guard";
 import { UserRole } from "@am/db/entities";
 import { ErrorsDto } from "../errors/errors.dto";
 import { CreatePatternDto, PatternEntityDto, PatternsPaginatedPageDto } from "./patterns.dto";
-import { ParamsEntityDto, ParamsPaginatedDto, SuccessCreateDto } from "../../common/common.dto";
+import { ParamsEntityDto, ParamsIdsDto, ParamsPaginatedDto, SuccessCreateDto } from "../../common/common.dto";
+import { PatternsService } from "@am/db/service/patterns/patterns.service";
 
 
 
@@ -43,6 +43,21 @@ export class PatternsController {
         @Param() params: ParamsEntityDto,
     ): Promise<PatternEntityDto> {
         return this.patternsService.getPattern(params.id);
+    }
+
+    @Get('ids/:ids')
+    @ApiOkResponse({
+        description: '',
+        schema: {
+            type: 'object',
+            additionalProperties: { $ref: getSchemaPath(PatternEntityDto) },
+        }
+    })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    public async byIds(
+        @Param() params: ParamsIdsDto,
+    ): Promise<Record<string, PatternEntityDto>> {
+        return this.patternsService.patternsById(params.ids);
     }
 
     @Patch('edit/:id')

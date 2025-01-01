@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column } from "typeorm";
-import { UserRole, UserStatus } from "@am/db/entities";
-import { getArrayFromEnum } from "../../utils/array-from-enum";
-import { ApiErrorCodes } from "../errors/errors.dto";
+import { UserRole } from "@am/db/entities";
+import { ShortOrderPatternDto } from "../orders/orders.dto";
+import { BaseEntityDto } from "../../common/common.dto";
 
 
 export class UserCredentialsDto {
@@ -49,7 +48,7 @@ export class RefreshTokenCredentialsDto {
 
 export class LogoutCredentialsDto extends RefreshTokenCredentialsDto {}
 
-export class UserProfileDto {
+export class UserProfileDto extends BaseEntityDto {
     @ApiProperty({
         description: 'Email of user',
         type: 'string',
@@ -68,4 +67,11 @@ export class UserProfileDto {
         enumName: 'EnumUserRole',
     })
     public role: UserRole;
+
+    @ApiProperty({
+        description: 'Bought patterns',
+        type: ShortOrderPatternDto,
+        isArray: true
+    })
+    public ownPatterns: ShortOrderPatternDto[];
 }

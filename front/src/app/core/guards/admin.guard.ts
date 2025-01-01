@@ -1,23 +1,23 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from "@angular/router";
 import { Observable } from "rxjs";
 import { ProfileService } from "@am/services/profile.service";
-import { UserEnum } from "@am/utils/router-builder";
+import { EnumUserRole } from "@am/root/api";
 
 
 @Injectable({
     providedIn: 'root'
 })
 export class AdminGuard  {
-    constructor(private _profileService: ProfileService) {}
+    private _profileService: ProfileService = inject(ProfileService);
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):
         Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        return this._profileService.userStatus$.getValue() === UserEnum.Moder;
+        return this._profileService.userStatus$.getValue() === EnumUserRole.ADMIN;
     }
 
     canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot):
         Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        return this._profileService.userStatus$.getValue() === UserEnum.Moder;
+        return this._profileService.userStatus$.getValue() === EnumUserRole.ADMIN;
     }
 }

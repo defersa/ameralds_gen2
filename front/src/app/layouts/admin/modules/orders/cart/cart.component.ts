@@ -1,9 +1,8 @@
 import { Component, inject } from "@angular/core";
 import { AdminOrderService } from "@am/services/admin-order.service";
 import { IAdminCart, IPatternPurchase } from "@am/interface/order.interface";
-import { switchMap, take } from "rxjs/operators";
+import { map, switchMap, take } from "rxjs/operators";
 import { Observable } from "rxjs";
-import { PatternService } from "@am/services/pattern.service";
 import { IPattern } from "@am/interface/pattern.interface";
 import { FormControl, ReactiveFormsModule, Validators } from "@angular/forms";
 import { SnackService } from "@am/services/snackbar.service";
@@ -31,7 +30,6 @@ import { PatternCartComponent } from "@am/shared/actions/pattern/cart/pattern-ca
 })
 export class CartComponent {
     private adminOrder: AdminOrderService = inject(AdminOrderService);
-    private patternService: PatternService = inject(PatternService);
     private snackService: SnackService = inject(SnackService);
     private router: Router = inject(Router);
 
@@ -39,7 +37,8 @@ export class CartComponent {
     public patterns$: Observable<IPattern[]> = this.order$
         .pipe(
             take(1),
-            switchMap((order: IAdminCart) => this.patternService.getPatternsByIds(order.purchases.map((item: IPatternPurchase) => item.pattern)))
+            map(() => [])
+            // switchMap((order: IAdminCart) => this.patternService.getPatternsByIds(order.purchases.map((item: IPatternPurchase) => item.pattern)))
         );
 
     public emailControl: FormControl = new FormControl('', [Validators.required, Validators.email]);

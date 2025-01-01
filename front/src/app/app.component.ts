@@ -1,9 +1,7 @@
-import { Component, ViewEncapsulation } from '@angular/core';
-import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
-import { UserEnum } from "@am/utils/router-builder";
+import { Component, Signal, ViewEncapsulation } from "@angular/core";
 import { ProfileService } from "@am/services/profile.service";
 import { AuthService } from "@am/services/auth.service";
+import { toSignal } from "@angular/core/rxjs-interop";
 
 
 @Component({
@@ -17,8 +15,7 @@ import { AuthService } from "@am/services/auth.service";
 })
 export class AppComponent {
     public date: Date = new Date();
-    public isAdmin: Observable<boolean> = this.profileService.userStatus$
-        .pipe(map((value: UserEnum) => value === UserEnum.Moder));
+    public isAdmin: Signal<boolean> = toSignal(this.profileService.isAdmin$);
 
     constructor(
         private authService: AuthService,

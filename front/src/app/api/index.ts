@@ -26,6 +26,7 @@ export type { PatternEntityDto } from './models/PatternEntityDto';
 export type { PatternSizeDto } from './models/PatternSizeDto';
 export type { PatternsPaginatedPageDto } from './models/PatternsPaginatedPageDto';
 export type { RefreshTokenCredentialsDto } from './models/RefreshTokenCredentialsDto';
+export type { ShortOrderPatternDto } from './models/ShortOrderPatternDto';
 export type { SizeDto } from './models/SizeDto';
 export type { SizesDto } from './models/SizesDto';
 export type { SizesPaginatedPageDto } from './models/SizesPaginatedPageDto';

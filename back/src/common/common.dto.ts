@@ -9,6 +9,26 @@ export class EntityDto {
     public id: number;
 }
 
+export class BaseEntityDto {
+    @ApiProperty({
+        description: 'Id of entity',
+        type: 'number',
+    })
+    public id: number;
+
+    @ApiProperty({
+        description: 'Id of entity',
+        type: Date,
+    })
+    public createdAt: Date;
+
+    @ApiProperty({
+        description: 'Id of entity',
+        type: Date,
+    })
+    public updatedAt: Date;
+}
+
 export class SuccessCreateDto extends EntityDto {}
 
 export class LabelEntityDto {
@@ -59,6 +79,15 @@ export class ParamsEntityDto {
         type: 'number',
     })
     public id: number;
+}
+
+export class ParamsIdsDto {
+    @ApiProperty({
+        description: 'Params with ids',
+        type: 'number',
+        isArray: true,
+    })
+    public ids: number[];
 }
 
 export class ParamsPaginatedDto {
