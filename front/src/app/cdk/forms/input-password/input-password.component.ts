@@ -12,7 +12,6 @@ import { ErrorsPipe } from "@am/cdk/forms/errors/errors.pipe";
     selector: "amstore-forms-input-password",
     templateUrl: "./input-password.component.html",
     styleUrls: ["./input-password.component.scss"],
-    standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         MatFormFieldModule,

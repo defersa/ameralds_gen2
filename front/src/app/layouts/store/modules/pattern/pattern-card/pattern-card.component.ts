@@ -21,7 +21,6 @@ type PatterButtonStatus = {
     templateUrl: "./pattern-card.component.html",
     styleUrls: ["./pattern-card.component.scss"],
     providers: [DestroyService],
-    standalone: true,
     imports: [
         AmstoreButtonComponent,
         RouterLink,

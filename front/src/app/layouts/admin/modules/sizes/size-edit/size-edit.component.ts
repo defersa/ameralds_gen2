@@ -23,8 +23,7 @@ import { SizeDto } from "@am/root/api";
         AmstoreButtonComponent,
         AmstoreInputComponent,
         ReactiveFormsModule
-    ],
-    standalone: true
+    ]
 })
 export class SizeEditComponent implements OnInit {
     public id: number;

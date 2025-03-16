@@ -22,7 +22,6 @@ import { AsyncPipe } from "@angular/common";
     selector: "amstore-filters",
     templateUrl: "./filter.component.html",
     styleUrls: ["./filter.component.scss"],
-    standalone: true,
     imports: [
         AmstorePanelExpandComponent,
         AmstorePanelHeaderComponent,

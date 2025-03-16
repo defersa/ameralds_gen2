@@ -16,7 +16,6 @@ import type { CategoriesPaginatedPageDto, CategoryDto } from "@am/root/api";
     selector: "admin-categories",
     templateUrl: "./categories.component.html",
     styleUrls: ["./categories.component.scss"],
-    standalone: true,
     providers: [DestroyService],
     imports: [
         RouterLink,

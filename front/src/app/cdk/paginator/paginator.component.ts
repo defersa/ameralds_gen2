@@ -17,7 +17,6 @@ const PAGES_AROUND: number = 4;
     selector: "amstore-paginator",
     templateUrl: "./paginator.component.html",
     styleUrls: ["./paginator.component.scss"],
-    standalone: true,
     imports: [
         IconsComponent
     ],

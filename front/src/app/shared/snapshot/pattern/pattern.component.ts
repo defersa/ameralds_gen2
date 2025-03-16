@@ -21,7 +21,6 @@ import type { PatternEntityDto } from "@am/root/api";
     selector: "amstore-snapshot-pattern",
     templateUrl: "./pattern.component.html",
     styleUrls: ["./pattern.component.scss", "../snapshot.mobile.scss"],
-    standalone: true,
     imports: [
         RouterLink,
         LangTextComponent

@@ -23,7 +23,6 @@ import { UserTokensDTO } from "@am/root/api";
     selector: "amstore-dialog-login",
     templateUrl: "./login.component.html",
     styleUrls: ["./login.component.scss"],
-    standalone: true,
     imports: [
         MatDialogTitle,
         MatDialogContent,

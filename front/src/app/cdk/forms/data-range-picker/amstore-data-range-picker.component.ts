@@ -11,8 +11,6 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
     templateUrl: "./amstore-data-range-picker.component.html",
     styleUrls: ["./amstore-data-range-picker.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
-
     imports: [
         MatFormFieldModule,
         MatDateRangeInput,

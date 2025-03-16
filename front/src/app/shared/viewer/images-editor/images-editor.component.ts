@@ -10,7 +10,6 @@ import { ImageDto, ImagesProducer } from "@am/root/api";
     selector: "amstore-images-editor",
     templateUrl: "./images-editor.component.html",
     styleUrls: ["./images-editor.component.scss"],
-    standalone: true,
     imports: [
         NgStyle,
         MatDialogTitle,

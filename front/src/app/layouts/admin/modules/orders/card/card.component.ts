@@ -26,7 +26,6 @@ type IAdminOrderWithStatus = IAdminOrder & {
     selector: "app-card",
     templateUrl: "./card.component.html",
     styleUrls: ["./card.component.scss"],
-    standalone: true,
     imports: [
         AmstoreButtonComponent,
         AsyncPipe,

@@ -14,7 +14,6 @@ import { IdRecord } from "@am/interface/common.interface";
     selector: "amstore-goods-snap",
     templateUrl: "./goods-snap.component.html",
     styleUrls: ["./goods-snap.component.scss"],
-    standalone: true,
     imports: [
         AmstoreButtonRoundComponent,
         AsyncPipe,

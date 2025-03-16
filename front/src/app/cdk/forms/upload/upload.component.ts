@@ -23,7 +23,6 @@ import { downloadBlobFile } from "@am/utils/file-utils";
     templateUrl: "./upload.component.html",
     styleUrls: ["./upload.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         AmstoreButtonComponent,
         IconsComponent,

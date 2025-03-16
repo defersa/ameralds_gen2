@@ -12,7 +12,6 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
     animations: [
         expandAnimation
     ],
-    standalone: true,
     imports: [
         AmstoreDividerComponent,
         IconsComponent

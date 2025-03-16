@@ -10,7 +10,6 @@ import { RouterOutlet } from "@angular/router";
     host: {
         class: "grid"
     },
-    standalone: true,
     imports: [
         MenuComponent,
         RouterOutlet

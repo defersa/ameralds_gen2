@@ -17,8 +17,7 @@ import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.c
         AsyncPipe,
         AmstoreProfileCardComponent,
         AmstoreButtonComponent
-    ],
-    standalone: true,
+    ]
 })
 export class ProfileComponent {
     private profile: ProfileService = inject(ProfileService);

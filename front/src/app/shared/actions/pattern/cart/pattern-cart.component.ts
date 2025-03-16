@@ -23,8 +23,7 @@ import type { PatternEntityDto } from "@am/root/api";
         AmstoreSlideComponent,
         AmstoreButtonComponent,
         IconsComponent
-    ],
-    standalone: true
+    ]
 })
 export class PatternCartComponent implements OnInit {
     public pattern: InputSignal<PatternEntityDto> = input();

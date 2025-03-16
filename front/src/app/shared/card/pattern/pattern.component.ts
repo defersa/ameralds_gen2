@@ -27,7 +27,6 @@ import { OptionType } from "@am/interface/cdk.interface";
     templateUrl: "./pattern.component.html",
     styleUrls: ["./pattern.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     animations: [
         expandAnimation
     ],

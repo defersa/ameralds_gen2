@@ -18,7 +18,6 @@ import { switchMap } from "rxjs/operators";
     selector: "amstore-registration",
     templateUrl: "./amstore-registration.component.html",
     styleUrls: ["./amstore-registration.component.scss"],
-    standalone: true,
     imports: [
         AmstorePanelBasicComponent,
         AmstoreInputComponent,

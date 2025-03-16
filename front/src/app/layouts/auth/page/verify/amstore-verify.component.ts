@@ -17,7 +17,6 @@ import { AmstoreSpinnerComponent } from "@am/cdk/spinner/spinner.component";
             margin: auto;
         }
     `],
-    standalone: true,
     imports: [
         AmstoreSpinnerComponent
     ]

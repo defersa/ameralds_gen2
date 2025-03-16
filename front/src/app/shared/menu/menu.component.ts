@@ -32,7 +32,6 @@ export const AMSTORE_SECTION_CONFIG: InjectionToken<SectionsConfig> =
     templateUrl: "./menu.component.html",
     styleUrls: ["./menu.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         AmstoreButtonMenuComponent,
         RouterLink,

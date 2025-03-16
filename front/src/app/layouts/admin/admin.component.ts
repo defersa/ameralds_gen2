@@ -7,7 +7,6 @@ import { RouterOutlet } from "@angular/router";
     selector: "amstore-admin",
     templateUrl: "./admin.component.html",
     styleUrls: ["./admin.component.scss"],
-    standalone: true,
     imports: [
         MenuComponent,
         RouterOutlet

@@ -11,7 +11,8 @@ import { toSignal } from "@angular/core/rxjs-interop";
     encapsulation: ViewEncapsulation.None,
     host: {
         class: 'amstore-root'
-    }
+    },
+    standalone: false
 })
 export class AppComponent {
     public date: Date = new Date();

@@ -6,7 +6,6 @@ import { RouterLink } from "@angular/router";
     selector: "amstore-header",
     templateUrl: "./header.component.html",
     styleUrls: ["./header.component.scss"],
-    standalone: true,
     imports: [
         RouterLink
     ],

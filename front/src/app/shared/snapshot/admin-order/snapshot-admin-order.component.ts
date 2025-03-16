@@ -10,7 +10,6 @@ import { LangTextComponent } from "@am/shared/lang-text/lang-text.component";
     selector: "amstore-snapshot-admin-order",
     templateUrl: "./snapshot-admin-order.component.html",
     styleUrls: ["./snapshot-admin-order.component.scss"],
-    standalone: true,
     imports: [
         IconsComponent,
         RouterLink,

@@ -19,7 +19,6 @@ import type { CategoriesPaginatedPageDto, CategoryDto, SizeDto, SizesPaginatedPa
     templateUrl: "./sizes.component.html",
     styleUrls: ["./sizes.component.scss"],
     providers: [DestroyService],
-    standalone: true,
     imports: [
         RouterLink,
         IconsComponent,

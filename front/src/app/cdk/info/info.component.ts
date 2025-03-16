@@ -20,7 +20,6 @@ const ICON_MAP: Record<StatusInfo, IconsName> = {
     selector: "amstore-info",
     templateUrl: "./info.component.html",
     styleUrls: ["./info.component.scss"],
-    standalone: true,
     imports: [
         IconsComponent
     ],

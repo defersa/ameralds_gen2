@@ -13,7 +13,6 @@ import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.c
     selector: "amstore-default-dialog",
     templateUrl: "./info-dialog.component.html",
     styleUrls: ["./info-dialog.component.scss"],
-    standalone: true,
     imports: [
         MatDialogTitle,
         AmstoreButtonComponent,

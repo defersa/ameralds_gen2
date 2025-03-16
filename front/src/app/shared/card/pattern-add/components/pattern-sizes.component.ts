@@ -26,7 +26,6 @@ import { filter } from "rxjs/operators";
     selector: "amstore-pattern-sizes",
     templateUrl: "./pattern-sizes.component.html",
     styleUrls: ["./pattern-sizes.component.scss"],
-    standalone: true,
     imports: [
         ReactiveFormsModule,
         FormGroupPipe,

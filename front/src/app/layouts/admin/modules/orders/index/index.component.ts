@@ -18,7 +18,6 @@ import { AmstorePaginatorComponent } from "@am/cdk/paginator/paginator.component
     templateUrl: "./index.component.html",
     styleUrls: ["./index.component.scss"],
     providers: [DestroyService],
-    standalone: true,
     imports: [
         OrdersFilterComponent,
         AsyncPipe,

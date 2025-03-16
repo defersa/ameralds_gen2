@@ -22,7 +22,6 @@ import { MatCheckbox } from "@angular/material/checkbox";
     selector: "amstore-chips-checkbox",
     templateUrl: "./chips-checkbox.component.html",
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         AsyncPipe,

@@ -48,7 +48,6 @@ import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
     selector: "amstore-pattern-add-card",
     templateUrl: "./pattern-add.component.html",
     styleUrls: ["./pattern-add.component.scss"],
-    standalone: true,
     imports: [
         AmstoreButtonComponent,
         AmstoreInputComponent,
@@ -61,7 +60,7 @@ import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
         AmstorePatternSizesComponent,
         FormArrayPipe
     ],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AmstorePatternAddCardComponent extends AmstoreCardDirective {
     private patternSizesComponent: Signal<AmstorePatternSizesComponent> = viewChild("patternSizes", { read: AmstorePatternSizesComponent });

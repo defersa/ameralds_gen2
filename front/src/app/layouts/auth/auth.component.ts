@@ -6,7 +6,6 @@ import { RouterOutlet } from "@angular/router";
     selector: "amstore-auth",
     templateUrl: "./auth.component.html",
     styleUrls: ["./auth.component.scss"],
-    standalone: true,
     imports: [
         RouterOutlet
     ]

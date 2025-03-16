@@ -16,7 +16,6 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
     selector: "amstore-profile",
     templateUrl: "./profile.component.html",
     styleUrls: ["./profile.component.scss"],
-    standalone: true,
     imports: [
         AsyncPipe,
         AmstoreButtonRoundComponent,

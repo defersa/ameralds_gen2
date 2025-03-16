@@ -21,7 +21,6 @@ import { CategoriesService } from "@am/services/categories.service";
     selector: "amstore-pattern-details-short",
     templateUrl: "./short.component.html",
     styleUrls: ["./short.component.scss"],
-    standalone: true,
     animations: [
         expandAnimation
     ],

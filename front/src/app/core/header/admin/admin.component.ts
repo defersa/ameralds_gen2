@@ -11,7 +11,6 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
     selector: "amstore-header-admin",
     templateUrl: "./admin.component.html",
     styleUrls: ["./admin.component.scss"],
-    standalone: true,
     imports: [
         AmstoreButtonRoundComponent,
         AsyncPipe,

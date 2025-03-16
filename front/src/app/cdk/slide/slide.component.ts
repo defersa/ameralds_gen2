@@ -9,7 +9,6 @@ import { ReactiveFormsModule } from "@angular/forms";
     templateUrl: "./slide.component.html",
     styleUrls: ["./slide.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         MatSlideToggle,
         ReactiveFormsModule

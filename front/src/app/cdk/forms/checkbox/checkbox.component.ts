@@ -9,7 +9,6 @@ import { ReactiveFormsModule } from "@angular/forms";
     templateUrl: "./checkbox.component.html",
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         MatCheckbox,
         ReactiveFormsModule

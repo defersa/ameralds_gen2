@@ -16,7 +16,6 @@ import { AmstoreDataRangePickerComponent } from "@am/cdk/forms/data-range-picker
     selector: "amstore-orders-filter",
     templateUrl: "./orders-filter.component.html",
     styleUrls: ["./orders-filter.component.scss"],
-    standalone: true,
     imports: [
         AmstorePanelExpandComponent,
         AmstorePanelHeaderComponent,

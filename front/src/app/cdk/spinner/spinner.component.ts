@@ -8,7 +8,6 @@ import { AmstoreColor } from "@am/cdk/core/color";
     templateUrl: "./spinner.component.html",
     styleUrls: ["./spinner.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         MatProgressSpinner
     ],

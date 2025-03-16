@@ -13,7 +13,6 @@ import { FullPatternEntityDto, PatternEntityDto } from "@am/root/api";
     selector: "admin-pattern-edit",
     templateUrl: "./pattern-edit.component.html",
     styleUrls: ["./pattern-edit.component.scss"],
-    standalone: true,
     imports: [
         AmstoreButtonComponent,
         AmstorePatternAddCardComponent,

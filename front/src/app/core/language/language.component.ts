@@ -25,7 +25,6 @@ const LANGS: Record<LangType, LangObject> = {
     selector: "amstore-language",
     templateUrl: "./language.component.html",
     styleUrls: ["./language.component.scss"],
-    standalone: true,
     imports: [
         AmstoreButtonRoundComponent,
         AsyncPipe,

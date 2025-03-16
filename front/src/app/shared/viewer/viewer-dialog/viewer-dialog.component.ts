@@ -9,7 +9,6 @@ import { ImageDto } from "@am/root/api";
     styleUrls: ["./viewer-dialog.component.scss"],
     // TODO: delete
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         IconsComponent,
     ],

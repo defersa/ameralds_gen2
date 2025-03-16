@@ -18,7 +18,6 @@ export enum PatternCartState {
 
 @Component({
     selector: "app-pattern-cart",
-    standalone: true,
     imports: [
         AmstoreButtonComponent
     ],

@@ -21,7 +21,6 @@ import { ErrorsPipe } from "@am/cdk/forms/errors/errors.pipe";
     templateUrl: "./input.component.html",
     styleUrls: ["./input.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    standalone: true,
     imports: [
         MatFormFieldModule,
         ReactiveFormsModule,

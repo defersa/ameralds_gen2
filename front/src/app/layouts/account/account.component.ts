@@ -9,8 +9,7 @@ import { RouterOutlet } from "@angular/router";
     imports: [
         MenuComponent,
         RouterOutlet
-    ],
-    standalone: true
+    ]
 })
 export class AccountComponent {
 }

@@ -12,7 +12,6 @@ import { ErrorsPipe } from "@am/cdk/forms/errors/errors.pipe";
     templateUrl: "./select.component.html",
     styleUrls: ["./select.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         MatFormFieldModule,
         MatSelect,

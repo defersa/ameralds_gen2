@@ -9,7 +9,6 @@ import type { ImageDto } from "@am/root/api";
     selector: "amstore-image-list",
     templateUrl: "./image-list.component.html",
     styleUrls: ["./image-list.component.scss"],
-    standalone: true,
     imports: [
         OutsideSrcDirective
     ]

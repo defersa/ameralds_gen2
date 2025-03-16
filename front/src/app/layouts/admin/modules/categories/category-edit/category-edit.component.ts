@@ -13,7 +13,6 @@ import type { CategoryDto } from "@am/root/api";
     selector: "app-category-edit",
     templateUrl: "./category-edit.component.html",
     styleUrls: ["./category-edit.component.scss"],
-    standalone: true,
     imports: [
         AmstoreButtonComponent,
         AmstoreInputComponent,

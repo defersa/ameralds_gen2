@@ -14,7 +14,6 @@ import { PatternCartComponent } from "@am/shared/actions/pattern/pattern-cart/pa
     selector: "amstore-pattern-page",
     templateUrl: "./pattern-card.component.html",
     styleUrls: ["./pattern-card.component.scss"],
-    standalone: true,
     imports: [
         AmstoreButtonComponent,
         RouterLink,

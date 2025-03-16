@@ -16,7 +16,6 @@ import { AmstorePaginatorComponent } from "@am/cdk/paginator/paginator.component
     templateUrl: "./patterns.component.html",
     styleUrls: ["./patterns.component.scss"],
     providers: [DestroyService],
-    standalone: true,
     imports: [
         AmstoreButtonComponent,
         IconsComponent,

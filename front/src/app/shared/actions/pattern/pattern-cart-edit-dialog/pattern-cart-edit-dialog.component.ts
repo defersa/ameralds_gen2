@@ -34,7 +34,6 @@ interface PatternCartEditForm {
 
 @Component({
     selector: "app-pattern-cart-edit-dialog",
-    standalone: true,
     imports: [
         AmstoreSlideComponent,
         ReactiveFormsModule,

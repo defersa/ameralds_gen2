@@ -17,7 +17,6 @@ import { DatePipe } from "@angular/common";
     templateUrl: "./profile.component.html",
     styleUrls: ["./profile.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         AmstorePanelExpandComponent,
         AmstorePanelHeaderComponent,

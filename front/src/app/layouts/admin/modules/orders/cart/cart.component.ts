@@ -18,7 +18,6 @@ import { PatternCartComponent } from "@am/shared/actions/pattern/cart/pattern-ca
     selector: "admin-cart",
     templateUrl: "./cart.component.html",
     styleUrls: ["./cart.component.scss"],
-    standalone: true,
     imports: [
         AmstoreInputComponent,
         ReactiveFormsModule,
