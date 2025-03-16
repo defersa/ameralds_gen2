@@ -2,7 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type PatternSizeDto = {
+import type { SizeDto } from './SizeDto';
+export type FullPatternSizeDto = {
     /**
      * Id of entity
      */
@@ -26,6 +27,6 @@ export type PatternSizeDto = {
     /**
      * Size id
      */
-    size: number;
+    size: SizeDto;
 };
 

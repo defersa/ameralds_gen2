@@ -54,7 +54,7 @@ export class AmstoreRegistrationComponent {
             return;
         }
 
-        this._profileService.postNewUser(this.regForm.value as UserCredentialsDto)
+        this._profileService.createUser(this.regForm.value as UserCredentialsDto)
             .pipe(
                 switchMap(() => fromPromise(this._router.navigate(["/"]))),
             )

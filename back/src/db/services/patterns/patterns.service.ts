@@ -15,7 +15,7 @@ import { DataSourceService } from "../../data-source.service";
 import { CategoriesService } from "@am/db/service/patterns/categories.service";
 import { PatternsSizeService } from "@am/db/service/patterns/pattern-sizes.service";
 import {
-    CreatePatternDto,
+    CreatePatternDto, FullPatternEntityDto,
     PatternEntityDto,
     PatternSizeDto,
     PatternsPaginatedPageDto
@@ -193,8 +193,8 @@ export class PatternsService {
         return Object.fromEntries(patterns.map((item: PatternEntity) => [item.id, item as unknown as PatternEntityDto]));
     }
 
-    public async getPattern(id: number): Promise<PatternEntityDto> {
-        const pattern: PatternEntityDto = await this.patternsRepository.findOne({
+    public async getPattern(id: number): Promise<FullPatternEntityDto> {
+        const pattern: FullPatternEntityDto = await this.patternsRepository.findOne({
             where: {
                 id,
                 state: ModelState.ACTIVE,
@@ -221,7 +221,7 @@ export class PatternsService {
                 },
             },
             loadRelationIds: { relations: ["categories"] },
-        }) as unknown as PatternEntityDto;
+        }) as unknown as FullPatternEntityDto;
 
         if (!pattern) {
             throw new HttpException({ code: ApiErrorCodes.NOT_EXIST }, HttpStatus.BAD_REQUEST);

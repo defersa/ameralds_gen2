@@ -1,0 +1,140 @@
+/* These palettes are generated using https://themes.angular-material.dev/ */
+/* These palettes are generated using https://themes.angular-material.dev/ */
+
+$m2-primary: (
+        50 : #eaecea,
+        100 : #cad0ca,
+        200 : #a6b1a7,
+        300 : #829183,
+        400 : #687a69,
+        500 : #4d624e,
+        600 : #465a47,
+        700 : #3d503e,
+        800 : #344635,
+        900 : #253425,
+        A100 : #b1fe9a,
+        A200 : #8afd67,
+        A400 : #62ff32,
+        A700 : #4eff19,
+        contrast: (
+                50 : #000000,
+                100 : #000000,
+                200 : #000000,
+                300 : #000000,
+                400 : #ffffff,
+                500 : #ffffff,
+                600 : #ffffff,
+                700 : #ffffff,
+                800 : #ffffff,
+                900 : #ffffff,
+                A100 : #000000,
+                A200 : #000000,
+                A400 : #000000,
+                A700 : #000000,
+        )
+);
+
+$m2-accent: (
+        50 : #f6f9fa,
+        100 : #e8eff3,
+        200 : #d9e5ec,
+        300 : #c9dae4,
+        400 : #bed2de,
+        500 : #b2cad8,
+        600 : #abc5d4,
+        700 : #a2bdce,
+        800 : #99b7c8,
+        900 : #8aabbf,
+        A100 : #ffffff,
+        A200 : #ffffff,
+        A400 : #ffffff,
+        A700 : #ffffff,
+        contrast: (
+                50 : #000000,
+                100 : #000000,
+                200 : #000000,
+                300 : #000000,
+                400 : #000000,
+                500 : #000000,
+                600 : #000000,
+                700 : #000000,
+                800 : #000000,
+                900 : #000000,
+                A100 : #000000,
+                A200 : #000000,
+                A400 : #000000,
+                A700 : #000000,
+        )
+);
+
+$m2-error: (
+        50 : #fff6f5,
+        100 : #ffe9e6,
+        200 : #ffdad5,
+        300 : #ffcbc4,
+        400 : #ffbfb8,
+        500 : #ffb4ab,
+        600 : #ffada4,
+        700 : #ffa49a,
+        800 : #ff9c91,
+        900 : #ff8c80,
+        A100 : #ffffff,
+        A200 : #ffffff,
+        A400 : #ffffff,
+        A700 : #ffffff,
+        contrast: (
+                50 : #000000,
+                100 : #000000,
+                200 : #000000,
+                300 : #000000,
+                400 : #000000,
+                500 : #000000,
+                600 : #000000,
+                700 : #000000,
+                800 : #000000,
+                900 : #000000,
+                A100 : #000000,
+                A200 : #000000,
+                A400 : #000000,
+                A700 : #000000,
+        )
+);
+
+
+@use '@angular/material' as mat;
+
+$my-primary: mat.define-palette($m2-primary);
+$my-accent: mat.define-palette($m2-accent, A200, A100, A400);
+
+// The "warn" palette is optional and defaults to red if not specified.
+$my-warn: mat.define-palette($m2-error);
+
+$my-theme: mat.define-light-theme(
+                (
+                        color: (
+                                primary: $my-primary,
+                                accent: $my-accent,
+                                warn: $my-warn,
+                        ),
+                        typography: mat.define-typography-config(),
+                        density: 0,
+                )
+);
+
+$my-dark-theme: mat.define-dark-theme(
+                (
+                        color: (
+                                primary: $my-primary,
+                                accent: $my-accent,
+                                warn: $my-warn,
+                        ),
+                )
+);
+
+@include mat.core();
+
+@include mat.all-component-themes($my-theme);
+
+.dark {
+        @include mat.all-component-colors($my-dark-theme);
+}

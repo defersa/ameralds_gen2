@@ -30,7 +30,13 @@ import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
 import { AsyncPipe } from "@angular/common";
 import { AmstoreSelectComponent } from "@am/cdk/forms/select/select.component";
-import { type CreatePatternDto, ImageDto, type PatternEntityDto, type PatternSizeDto } from "@am/root/api";
+import {
+    type CreatePatternDto,
+    FullPatternEntityDto, type FullPatternSizeDto,
+    ImageDto,
+    type PatternEntityDto,
+    type PatternSizeDto
+} from "@am/root/api";
 import { PatternsService } from "@am/services/patterns.service";
 import { ImageListComponent } from "@am/shared/image-list/image-list.component";
 import { AmstoreUploadComponent } from "@am/cdk/forms/upload/upload.component";
@@ -60,7 +66,7 @@ import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
 export class AmstorePatternAddCardComponent extends AmstoreCardDirective {
     private patternSizesComponent: Signal<AmstorePatternSizesComponent> = viewChild("patternSizes", { read: AmstorePatternSizesComponent });
 
-    public data: InputSignal<PatternEntityDto> = input();
+    public data: InputSignal<FullPatternEntityDto> = input();
     public onBack: OutputEmitterRef<void> = output();
 
     private changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
@@ -108,7 +114,7 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective {
         });
     }
 
-    private fillPatternForm(value: PatternEntityDto): void {
+    private fillPatternForm(value: FullPatternEntityDto): void {
         if (!value) {
             return;
         }

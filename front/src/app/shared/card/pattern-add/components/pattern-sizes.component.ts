@@ -17,7 +17,7 @@ import { AmstoreUploadComponent } from "@am/cdk/forms/upload/upload.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
-import type { PatternSizeDto } from "@am/root/api";
+import type { FullPatternSizeDto, PatternSizeDto } from "@am/root/api";
 import { DialogService } from "@am/core/dialog/dialog.service";
 import { filter } from "rxjs/operators";
 
@@ -48,7 +48,7 @@ export class AmstorePatternSizesComponent {
 
     public sizesList$: Observable<OptionType[]> = this.sizeService.sizesList$;
 
-    public addSize(size: Partial<PatternSizeDto> = {}): void {
+    public addSize(size: Partial<FullPatternSizeDto> = {}): void {
         this.formArray().push(new FormGroup({
             id: new FormControl({ value: size.id ?? null, disabled: true }),
             size: new FormControl(
@@ -64,10 +64,10 @@ export class AmstorePatternSizesComponent {
         }));
     }
 
-    public setSizes(sizes: PatternSizeDto[]): void {
+    public setSizes(sizes: FullPatternSizeDto[]): void {
         this.formArray().clear();
 
-        sizes.forEach((size: PatternSizeDto) => this.addSize(size));
+        sizes.forEach((size: FullPatternSizeDto) => this.addSize(size));
 
         this.changeDetector.markForCheck();
     }

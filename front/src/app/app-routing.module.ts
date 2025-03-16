@@ -22,7 +22,11 @@ export const routes: Routes = [
         path: 'admin',
         loadChildren: () => import('./layouts/admin/admin.module').then(m => m.AdminModule),
         canActivate: [AdminGuard],
-    }
+    },
+    {
+        path: '**',
+        redirectTo: '',
+    },
 ]
 
 @NgModule({

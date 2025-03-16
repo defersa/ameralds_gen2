@@ -3,7 +3,7 @@ import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
 import { Roles } from "@am/core/guards/role.guard";
 import { UserRole } from "@am/db/entities";
 import { ErrorsDto } from "../errors/errors.dto";
-import { CreatePatternDto, PatternEntityDto, PatternsPaginatedPageDto } from "./patterns.dto";
+import { CreatePatternDto, FullPatternEntityDto, PatternEntityDto, PatternsPaginatedPageDto } from "./patterns.dto";
 import { ParamsEntityDto, ParamsIdsDto, ParamsPaginatedDto, SuccessCreateDto } from "../../common/common.dto";
 import { PatternsService } from "@am/db/service/patterns/patterns.service";
 
@@ -37,11 +37,11 @@ export class PatternsController {
     }
 
     @Get(':id')
-    @ApiOkResponse({ description: '', type: PatternEntityDto })
+    @ApiOkResponse({ description: '', type: FullPatternEntityDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async entity(
         @Param() params: ParamsEntityDto,
-    ): Promise<PatternEntityDto> {
+    ): Promise<FullPatternEntityDto> {
         return this.patternsService.getPattern(params.id);
     }
 

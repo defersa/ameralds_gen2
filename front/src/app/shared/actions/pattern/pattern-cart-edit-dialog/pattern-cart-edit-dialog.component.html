@@ -1,0 +1,26 @@
+@if (patternCartEdit(); as patternCartEdit) {
+    <h2>Добавление в корзину</h2>
+
+    <h3>Размер паттерна</h3>
+
+    <div class="amstore-pattern-cart-edit-sizes">
+        @for (size of patternCartEdit.sizes; track size.label) {
+            <amstore-checkbox [label]="size.label" [formControl]="size.control" color="primary"/>
+        }
+    </div>
+
+    @if (patternCartEdit.hasColor) {
+        <h3>Подбор цвета</h3>
+        <amstore-slide [formControl]="patternCartEdit.form.color"/>
+    }
+}
+
+<div class="amstore-actions-line">
+    <amstore-button [stroked]="true" color="warn">
+        Отменить
+    </amstore-button>
+
+    <amstore-button>
+        Изменить
+    </amstore-button>
+</div>

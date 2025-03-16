@@ -24,7 +24,7 @@ export class ProfileComponent {
     private profile: ProfileService = inject(ProfileService);
     private dialog: DialogService = inject(DialogService);
 
-    public user$?: Observable<IUser> = this.profile.profile$;
+    // public user$?: Observable<IUser> = this.profile.profile$;
 
     public sendVerify(): void {
         this.profile.sendVerify()

@@ -2,15 +2,10 @@ import { ApiProperty } from "@nestjs/swagger";
 import { EntityDto, LabelEntityDto, NumberEntityDto, PaginatedPageDto } from "../../common/common.dto";
 import { ImageDto } from "../images/images.dto";
 import { FileDto } from "../files/files.dto";
+import { SizeDto } from "../sizes/sizes.dto";
 
 
-export class PatternSizeDto extends EntityDto {
-    @ApiProperty({
-        description: 'Size id',
-        type: 'number',
-    })
-    public size: number;
-
+class BasePatternSizeDto extends EntityDto {
     @ApiProperty({
         description: 'Cbb file id',
         type: 'number',
@@ -34,6 +29,22 @@ export class PatternSizeDto extends EntityDto {
         type: 'number',
     })
     public jbb: number;
+}
+
+export class PatternSizeDto extends BasePatternSizeDto {
+    @ApiProperty({
+        description: 'Size id',
+        type: 'number',
+    })
+    public size: number;
+}
+
+export class FullPatternSizeDto extends BasePatternSizeDto {
+    @ApiProperty({
+        description: 'Size id',
+        type: SizeDto,
+    })
+    public size: SizeDto;
 }
 
 export class CreatePatternDto {
@@ -101,7 +112,7 @@ export class CreatePatternDto {
     public sizes: PatternSizeDto[];
 }
 
-export class PatternEntityDto extends EntityDto {
+export class BaseEntityDto extends EntityDto {
     @ApiProperty({
         description: 'Name of pattern',
         type: LabelEntityDto,
@@ -157,13 +168,25 @@ export class PatternEntityDto extends EntityDto {
         type: FileDto,
     })
     public color: FileDto;
+}
 
+
+export class PatternEntityDto extends BaseEntityDto {
     @ApiProperty({
         description: 'Sizes of pattern',
         type: PatternSizeDto,
         isArray: true,
     })
     public sizes: PatternSizeDto;
+}
+
+export class FullPatternEntityDto extends BaseEntityDto {
+    @ApiProperty({
+        description: 'Sizes of pattern',
+        type: FullPatternSizeDto,
+        isArray: true,
+    })
+    public sizes: FullPatternSizeDto;
 }
 
 export class PatternsPaginatedPageDto extends PaginatedPageDto {

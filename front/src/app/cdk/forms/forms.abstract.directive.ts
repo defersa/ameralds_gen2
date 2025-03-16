@@ -22,7 +22,7 @@ export type SelectOption = {
 
 @Directive()
 export class AmstoreFormsBaseDirective extends AmstoreColor implements ControlValueAccessor, OnInit {
-    public label: InputSignal<string> = input();
+    public label: InputSignal<string | number> = input();
 
     public readonly ngControl: NgControl = inject(NgControl, { self: true, optional: true });
     protected readonly destroyRef: DestroyRef = inject(DestroyRef);

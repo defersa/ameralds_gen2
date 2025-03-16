@@ -37,7 +37,7 @@ export class AuthService {
     private userProducer: UserProducer = inject(UserProducer);
     private router: Router = inject(Router);
 
-    public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(!!this.localAccessToken);
+    public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(Boolean(this.localAccessToken));
     public readonly token$: BehaviorSubject<string> = new BehaviorSubject<string>(this.localAccessToken);
 
     public setToken(tokens: IAuthResponse): void {

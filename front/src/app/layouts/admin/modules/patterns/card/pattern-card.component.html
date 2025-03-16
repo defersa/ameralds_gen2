@@ -2,7 +2,6 @@
     <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
 
     <amstore-button routerLink="edit"
-                    (click)="heh()"
                     [stroked]="true"
                     color="accent">
         Изменить
@@ -11,8 +10,9 @@
 
 @if (pattern$ | async; as pattern) {
     <amstore-pattern-card [pattern]="pattern">
-        <admin-pattern-cart [pattern]="pattern">
-            Корзина админа
-        </admin-pattern-cart>
+<!--        <admin-pattern-cart [pattern]="pattern">-->
+<!--            Корзина админа-->
+<!--        </admin-pattern-cart>-->
+        <app-pattern-cart [pattern]="pattern"/>
     </amstore-pattern-card>
 }

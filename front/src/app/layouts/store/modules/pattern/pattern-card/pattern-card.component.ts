@@ -6,7 +6,7 @@ import { AsyncPipe, Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { AmstorePatternCardComponent } from "@am/shared/card/pattern/pattern.component";
 import { Observable } from "rxjs";
-import type { PatternEntityDto } from "@am/root/api";
+import { FullPatternEntityDto, PatternEntityDto } from "@am/root/api";
 import { PatternsService } from "@am/services/patterns.service";
 
 
@@ -34,7 +34,7 @@ export class PatternCardComponent {
     private readonly route: ActivatedRoute = inject(ActivatedRoute);
     private readonly patternsService: PatternsService = inject(PatternsService);
 
-    public pattern$: Observable<PatternEntityDto>;
+    public pattern$: Observable<FullPatternEntityDto>;
     public id: number;
     public button: PatterButtonStatus = {
         label: '',

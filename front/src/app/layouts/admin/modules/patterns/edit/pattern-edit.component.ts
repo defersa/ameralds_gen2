@@ -6,7 +6,7 @@ import { AsyncPipe, Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { AmstorePatternAddCardComponent } from "@am/shared/card/pattern-add/pattern-add.component";
 import { PatternsService } from "@am/services/patterns.service";
-import type { PatternEntityDto } from "@am/root/api";
+import { FullPatternEntityDto, PatternEntityDto } from "@am/root/api";
 
 
 @Component({
@@ -22,7 +22,7 @@ import type { PatternEntityDto } from "@am/root/api";
 })
 export class PatternEditComponent {
     public images: ImageModelSmall[] = [];
-    public pattern$: Observable<PatternEntityDto>;
+    public pattern$: Observable<FullPatternEntityDto>;
 
     private readonly location: Location = inject(Location);
     private readonly route: ActivatedRoute = inject(ActivatedRoute);

@@ -18,6 +18,8 @@ export { EnumApiErrorCodes } from './models/EnumApiErrorCodes';
 export { EnumUserRole } from './models/EnumUserRole';
 export type { ErrorsDto } from './models/ErrorsDto';
 export type { FileDto } from './models/FileDto';
+export type { FullPatternEntityDto } from './models/FullPatternEntityDto';
+export type { FullPatternSizeDto } from './models/FullPatternSizeDto';
 export type { ImageDto } from './models/ImageDto';
 export type { LabelEntityDto } from './models/LabelEntityDto';
 export type { LogoutCredentialsDto } from './models/LogoutCredentialsDto';

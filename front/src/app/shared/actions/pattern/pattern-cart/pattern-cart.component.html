@@ -1,39 +1,21 @@
-<div class="amstore-card-container-line">
-    <h3>Размеры:</h3>
-
-    <div class="amstore-row">
-        @for (size of sizesWithControl(); track size) {
-            <amstore-checkbox [formControl]="size.control">{{size.value}} {{sizeUnit()}}</amstore-checkbox>
-        }
-    </div>
-</div>
-
-
-<div class="amstore-card-container-line">
-    <h3>Подбор цветов:</h3>
-
-    <amstore-slide size="large">Включить подбор</amstore-slide>
-</div>
-
-
-<div class="amstore-card-container-info" [@expand]="showSale ? 'expanded' : 'collapsed'">
-    <amstore-info status="alert">
-        Aкция:<br>
-        На данный товар применяется акция - при покупке схем из списка цена на каждый товар уменьшается. Ознакомится с условиями акции можно по Ссылке. При удовлетворении условий цена автоматически просчитается.
-    </amstore-info>
-</div>
-
-
-<h2>
-    {{ price() }} {{ currency() }}
-</h2>
-
-<div class="amstore-row amstore-card-container-buttons">
-    <amstore-button color="warn" class="amstore-card-container-sale" [ngClass]="showSale ? '' : 'not-active'" (click)="showSale = !showSale" size="large">
-        <amstore-icon iconName="sale" [contrast]="true" [size]="32"></amstore-icon>
-    </amstore-button>
-
-    @if (status(); as status) {
-        <amstore-button (click)="buttonStatus[status].action()" [color]="buttonStatus[status].color" size="large">{{buttonStatus[status].label}}</amstore-button>
+@switch (state()) {
+    @case (patternCartState.ToCart) {
+        <amstore-button color="primary" size="large" (click)="change()">
+            В корзину
+        </amstore-button>
     }
-</div>
+    @case (patternCartState.Bought) {
+        <amstore-button color="primary" size="large" [disabled]="true">
+            Куплено
+        </amstore-button>
+    }
+    @case (patternCartState.Edit) {
+        <amstore-button color="warn" size="large" (click)="removeFromCart()">
+            Убрать
+        </amstore-button>
+
+        <amstore-button color="accent" size="large" (click)="change()">
+            Изменить
+        </amstore-button>
+    }
+}

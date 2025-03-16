@@ -2,30 +2,30 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type PatternSizeDto = {
+export type ShortOrderPatternDto = {
     /**
      * Id of entity
      */
     id: number;
     /**
-     * Cbb file id
+     * Id of entity
      */
-    cbb: number;
+    createdAt: string;
     /**
-     * Pdf file id
+     * Id of entity
      */
-    pdf: number;
+    updatedAt: string;
     /**
-     * Png file id
+     * Sizes ids
      */
-    png: number;
+    sizes: Array<number>;
     /**
-     * Jbb file id
+     * Pattern id
      */
-    jbb: number;
+    pattern: number;
     /**
-     * Size id
+     * Status of colors able
      */
-    size: number;
+    color: boolean;
 };
 

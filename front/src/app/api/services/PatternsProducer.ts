@@ -6,6 +6,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 import type { CreatePatternDto } from '../models/CreatePatternDto';
+import type { FullPatternEntityDto } from '../models/FullPatternEntityDto';
 import type { PatternEntityDto } from '../models/PatternEntityDto';
 import type { PatternsPaginatedPageDto } from '../models/PatternsPaginatedPageDto';
 import type { SuccessCreateDto } from '../models/SuccessCreateDto';
@@ -55,12 +56,12 @@ export class PatternsProducer {
     }
     /**
      * @param id Params of entity
-     * @returns PatternEntityDto
+     * @returns FullPatternEntityDto
      * @throws ApiError
      */
     public patternsControllerEntity(
         id: number,
-    ): Observable<PatternEntityDto> {
+    ): Observable<FullPatternEntityDto> {
         return __request(OpenAPI, this.http, {
             method: 'GET',
             url: '/api/patterns/{id}',

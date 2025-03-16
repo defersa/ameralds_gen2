@@ -2,7 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { SnackService } from "@am/services/snackbar.service";
 import {
-    type CreatePatternDto,
+    type CreatePatternDto, FullPatternEntityDto,
     type PatternEntityDto,
     type PatternsPaginatedPageDto,
     PatternsProducer, SuccessCreateDto
@@ -34,7 +34,7 @@ export class PatternsService {
         return this.patternsProducer.patternsControllerPage(page);
     }
 
-    public getPattern(id: number): Observable<PatternEntityDto> {
+    public getPattern(id: number): Observable<FullPatternEntityDto> {
         return this.patternsProducer.patternsControllerEntity(id);
     }
 
