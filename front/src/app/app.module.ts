@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { LOCALE_ID, NgModule } from '@angular/core';
-import { HttpClientModule, provideHttpClient, withInterceptors } from "@angular/common/http";
+import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from "@angular/common/http";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { registerLocaleData } from "@angular/common";
 import localeRu from '@angular/common/locales/ru';
@@ -19,28 +19,22 @@ import { DownloadInterceptor } from "@am/root/download.interceptor";
 
 registerLocaleData(localeRu, 'ru-RU', localeRuExtra);
 
-@NgModule({
-    declarations: [
+@NgModule({ declarations: [
         AppComponent
     ],
-    imports: [
-        BrowserModule,
+    bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,
         BrowserAnimationsModule,
         HeaderComponent,
         AmstoreHeaderAdminComponent,
         AmastoreLanguageComponent,
         GoodsSnapComponent,
-        ProfileComponent,
-        HttpClientModule,
-    ],
-    providers: [
+        ProfileComponent], providers: [
         provideHttpClient(withInterceptors([AuthInterceptor, DownloadInterceptor])),
         {
             provide: LOCALE_ID,
             useValue: 'ru-RU'
         },
-    ],
-    bootstrap: [AppComponent]
-})
+        provideHttpClient(withInterceptorsFromDi()),
+    ] })
 export class AppModule { }
