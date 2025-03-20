@@ -1,37 +1,40 @@
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/typography.scss";
+//@import "/src/app/styles/theming-var.scss";
+//@import "/src/app/styles/spacing.scss";
+//@import "/src/app/styles/typography.scss";
+
 
 @mixin amstore-checkbox-color($theme) {
-    span {
-        color: get-amstore-color(gray, deep);
-        @include get-amstore-font("body", 14, null, null);
-    }
-    .mat-checkbox-checked:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element {
-        background: get-amstore-color($theme, middle);
-    }
-    .mat-checkbox-checked.mat-accent .mat-checkbox-background {
-        background-color: get-amstore-color($theme, dark);
-    }
-    .mat-checkbox-checked:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element, .mat-checkbox:active:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element {
-        background: get-amstore-color($theme, dark);
-    }
+    //span {
+    //    color: get-amstore-color(gray, deep);
+    //    @include get-amstore-font("body", 14, null, null);
+    //}
+    //.mat-checkbox-checked:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element {
+    //    background: get-amstore-color($theme, middle);
+    //}
+    //.mat-checkbox-checked.mat-accent .mat-checkbox-background {
+    //    background-color: get-amstore-color($theme, dark);
+    //}
+    //.mat-checkbox-checked:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element, .mat-checkbox:active:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element {
+    //    background: get-amstore-color($theme, dark);
+    //}
 }
 
-.amstore-checkbox {
-    &.amstore-primary {
-        @include amstore-checkbox-color(green);
-    }
+@mixin amstore-checkbox {
+    .amstore-checkbox {
+        &.amstore-primary {
+            @include amstore-checkbox-color(green);
+        }
 
-    &.amstore-accent {
-        @include amstore-checkbox-color(blue);
-    }
+        &.amstore-accent {
+            @include amstore-checkbox-color(blue);
+        }
 
-    &.amstore-warn {
-        @include amstore-checkbox-color(red);
-    }
+        &.amstore-warn {
+            @include amstore-checkbox-color(red);
+        }
 
-    &.amstore-special {
-        @include amstore-checkbox-color(turquoise);
+        &.amstore-special {
+            @include amstore-checkbox-color(turquoise);
+        }
     }
 }

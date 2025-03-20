@@ -1,16 +1,32 @@
 @use '@angular/material' as mat;
+@use "theming-var";
+@use "spacing";
+@use "typography";
+@use "utils";
+@use "material";
+@use "../cdk/cdk.base" as cdkBase;
 
 @include mat.elevation-classes();
 @include mat.app-background();
+@include cdkBase.cdkBase;
+@include material.material();
 
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/typography.scss";
-@import "app/styles/utils";
-@import './app/styles/base.scss';
-@import './app/styles/global.scss';
-@import './app/styles/material.scss';
+html {
+  color-scheme: light;
+  @include mat.theme((
+          color: mat.$violet-palette,
+          typography: 'Raleway',
+          density: 0
+  ));
+}
 
+:root {
+  --mat-sys-corner-full: 9999px;
+}
+
+html {
+  --mat-dialog-actions-alignment: end;
+}
 
 html, body {
   height: 100%;
@@ -22,42 +38,42 @@ body {
 }
 
 h1 {
-  @include get-amstore-font("header", 36, null, null);
-  margin: get-spacing(2) 0;
+  @include typography.get-amstore-font("header", 36, null, null);
+  margin: spacing.get-spacing(2) 0;
 }
 
 h2 {
-  @include get-amstore-font("header", 24, null, null);
+  @include typography.get-amstore-font("header", 24, null, null);
 
-  margin: get-spacing(2) 0;
+  margin: spacing.get-spacing(2) 0;
 }
 
 h3 {
-  @include get-amstore-font("header", 20, null, null);
+  @include typography.get-amstore-font("header", 20, null, null);
 
-  margin: get-spacing(2) 0;
+  margin: spacing.get-spacing(2) 0;
 }
 
 h4 {
-  @include get-amstore-font("header", 16, null, null);
+  @include typography.get-amstore-font("header", 16, null, null);
 
-  margin: get-spacing(2) 0;
+  margin: spacing.get-spacing(2) 0;
 }
 
 p {
-  margin: get-spacing(1) 0;
+  margin: spacing.get-spacing(1) 0;
 }
 
 .amstore-text-primary {
-  color: get-amstore-color(green, deep);
+  color: theming-var.get-amstore-color(green, deep);
 }
 
 .amstore-text-accent {
-  color: get-amstore-color(blue, deep);
+  color: theming-var.get-amstore-color(blue, deep);
 }
 
 .amstore-text-warn {
-  color: get-amstore-color(red, deep);
+  color: theming-var.get-amstore-color(red, deep);
 }
 
 .text-left {
@@ -70,4 +86,19 @@ p {
 
 .text-right {
   text-align: right !important;
+}
+
+.amstore-actions-line {
+  margin: spacing.get-spacing(2) 0;
+  display: flex;
+  flex-direction: row;
+  gap: spacing.get-spacing(2);
+
+  &.right {
+    justify-content: flex-end;
+  }
+
+  &.center {
+    justify-content: center;
+  }
 }

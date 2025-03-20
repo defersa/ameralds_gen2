@@ -1,69 +1,73 @@
-@import "../../styles/theming-var";
-@import "../../styles/spacing";
-@import "../../styles/typography";
+@use "spacing";
+@use "theming-var";
+@use "typography";
 
 $field-border-radius: 8px;
 
-.amstore-snapshot {
-    display: flex;
-    flex-direction: row;
-    overflow: hidden;
+@mixin amstore-snapshot {
+    .amstore-snapshot {
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
 
-    border-radius: get-spacing(2);
-    margin-bottom: get-spacing(default);
-    box-shadow: 0 0 8px rgba(get-amstore-color(gray, deep), .3 );
+        border-radius: spacing.get-spacing(2);
+        margin-bottom: spacing.get-spacing(default);
+        box-shadow: 0 0 8px rgba(theming-var.get-amstore-color(gray, deep), .3);
 
-    img {
-        object-fit: cover;
-        width: 100%;
-        height: 100%;
-    }
-
-    &-images {
-        width: 40%;
-    }
-
-    h2 {
-        margin: 0;
-        cursor: pointer;
-        @include get-amstore-font("header", 24, null, null);
-    }
-
-    &-container {
-        padding: get-spacing(2);
-        width: 60%;
-
-        &-header {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-
-            h2 {
-                margin: get-spacing(1);
-            }
-        }
-        &-line {
-            display: flex;
-            flex-direction: row;
-            padding: get-spacing(1);
+        img {
+            object-fit: cover;
             width: 100%;
+            height: 100%;
+        }
 
-            amstore-chip:not(:last-child) {
-                margin-right: get-spacing(1);
+        &-images {
+            width: 40%;
+        }
+
+        h2 {
+            margin: 0;
+            cursor: pointer;
+            @include typography.get-amstore-font("header", 24, null, null);
+        }
+
+        &-container {
+            padding: spacing.get-spacing(2);
+            width: 60%;
+
+            &-header {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-start;
+
+                h2 {
+                    margin: spacing.get-spacing(1);
+                }
             }
 
-            h2 {
+            &-line {
+                display: flex;
+                flex-direction: row;
+                padding: spacing.get-spacing(1);
                 width: 100%;
-                text-align: right;
+
+                amstore-chip:not(:last-child) {
+                    margin-right: spacing.get-spacing(1);
+                }
+
+                h2 {
+                    width: 100%;
+                    text-align: right;
+                }
             }
-        }
-        &-buttons {
-            justify-content: flex-end;
-        }
-        &-info {
-            padding: 0;
-            overflow: hidden;
+
+            &-buttons {
+                justify-content: flex-end;
+            }
+
+            &-info {
+                padding: 0;
+                overflow: hidden;
+            }
         }
     }
 }
-

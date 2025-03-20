@@ -1,16 +1,18 @@
-.amstore-button-base {
-    box-sizing: border-box;
-    position: relative;
+@mixin amstore-button-base {
+    .amstore-button-base {
+        box-sizing: border-box;
+        position: relative;
 
-    cursor: pointer;
-    border: none;
-    -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+        border: none;
+        -webkit-tap-highlight-color: transparent;
 
-    // Make anchors render like buttons.
-    display: inline-block;
-    white-space: nowrap;
-    text-decoration: none;
-    text-align: center;
-    background-color: transparent;
+        // Make anchors render like buttons.
+        display: inline-block;
+        white-space: nowrap;
+        text-decoration: none;
+        text-align: center;
+        background-color: transparent;
 
+    }
 }

@@ -1,141 +1,129 @@
-/* These palettes are generated using https://themes.angular-material.dev/ */
-/* These palettes are generated using https://themes.angular-material.dev/ */
+/* These tokens are generated using https://themes.angular-material.dev/ */
+/* Preview: https://themes.angular-material.dev/?seed-error=%23ffb4ab&seed-neutral=%23777775&seed-neutral-variant=%23737871&seed-primary=%234d624e&seed-secondary=%23c0c9bd&seed-tertiary=%23b2cad8 */
+/* Seed Colors: primary: #4d624e, secondary: #c0c9bd, tertiary: #b2cad8, error: #ffb4ab, neutral: #777775, neutral-variant: #737871 */
 
-$m2-primary: (
-        50 : #eaecea,
-        100 : #cad0ca,
-        200 : #a6b1a7,
-        300 : #829183,
-        400 : #687a69,
-        500 : #4d624e,
-        600 : #465a47,
-        700 : #3d503e,
-        800 : #344635,
-        900 : #253425,
-        A100 : #b1fe9a,
-        A200 : #8afd67,
-        A400 : #62ff32,
-        A700 : #4eff19,
-        contrast: (
-                50 : #000000,
-                100 : #000000,
-                200 : #000000,
-                300 : #000000,
-                400 : #ffffff,
-                500 : #ffffff,
-                600 : #ffffff,
-                700 : #ffffff,
-                800 : #ffffff,
-                900 : #ffffff,
-                A100 : #000000,
-                A200 : #000000,
-                A400 : #000000,
-                A700 : #000000,
-        )
-);
+@use "@angular/material" as mat;
 
-$m2-accent: (
-        50 : #f6f9fa,
-        100 : #e8eff3,
-        200 : #d9e5ec,
-        300 : #c9dae4,
-        400 : #bed2de,
-        500 : #b2cad8,
-        600 : #abc5d4,
-        700 : #a2bdce,
-        800 : #99b7c8,
-        900 : #8aabbf,
-        A100 : #ffffff,
-        A200 : #ffffff,
-        A400 : #ffffff,
-        A700 : #ffffff,
-        contrast: (
-                50 : #000000,
-                100 : #000000,
-                200 : #000000,
-                300 : #000000,
-                400 : #000000,
-                500 : #000000,
-                600 : #000000,
-                700 : #000000,
-                800 : #000000,
-                900 : #000000,
-                A100 : #000000,
-                A200 : #000000,
-                A400 : #000000,
-                A700 : #000000,
-        )
-);
+@mixin material {
+  /* Light Theme */
+  :root, :host {
+    @include mat.theme-overrides((
+            primary: #4f6450,
+            on-primary: #ffffff,
+            primary-container: #d1e9cf,
+            on-primary-container: #0c2010,
+            inverse-primary: #b5cdb4,
+            primary-fixed: #d1e9cf,
+            primary-fixed-dim: #b5cdb4,
+            on-primary-fixed: #0c2010,
+            on-primary-fixed-variant: #374c39,
+            secondary: #586157,
+            on-secondary: #ffffff,
+            secondary-container: #dce5d9,
+            on-secondary-container: #161d16,
+            secondary-fixed: #dce5d9,
+            secondary-fixed-dim: #c0c9bd,
+            on-secondary-fixed: #161d16,
+            on-secondary-fixed-variant: #404940,
+            tertiary: #4b626e,
+            on-tertiary: #ffffff,
+            tertiary-container: #cee6f5,
+            on-tertiary-container: #051e29,
+            tertiary-fixed: #cee6f5,
+            tertiary-fixed-dim: #b2cad8,
+            on-tertiary-fixed: #051e29,
+            on-tertiary-fixed-variant: #334a55,
+            background: #fcf8f7,
+            on-background: #1c1b1b,
+            surface: #fcf8f7,
+            surface-dim: #ddd9d8,
+            surface-bright: #fcf8f7,
+            surface-container-lowest: #ffffff,
+            surface-container-low: #f7f3f2,
+            surface-container: #f1edec,
+            surface-container-high: #ebe7e6,
+            surface-container-highest: #e5e2e1,
+            on-surface: #1c1b1b,
+            shadow: #000000,
+            scrim: #000000,
+            surface-tint: #5e5e5d,
+            inverse-surface: #313030,
+            inverse-on-surface: #f4f0ef,
+            outline: #757874,
+            outline-variant: #c5c7c1,
+            neutral: #797776,
+            neutral10: #1c1b1b,
+            error: #ba1a1a,
+            error-container: #ffdad6,
+            on-error: #ffffff,
+            on-error-container: #410002,
+            surface-variant: #e1e3dd,
+            on-surface-variant: #444843,
+            neutral-variant: #757873,
+            neutral-variant20: #2e312d,
+            inverse-secondary: #c0c9bd,
+            inverse-tertiary: #b2cad8,
+    ));
+  }
 
-$m2-error: (
-        50 : #fff6f5,
-        100 : #ffe9e6,
-        200 : #ffdad5,
-        300 : #ffcbc4,
-        400 : #ffbfb8,
-        500 : #ffb4ab,
-        600 : #ffada4,
-        700 : #ffa49a,
-        800 : #ff9c91,
-        900 : #ff8c80,
-        A100 : #ffffff,
-        A200 : #ffffff,
-        A400 : #ffffff,
-        A700 : #ffffff,
-        contrast: (
-                50 : #000000,
-                100 : #000000,
-                200 : #000000,
-                300 : #000000,
-                400 : #000000,
-                500 : #000000,
-                600 : #000000,
-                700 : #000000,
-                800 : #000000,
-                900 : #000000,
-                A100 : #000000,
-                A200 : #000000,
-                A400 : #000000,
-                A700 : #000000,
-        )
-);
-
-
-@use '@angular/material' as mat;
-
-$my-primary: mat.m2-define-palette($m2-primary);
-$my-accent: mat.m2-define-palette($m2-accent, A200, A100, A400);
-
-// The "warn" palette is optional and defaults to red if not specified.
-$my-warn: mat.m2-define-palette($m2-error);
-
-$my-theme: mat.m2-define-light-theme(
-                (
-                        color: (
-                                primary: $my-primary,
-                                accent: $my-accent,
-                                warn: $my-warn,
-                        ),
-                        typography: mat.m2-define-typography-config(),
-                        density: 0,
-                )
-);
-
-$my-dark-theme: mat.m2-define-dark-theme(
-                (
-                        color: (
-                                primary: $my-primary,
-                                accent: $my-accent,
-                                warn: $my-warn,
-                        ),
-                )
-);
-
-@include mat.elevation-classes();
-@include mat.app-background();
-
-@include mat.all-component-themes($my-theme);
-
-.dark {
-        @include mat.all-component-colors($my-dark-theme);
+  /* Dark Theme */
+  .dark {
+    @include mat.theme-overrides((
+            primary: #4f6450,
+            on-primary: #ffffff,
+            primary-container: #d1e9cf,
+            on-primary-container: #0c2010,
+            inverse-primary: #b5cdb4,
+            primary-fixed: #d1e9cf,
+            primary-fixed-dim: #b5cdb4,
+            on-primary-fixed: #0c2010,
+            on-primary-fixed-variant: #374c39,
+            secondary: #586157,
+            on-secondary: #ffffff,
+            secondary-container: #dce5d9,
+            on-secondary-container: #161d16,
+            secondary-fixed: #dce5d9,
+            secondary-fixed-dim: #c0c9bd,
+            on-secondary-fixed: #161d16,
+            on-secondary-fixed-variant: #404940,
+            tertiary: #4b626e,
+            on-tertiary: #ffffff,
+            tertiary-container: #cee6f5,
+            on-tertiary-container: #051e29,
+            tertiary-fixed: #cee6f5,
+            tertiary-fixed-dim: #b2cad8,
+            on-tertiary-fixed: #051e29,
+            on-tertiary-fixed-variant: #334a55,
+            background: #fcf8f7,
+            on-background: #1c1b1b,
+            surface: #fcf8f7,
+            surface-dim: #ddd9d8,
+            surface-bright: #fcf8f7,
+            surface-container-lowest: #ffffff,
+            surface-container-low: #f7f3f2,
+            surface-container: #f1edec,
+            surface-container-high: #ebe7e6,
+            surface-container-highest: #e5e2e1,
+            on-surface: #1c1b1b,
+            shadow: #000000,
+            scrim: #000000,
+            surface-tint: #5e5e5d,
+            inverse-surface: #313030,
+            inverse-on-surface: #f4f0ef,
+            outline: #757874,
+            outline-variant: #c5c7c1,
+            neutral: #797776,
+            neutral10: #1c1b1b,
+            error: #ba1a1a,
+            error-container: #ffdad6,
+            on-error: #ffffff,
+            on-error-container: #410002,
+            surface-variant: #e1e3dd,
+            on-surface-variant: #444843,
+            neutral-variant: #757873,
+            neutral-variant20: #2e312d,
+            inverse-secondary: #c0c9bd,
+            inverse-tertiary: #b2cad8,
+    ));
+  }
 }

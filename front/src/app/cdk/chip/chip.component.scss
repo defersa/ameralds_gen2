@@ -1,23 +1,23 @@
 @use 'sass:math';
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/typography.scss";
+@use 'theming-var';
+@use 'spacing';
+@use "typography";
 
 @mixin amstore-chip-color($theme) {
-    color: get-amstore-color(gray, white);
-    background: get-amstore-color($theme, dark);
+    color: theming-var.get-amstore-color(gray, white);
+    background: theming-var.get-amstore-color($theme, dark);
 
     &.is-contrast {
-        background: get-amstore-color($theme, deep);
+        background: theming-var.get-amstore-color($theme, deep);
     }
 
     &.is-dark {
-        background: get-amstore-color($theme, deep);
+        background: theming-var.get-amstore-color($theme, deep);
     }
     &.amstore-chip-stroked {
-        border: 1px solid get-amstore-color($theme, deep);
-        background: get-amstore-color(gray, white);
-        color: get-amstore-color($theme, deep);
+        border: 1px solid theming-var.get-amstore-color($theme, deep);
+        background: theming-var.get-amstore-color(gray, white);
+        color: theming-var.get-amstore-color($theme, deep);
     }
 }
 
@@ -28,18 +28,18 @@
     background: red;
 
     &-small {
-        @include get-amstore-font("body", 8, null, null);
-        padding: math.div(get-spacing(1), 2) get-spacing(2);
+        @include typography.get-amstore-font("body", 8, null, null);
+        padding: math.div(spacing.get-spacing(1), 2) spacing.get-spacing(2);
     }
 
     &-medium {
-        @include get-amstore-font("body", 12, null, null);
-        padding: math.div(get-spacing(1), 2) get-spacing(2);
+        @include typography.get-amstore-font("body", 12, null, null);
+        padding: math.div(spacing.get-spacing(1), 2) spacing.get-spacing(2);
     }
 
     &-large {
-        @include get-amstore-font("body", 14, null, null);
-        padding: get-spacing(1) get-spacing(3);
+        @include typography.get-amstore-font("body", 14, null, null);
+        padding: spacing.get-spacing(1) spacing.get-spacing(3);
     }
 
     &.amstore-primary {

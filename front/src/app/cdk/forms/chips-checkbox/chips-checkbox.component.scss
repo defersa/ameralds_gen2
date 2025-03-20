@@ -1,61 +1,64 @@
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/theming-var.scss";
+@use "spacing";
+@use "theming-var";
 
 
 @mixin amstore-chip-checkbox-color($theme) {
     .mat-checkbox-checked:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element {
-        background: get-amstore-color($theme, middle);
+        background: theming-var.get-amstore-color($theme, middle);
     }
 
     .mat-checkbox-checked.mat-accent .mat-checkbox-background {
-        background-color: get-amstore-color($theme, dark);
+        background-color: theming-var.get-amstore-color($theme, dark);
     }
 
     .mat-checkbox-checked:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element, .mat-checkbox:active:not(.mat-checkbox-disabled).mat-accent .mat-ripple-element {
-        background: get-amstore-color($theme, dark);
+        background: theming-var.get-amstore-color($theme, dark);
     }
 
     .mat-checkbox-frame {
-        border-color: get-amstore-color($theme, dark);
+        border-color: theming-var.get-amstore-color($theme, dark);
         border-width: 1px;
     }
 }
 
-.amstore-chips-checkbox {
-    margin-bottom: get-spacing(2);
-    display: block;
+@mixin amstore-chips-checkbox {
+    .amstore-chips-checkbox {
+        margin-bottom: spacing.get-spacing(2);
+        display: block;
 
-    &-list {
-        display: flex;
-        flex-wrap: wrap;
-    }
+        &-list {
+            display: flex;
+            flex-wrap: wrap;
+        }
 
-    amstore-chip {
-        display: flex;
-        margin-top: get-spacing(2);
+        amstore-chip {
+            display: flex;
+            margin-top: spacing.get-spacing(2);
 
-        mat-checkbox {
-            margin-right: get-spacing(2);
+            mat-checkbox {
+                margin-right: spacing.get-spacing(2);
+            }
+        }
+
+        .amstore-chip:not(:last-child) {
+            margin-right: spacing.get-spacing(2);
+        }
+
+        &.amstore-primary {
+            @include amstore-chip-checkbox-color(green);
+        }
+
+        &.amstore-accent {
+            @include amstore-chip-checkbox-color(blue);
+        }
+
+        &.amstore-warn {
+            @include amstore-chip-checkbox-color(red);
+        }
+
+        &.amstore-special {
+            @include amstore-chip-checkbox-color(turquoise);
         }
     }
 
-    .amstore-chip:not(:last-child) {
-        margin-right: get-spacing(2);
-    }
-
-    &.amstore-primary {
-        @include amstore-chip-checkbox-color(green);
-    }
-
-    &.amstore-accent {
-        @include amstore-chip-checkbox-color(blue);
-    }
-
-    &.amstore-warn {
-        @include amstore-chip-checkbox-color(red);
-    }
-
-    &.amstore-special {
-        @include amstore-chip-checkbox-color(turquoise);
-    }
 }

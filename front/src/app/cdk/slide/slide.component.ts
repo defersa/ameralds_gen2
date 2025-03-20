@@ -1,7 +1,7 @@
 import { Component, input, InputSignal, ViewEncapsulation } from "@angular/core";
 import { AmstoreFormsBaseDirective } from "@am/cdk/forms/forms.abstract.directive";
-import { MatSlideToggle } from "@angular/material/slide-toggle";
 import { ReactiveFormsModule } from "@angular/forms";
+import { MatSlideToggle } from "@angular/material/slide-toggle";
 
 
 @Component({
@@ -10,8 +10,8 @@ import { ReactiveFormsModule } from "@angular/forms";
     styleUrls: ["./slide.component.scss"],
     encapsulation: ViewEncapsulation.None,
     imports: [
-        MatSlideToggle,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        MatSlideToggle
     ],
     host: {
         class: "amstore-slide",

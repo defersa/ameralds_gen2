@@ -1,6 +1,7 @@
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/spacing.scss";
-
+@use "spacing";
+@use "theming-var";
+@use "checkbox/checkbox.component" as checkbox;
+@use "chips-checkbox/chips-checkbox.component" as chip;
 @import "./checkbox/checkbox.component.scss";
 @import "./chips-checkbox/chips-checkbox.component.scss";
 
@@ -8,85 +9,93 @@ $field-border-radius: 8px;
 
 @mixin amstore-forms-color-contrast($theme) {
     input {
-        caret-color: get-amstore-color(gray, white);
-        //color: get-amstore-color(gray, white);
+        caret-color: theming-var.get-amstore-color(gray, white);
+        //color: theming-var.get-amstore-color(gray, white);
     }
 
     .mat-form-field-infix {
-        background: get-amstore-color($theme, dark);
+        background: theming-var.get-amstore-color($theme, dark);
     }
 
     .mat-form-field-label {
-        background: get-amstore-color($theme, dark);
+        background: theming-var.get-amstore-color($theme, dark);
     }
 }
 
 
+@mixin amstore-form {
+    @include checkbox.amstore-checkbox();
+    @include chip.amstore-chips-checkbox();
 
-.amstore-forms {
-    margin-top: get-spacing(2);
+    .amstore-forms {
+        margin-top: spacing.get-spacing(2);
 
-    & .mat-form-field-appearance-legacy:not(.mat-form-field-invalid) {
-        .mat-form-field-wrapper {
-          padding-bottom: 0;
-        }
-    }
-
-    .mat-form-field {
-        width: 100%;
-        margin: get-spacing(3) 0;
-    }
-
-    .mat-form-field-infix {
-        border-width: 1px;
-        border-style: solid;
-        border-color: get-amstore-color(gray, light);
-
-        padding: get-spacing(3);
-        border-radius: $field-border-radius;
-    }
-    .mat-form-field-label {
-        top: auto;
-        width: auto !important;
-        padding: get-spacing(1);
-        margin: get-spacing(2);
-
-        background: get-amstore-color(gray, white);
-        color: get-amstore-color(gray, middle);
-    }
-
-    .mat-form-field.mat-focused .mat-form-field-label {
-        color: get-amstore-color(gray, dark);
-    }
-
-    .mat-form-field-underline {
-        display: none;
-    }
-    .mat-form-field-invalid .mat-form-field-infix {
-        border-color: get-amstore-color(red, dark);
-    }
-
-    &.is-contrast {
-        .mat-form-field-label {
-            color: get-amstore-color(gray, slight);
+        & .mat-form-field-appearance-legacy:not(.mat-form-field-invalid) {
+            .mat-form-field-wrapper {
+                padding-bottom: 0;
+            }
         }
 
-        .mat-form-field.mat-focused .mat-form-field-label {
-            color: get-amstore-color(gray, white);
+        .mat-form-field {
+            width: 100%;
+            margin: spacing.get-spacing(3) 0;
         }
 
         .mat-form-field-infix {
-            border-color: get-amstore-color(gray, slight);
+            border-width: 1px;
+            border-style: solid;
+            border-color: theming-var.get-amstore-color(gray, light);
+
+            padding: spacing.get-spacing(3);
+            border-radius: $field-border-radius;
         }
 
-        &.amstore-primary {
-            @include amstore-forms-color-contrast(green);
+        .mat-form-field-label {
+            top: auto;
+            width: auto !important;
+            padding: spacing.get-spacing(1);
+            margin: spacing.get-spacing(2);
+
+            background: theming-var.get-amstore-color(gray, white);
+            color: theming-var.get-amstore-color(gray, middle);
         }
-        &.amstore-accent {
-            @include amstore-forms-color-contrast(blue);
+
+        .mat-form-field.mat-focused .mat-form-field-label {
+            color: theming-var.get-amstore-color(gray, dark);
         }
-        &.amstore-warn {
-            @include amstore-forms-color-contrast(red);
+
+        .mat-form-field-underline {
+            display: none;
+        }
+
+        .mat-form-field-invalid .mat-form-field-infix {
+            border-color: theming-var.get-amstore-color(red, dark);
+        }
+
+        &.is-contrast {
+            .mat-form-field-label {
+                color: theming-var.get-amstore-color(gray, slight);
+            }
+
+            .mat-form-field.mat-focused .mat-form-field-label {
+                color: theming-var.get-amstore-color(gray, white);
+            }
+
+            .mat-form-field-infix {
+                border-color: theming-var.get-amstore-color(gray, slight);
+            }
+
+            &.amstore-primary {
+                @include amstore-forms-color-contrast(green);
+            }
+
+            &.amstore-accent {
+                @include amstore-forms-color-contrast(blue);
+            }
+
+            &.amstore-warn {
+                @include amstore-forms-color-contrast(red);
+            }
         }
     }
 }

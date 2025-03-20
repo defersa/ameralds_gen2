@@ -1,18 +1,28 @@
-@import './buttons/base.scss';
-@import './forms/forms.scss';
-@import '../shared/snapshot/snapshot.scss';
-@import '../shared/snapshot/snapshot.mobile.scss';
-@import '../shared/card/card.scss';
-@import '../shared/card/card.mobile.scss';
+@use 'buttons/base';
+@use 'forms/forms';
+@use '../shared/snapshot/snapshot' as snapshot;
+@use '../shared/snapshot/snapshot.mobile' as snapshot-mobile;
+@use '../shared/card/card' as cart;
+@use '../shared/card/card.mobile' as cart-mobile;
 
-.amstore-row {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-}
+@mixin cdkBase {
+    @include base.amstore-button-base();
+    @include forms.amstore-form();
+    @include snapshot.amstore-snapshot();
+    @include snapshot-mobile.amstore-snapshot();
+    @include cart.amstore-card();
+    @include cart-mobile.amstore-card();
+    @include cart-mobile.amstore-card-images();
 
-.amstore-column {
-    display: flex;
-    flex-direction: column;
+    .amstore-row {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .amstore-column {
+        display: flex;
+        flex-direction: column;
+    }
 }
