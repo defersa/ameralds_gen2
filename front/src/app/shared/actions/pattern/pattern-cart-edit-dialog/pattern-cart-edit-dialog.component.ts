@@ -19,6 +19,7 @@ import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.c
 
 
 interface PatternSizeForm {
+    sizeId: number;
     label: number;
     control: FormControl<boolean>;
 }
@@ -26,6 +27,7 @@ interface PatternSizeForm {
 interface PatternCartEditForm {
     sizes: PatternSizeForm[];
     hasColor: boolean;
+    own: boolean;
     form: {
         sizes: FormGroup;
         color: FormControl<boolean>;
@@ -50,7 +52,7 @@ export class PatternCartEditDialogComponent {
 
     public readonly ownPatterns: Signal<IdRecord<ShortOrderPatternDto>> = toSignal(this.cartService.ownPatterns$);
     public readonly cartPatterns: Signal<IdRecord<ICartPattern>> = toSignal(this.cartService.patternsCart$);
-    public readonly patternCartEdit: Signal<PatternCartEditForm> = computed(() => {
+    public readonly patternCartForm: Signal<PatternCartEditForm> = computed(() => {
         const pattern: FullPatternEntityDto = this.pattern;
         const ownPatterns: IdRecord<ShortOrderPatternDto> = this.ownPatterns();
         const cartPatterns: IdRecord<ICartPattern> = this.cartPatterns();
@@ -76,6 +78,7 @@ export class PatternCartEditDialogComponent {
                 sizesForm.setControl(id as unknown as string, control);
 
                 return {
+                    sizeId: id,
                     control,
                     label,
                 };
@@ -88,6 +91,36 @@ export class PatternCartEditDialogComponent {
             },
             sizes,
             hasColor,
+            own: Boolean(own),
         };
     });
+
+    public remove(): void {
+        this.cartService.removePattern(this.pattern.id)
+    }
+
+    public close(): void {
+        this.dialogRef.close();
+    }
+
+    public submit(): void {
+        const patternCartForm: PatternCartEditForm = this.patternCartForm();
+
+        this.cartService.addPattern({
+            id: this.pattern.id,
+            sizes: patternCartForm.sizes
+                .filter((size: PatternSizeForm) => size.control.value)
+                .map((size: PatternSizeForm) => size.sizeId),
+            pattern: !patternCartForm.own,
+            color: patternCartForm.form.color.value,
+        }, {
+            ...this.pattern,
+            sizes: this.pattern.sizes.map((size: FullPatternSizeDto) => ({
+                ...size,
+                size: size.size.id,
+            }))
+        });
+
+        this.close();
+    }
 }

@@ -40,6 +40,7 @@
         color: white;
         align-items: center;
         cursor: pointer;
+        box-sizing: border-box;
 
         padding: get-spacing(3) get-spacing(6);
         height: 48px;
