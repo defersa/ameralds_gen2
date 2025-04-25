@@ -1,21 +1,62 @@
-@switch (state()) {
-    @case (patternCartState.ToCart) {
-        <amstore-button color="primary" size="large" (click)="change()">
-            В корзину
-        </amstore-button>
-    }
-    @case (patternCartState.Bought) {
-        <amstore-button color="primary" size="large" [disabled]="true">
-            Куплено
-        </amstore-button>
-    }
-    @case (patternCartState.Edit) {
-        <amstore-button color="warn" size="large" (click)="removeFromCart()">
-            Убрать
-        </amstore-button>
+@if (patternCartState(); as patternCartState) {
+    <h3></h3>
 
-        <amstore-button color="accent" size="large" (click)="change()">
-            Изменить
-        </amstore-button>
+    <h3>Размер паттерна</h3>
+
+    <div class="amstore-pattern-cart-edit-sizes">
+        @for (size of patternCartState.sizes.bought; track size) {
+            <amstore-chip>{{size}}</amstore-chip>
+        }
+
+        @for (size of patternCartState.sizes.list; track size.control) {
+            <amstore-checkbox [label]="size.label" [formControl]="size.control" color="primary"/>
+        }
+    </div>
+
+    @if (patternCartState.color) {
+        <h3>Подбор цвета</h3>
+
+        @if (patternCartState.color.bought) {
+            <h4>Куплен</h4>
+        } @else {
+            <amstore-slide [formControl]="patternCartState.color.control"/>
+        }
     }
+
+    <div>
+        @switch (patternCartState.state) {
+            @case (patternCartStateType.ToCart) {
+                <amstore-button color="primary" (click)="toCart()">
+                    В корзину
+                </amstore-button>
+            }
+            @case (patternCartStateType.Bought) {
+                <amstore-button color="primary" [disabled]="true">
+                    Куплено
+                </amstore-button>
+            }
+            @case (patternCartStateType.Edit) {
+                <amstore-button color="warn" (click)="removeFromCart()">
+                    Удалить
+                </amstore-button>
+
+                <amstore-button color="accent" (click)="change()">
+                    Изменить
+                </amstore-button>
+            }
+            @case (patternCartStateType.Editing) {
+                <amstore-button color="warn" (click)="removeFromCart()">
+                    Удалить
+                </amstore-button>
+
+                <amstore-button color="accent" [stroked]="true" (click)="cancel()">
+                    Отменить
+                </amstore-button>
+
+                <amstore-button color="primary" (click)="toCart()">
+                    Сохранить
+                </amstore-button>
+            }
+        }
+    </div>
 }

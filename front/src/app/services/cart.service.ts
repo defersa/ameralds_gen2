@@ -52,6 +52,8 @@ export class CartService {
 
         delete card[id];
 
+        console.log(card)
+
         this._patternsCart$.next(card);
     }
 
