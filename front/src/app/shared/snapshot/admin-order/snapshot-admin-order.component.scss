@@ -1,19 +1,19 @@
-@import "theming-var";
-@import "spacing";
-@import "typography";
-@import "utils";
+@use "theming-var";
+@use "spacing";
+@use "typography";
+@use "utils";
 
 :host {
     display: flex;
     flex-direction: row;
-    padding: get-spacing(4);
-    gap: get-spacing(6);
+    padding: spacing.get-spacing(4);
+    gap: spacing.get-spacing(6);
 
-    @include amstore-border();
+    @include utils.amstore-border();
 
-    @include mobile {
-        padding: get-spacing(3);
-        gap: get-spacing(3);
+    @include utils.mobile {
+        padding: spacing.get-spacing(3);
+        gap: spacing.get-spacing(3);
     }
 }
 
@@ -21,21 +21,21 @@
 .snapshot-order {
     &__logo {
         border-radius: 4px;
-        padding: get-spacing(4);
-        background: get-amstore-color(turquoise, deep);
+        padding: spacing.get-spacing(4);
+        background: theming-var.get-amstore-color(turquoise, deep);
 
-        @include mobile {
-            padding: get-spacing(2);
+        @include utils.mobile {
+            padding: spacing.get-spacing(2);
         }
     }
 
     &__title {
-        @include get-amstore-font("body", 14);
-        color: get-amstore-color(gray, dark);
+        @include typography.get-amstore-font("body", 14);
+        color: theming-var.get-amstore-color(gray, dark);
 
         & .value {
-            @include get-amstore-font("body", 18);
-            color: get-amstore-color(gray, deep);
+            @include typography.get-amstore-font("body", 18);
+            color: theming-var.get-amstore-color(gray, deep);
         }
     }
 
@@ -45,6 +45,6 @@
     }
 
     &__purchase {
-        padding-left: get-spacing(6);
+        padding-left: spacing.get-spacing(6);
     }
 }

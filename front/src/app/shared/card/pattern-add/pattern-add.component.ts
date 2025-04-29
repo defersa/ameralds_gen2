@@ -32,16 +32,14 @@ import { AsyncPipe } from "@angular/common";
 import { AmstoreSelectComponent } from "@am/cdk/forms/select/select.component";
 import {
     type CreatePatternDto,
-    FullPatternEntityDto, type FullPatternSizeDto,
+    FullPatternEntityDto,
     ImageDto,
-    type PatternEntityDto,
     type PatternSizeDto
 } from "@am/root/api";
 import { PatternsService } from "@am/services/patterns.service";
 import { ImageListComponent } from "@am/shared/image-list/image-list.component";
 import { AmstoreUploadComponent } from "@am/cdk/forms/upload/upload.component";
 import { AmstorePatternSizesComponent } from "@am/shared/card/pattern-add/components/pattern-sizes.component";
-import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
 
 
 @Component({
@@ -58,7 +56,6 @@ import { FormArrayPipe } from "@am/shared/pipes/form-array.pipe";
         ImageListComponent,
         AmstoreUploadComponent,
         AmstorePatternSizesComponent,
-        FormArrayPipe
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })

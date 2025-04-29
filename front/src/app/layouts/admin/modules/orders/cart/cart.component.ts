@@ -1,7 +1,7 @@
 import { Component, inject } from "@angular/core";
 import { AdminOrderService } from "@am/services/admin-order.service";
-import { IAdminCart, IPatternPurchase } from "@am/interface/order.interface";
-import { map, switchMap, take } from "rxjs/operators";
+import { IAdminCart } from "@am/interface/order.interface";
+import { map, take } from "rxjs/operators";
 import { Observable } from "rxjs";
 import { IPattern } from "@am/interface/pattern.interface";
 import { FormControl, ReactiveFormsModule, Validators } from "@angular/forms";
@@ -9,9 +9,7 @@ import { SnackService } from "@am/services/snackbar.service";
 import { Router } from "@angular/router";
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
 import { AsyncPipe } from "@angular/common";
-import { ImageListComponent } from "@am/shared/image-list/image-list.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
-import { PatternCartComponent } from "@am/shared/actions/pattern/cart/pattern-cart.component";
 
 
 @Component({
@@ -22,9 +20,7 @@ import { PatternCartComponent } from "@am/shared/actions/pattern/cart/pattern-ca
         AmstoreInputComponent,
         ReactiveFormsModule,
         AsyncPipe,
-        ImageListComponent,
         AmstoreButtonComponent,
-        PatternCartComponent
     ]
 })
 export class CartComponent {

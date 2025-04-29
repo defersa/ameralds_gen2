@@ -1,4 +1,4 @@
-@import "spacing";
+@use "spacing";
 
 
 :host {
@@ -9,6 +9,6 @@
 
 .admin-pattern-cart {
     &__row {
-        margin: get-spacing(4) 0;
+        margin: spacing.get-spacing(4) 0;
     }
 }

@@ -1,28 +1,27 @@
-@import "../../styles/spacing";
-@import "../../styles/typography";
-@import "../../styles/utils";
+@use "typography";
+@use "spacing";
 
 .amstore-menu {
-    padding: get-spacing(default) 0 get-spacing(default) get-spacing(6);
+    padding: spacing.get-spacing(default) 0 spacing.get-spacing(default) spacing.get-spacing(6);
 
     &-list {
         display: flex;
         flex-direction: column;
-        padding: get-spacing(default);
+        padding: spacing.get-spacing(default);
     }
 
     amstore-button-menu {
-        margin-bottom: get-spacing(2);
+        margin-bottom: spacing.get-spacing(2);
     }
 
     amstore-icon {
-        margin-right: get-spacing(1);
+        margin-right: spacing.get-spacing(1);
     }
 
     h2 {
         margin: 0;
         cursor: default;
-        @include get-amstore-font("headline", 16, null, null);
+        @include typography.get-amstore-font("headline", 16, null, null);
     }
 }
 

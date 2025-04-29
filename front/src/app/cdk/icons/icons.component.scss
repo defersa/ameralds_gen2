@@ -1,11 +1,11 @@
-@import '/src/app/styles/theming-var.scss';
+@use "theming-var";
 
 @mixin amstore-icon-color($theme) {
     .amstore-icon-figure {
-        fill: get-amstore-color($theme, deep);
+        fill: theming-var.get-amstore-color($theme, deep);
     }
     .amstore-icon-figure-stroke {
-        stroke: get-amstore-color($theme, deep);
+        stroke: theming-var.get-amstore-color($theme, deep);
     }
 }
 
@@ -28,19 +28,19 @@
 
     &.is-contrast {
         .amstore-icon-figure {
-            fill: get-amstore-color(gray, white);
+            fill: theming-var.get-amstore-color(gray, white);
         }
         .amstore-icon-figure-stroke {
-            stroke: get-amstore-color(gray, white);
+            stroke: theming-var.get-amstore-color(gray, white);
         }
     }
 
     &.is-black {
         .amstore-icon-figure {
-            fill: get-amstore-color(gray, deep);
+            fill: theming-var.get-amstore-color(gray, deep);
         }
         .amstore-icon-figure-stroke {
-            stroke: get-amstore-color(gray,deep);
+            stroke: theming-var.get-amstore-color(gray,deep);
         }
     }
 }
@@ -48,3 +48,4 @@
 [role="button"] {
   cursor: pointer;
 }
+

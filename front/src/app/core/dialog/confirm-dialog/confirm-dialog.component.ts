@@ -2,7 +2,7 @@ import { Component, inject } from "@angular/core";
 import {
     MAT_DIALOG_DATA,
     MatDialogActions,
-    MatDialogContainer, MatDialogContent,
+    MatDialogContent,
     MatDialogRef,
     MatDialogTitle
 } from "@angular/material/dialog";
@@ -17,7 +17,6 @@ import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.c
         MatDialogTitle,
         AmstoreButtonComponent,
         MatDialogActions,
-        MatDialogContainer,
         MatDialogContent
     ]
 })

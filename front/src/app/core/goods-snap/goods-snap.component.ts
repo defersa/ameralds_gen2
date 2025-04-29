@@ -1,12 +1,9 @@
 import { Component, computed, inject, Signal } from "@angular/core";
-import { NEVER, Subject } from "rxjs";
 import { CartService, ICartPattern } from "@am/services/cart.service";
 import { AmstoreButtonRoundComponent } from "@am/cdk/buttons/round/round.component";
-import { AsyncPipe } from "@angular/common";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { Currency, LangService, LangType } from "@am/services/lang.service";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { map } from "rxjs/operators";
 import { IdRecord } from "@am/interface/common.interface";
 
 
@@ -16,7 +13,6 @@ import { IdRecord } from "@am/interface/common.interface";
     styleUrls: ["./goods-snap.component.scss"],
     imports: [
         AmstoreButtonRoundComponent,
-        AsyncPipe,
         IconsComponent
     ]
 })

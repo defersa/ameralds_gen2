@@ -1,8 +1,6 @@
 import { Component, inject } from "@angular/core";
-import { Subject } from "rxjs";
 import { CartService } from "@am/services/cart.service";
 import { AmstoreButtonRoundComponent } from "@am/cdk/buttons/round/round.component";
-import { AsyncPipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
 
@@ -13,7 +11,6 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
     styleUrls: ["./admin.component.scss"],
     imports: [
         AmstoreButtonRoundComponent,
-        AsyncPipe,
         RouterLink,
         IconsComponent
     ]

@@ -1,12 +1,12 @@
-@import "spacing";
+@use "spacing";
 
 
 .amstore-pattern {
   &-size {
     display: flex;
     flex-direction: column;
-    gap: get-spacing(1);
-    padding: get-spacing(4) 0;
+    gap: spacing.get-spacing(1);
+    padding: spacing.get-spacing(4) 0;
 
     &-meta {
       display: flex;

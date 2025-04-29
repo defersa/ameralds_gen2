@@ -15,9 +15,8 @@ import { Observable } from "rxjs";
 import { OptionType } from "@am/interface/cdk.interface";
 import { AmstoreUploadComponent } from "@am/cdk/forms/upload/upload.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
-import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
-import type { FullPatternSizeDto, PatternSizeDto } from "@am/root/api";
+import type { FullPatternSizeDto } from "@am/root/api";
 import { DialogService } from "@am/core/dialog/dialog.service";
 import { filter } from "rxjs/operators";
 
@@ -33,7 +32,6 @@ import { filter } from "rxjs/operators";
         AsyncPipe,
         AmstoreUploadComponent,
         AmstoreButtonComponent,
-        IconsComponent,
         AmstoreInputComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush

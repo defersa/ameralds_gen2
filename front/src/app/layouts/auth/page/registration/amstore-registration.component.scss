@@ -1,4 +1,4 @@
-@import "../../../../styles/spacing";
+@use "spacing";
 
 :host {
     amstore-panel-basic {
@@ -9,6 +9,6 @@
         margin-top: 0;
     }
     amstore-button {
-        margin: get-spacing(6) 0 0;
+        margin: spacing.get-spacing(6) 0 0;
     }
 }

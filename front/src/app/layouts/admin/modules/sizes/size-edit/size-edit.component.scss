@@ -1,16 +1,16 @@
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/typography.scss";
+@use "theming-var";
+@use "spacing";
+@use "typography";
 
 
 .amstore-category-add {
     width: 100%;
     overflow: hidden;
-    padding: get-spacing(default);
+    padding: spacing.get-spacing(default);
 
-    border-radius: $card-border-radius;
-    box-shadow: 0 0 8px rgba(get-amstore-color(gray, deep), .3 );
+    border-radius: theming-var.$card-border-radius;
+    box-shadow: 0 0 8px rgba(theming-var.get-amstore-color(gray, deep), .3 );
 }
 amstore-button {
-    margin-bottom: get-spacing(default);
+    margin-bottom: spacing.get-spacing(default);
 }

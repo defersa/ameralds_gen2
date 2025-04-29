@@ -1,3 +1,5 @@
+@use "sass:map";
+
 @function get-amstore-color($palette: green, $level: slight) {
     $palettes: (
         green: (
@@ -37,7 +39,7 @@
             deep: #111111
         )
     );
-    @return map-get(map-get($palettes, $palette), $key: $level);
+    @return map.get(map.get($palettes, $palette), $key: $level);
 }
 
 $card-border-radius: 8px;

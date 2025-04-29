@@ -1,10 +1,10 @@
-@import "../../../styles/theming-var";
-@import "../../../styles/spacing";
-@import "../../../styles/typography";
-@import "../../../styles/utils";
+@use "spacing";
+@use "theming-var";
+@use "typography";
+@use "utils";
 
 @mixin amstore-panel-color($theme) {
-    background: get-amstore-color($theme, dark);
+    background: theming-var.get-amstore-color($theme, dark);
 }
 
 :host {
@@ -12,10 +12,10 @@
     border-radius: 8px;
     overflow: hidden;
 
-    @include amstore-box-shadow();
+    @include utils.amstore-box-shadow();
 
     width: 100%;
-    margin-bottom: get-spacing(4);
+    margin-bottom: spacing.get-spacing(4);
 
     &.amstore-primary {
         @include amstore-panel-color(green);
@@ -42,17 +42,17 @@
         cursor: pointer;
         box-sizing: border-box;
 
-        padding: get-spacing(3) get-spacing(6);
+        padding: spacing.get-spacing(3) spacing.get-spacing(6);
         height: 48px;
 
-        @include get-amstore-font("header", 20, null, null);
+        @include typography.get-amstore-font("header", 20, null, null);
 
         &-wrapper {
             flex-grow: 1;
         }
 
         amstore-icon {
-            padding-left: get-spacing(5);
+            padding-left: spacing.get-spacing(5);
         }
     }
 
@@ -60,7 +60,7 @@
         background: white;
 
         &-wrapper {
-            padding: get-spacing(3) get-spacing(6);
+            padding: spacing.get-spacing(3) spacing.get-spacing(6);
         }
     }
 }

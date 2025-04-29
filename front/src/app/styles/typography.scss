@@ -1,3 +1,4 @@
+@use "sass:map";
 
 @mixin get-amstore-font($type: 'body', $level: 16, $weight: null, $underline: null) {
     $size-config: (
@@ -37,17 +38,17 @@
         underline: 'underline'
     );
 
-    $line-height: map-get($line-height-config, $level);
+    $line-height: map.get($line-height-config, $level);
     @if $type == 'headline' {
-        $line-height: map-get($size-config, $level);
+        $line-height: map.get($size-config, $level);
     }
 
-    $font-weight: map-get($font-weight-config, 'light');
+    $font-weight: map.get($font-weight-config, 'light');
     @if $type == 'body' {
-        $font-weight: map-get($font-weight-config, 'regular');
+        $font-weight: map.get($font-weight-config, 'regular');
     }
     @if $weight {
-        $font-weight: map-get($font-weight-config, $weight);
+        $font-weight: map.get($font-weight-config, $weight);
     }
 
     $text-decoration: none;
@@ -56,7 +57,7 @@
     }
 
     font-family: 'Raleway', sans-serif;
-    font-size: map-get($size-config, $level);
+    font-size: map.get($size-config, $level);
     line-height: $line-height;
     font-weight: $font-weight;
     text-decoration: $text-decoration;

@@ -1,4 +1,4 @@
-@import '/src/app/styles/theming-var.scss';
+@use "theming-var";
 
 .amstore-spinner {
     display: block;
@@ -8,12 +8,12 @@
     }
 
     &.amstore-primary circle {
-        stroke: get-amstore-color(green, dark);
+        stroke: theming-var.get-amstore-color(green, dark);
     }
     &.amstore-accent circle {
-        stroke: get-amstore-color(blue, dark);
+        stroke: theming-var.get-amstore-color(blue, dark);
     }
     &.amstore-warn circle {
-        stroke: get-amstore-color(red, dark);
+        stroke: theming-var.get-amstore-color(red, dark);
     }
 }

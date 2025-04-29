@@ -1,43 +1,43 @@
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/typography.scss";
+@use "spacing";
+@use "theming-var";
+@use "typography";
 
 
 @mixin amstore-button-default-color($theme) {
-    color: get-amstore-color(gray, white);
-    background: get-amstore-color($theme, dark);
+    color: theming-var.get-amstore-color(gray, white);
+    background: theming-var.get-amstore-color($theme, dark);
     border-color: transparent;
 
     &:hover {
-        background: get-amstore-color($theme, deep);
+        background: theming-var.get-amstore-color($theme, deep);
     }
 
     &.amstore-button-default-disabled {
-        color: get-amstore-color(gray, white);
-        background: get-amstore-color(gray, middle);
+        color: theming-var.get-amstore-color(gray, white);
+        background: theming-var.get-amstore-color(gray, middle);
         cursor: default;
         pointer-events: none;
 
         &:hover {
-            background: get-amstore-color(gray, middle);
+            background: theming-var.get-amstore-color(gray, middle);
         }
 
         &.amstore-button-default-stroked, &.amstore-button-default-stroked:hover {
-            background: get-amstore-color(gray, slight);
-            color: get-amstore-color(gray, dark);
-            border-color: get-amstore-color(gray, dark);
+            background: theming-var.get-amstore-color(gray, slight);
+            color: theming-var.get-amstore-color(gray, dark);
+            border-color: theming-var.get-amstore-color(gray, dark);
         }
     }
 
     &.amstore-button-default-stroked {
-        background: get-amstore-color(gray, white);
-        color: get-amstore-color($theme, deep);
-        border-color: get-amstore-color($theme, deep);
+        background: theming-var.get-amstore-color(gray, white);
+        color: theming-var.get-amstore-color($theme, deep);
+        border-color: theming-var.get-amstore-color($theme, deep);
 
         &:hover {
-            background: get-amstore-color($theme, slight);
-            color: get-amstore-color($theme, deep);
-            border-color: get-amstore-color($theme, deep);
+            background: theming-var.get-amstore-color($theme, slight);
+            color: theming-var.get-amstore-color($theme, deep);
+            border-color: theming-var.get-amstore-color($theme, deep);
         }
     }
 }
@@ -70,16 +70,16 @@
     }
 
     &.amstore-button-default-medium {
-        padding: get-spacing(2) get-spacing(4);
+        padding: spacing.get-spacing(2) spacing.get-spacing(4);
         border-radius: 6px;
         min-width: 130px;
-        @include get-amstore-font("body", 16, null, null);
+        @include typography.get-amstore-font("body", 16, null, null);
     }
 
     &.amstore-button-default-large {
-        padding: get-spacing(2) get-spacing(6);
+        padding: spacing.get-spacing(2) spacing.get-spacing(6);
         border-radius: 8px;
         min-width: 130px;
-        @include get-amstore-font("body", 20, null, null);
+        @include typography.get-amstore-font("body", 20, null, null);
     }
 }

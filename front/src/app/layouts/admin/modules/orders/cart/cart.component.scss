@@ -1,27 +1,27 @@
-@import "spacing";
-@import "utils";
+@use "spacing";
+@use "utils";
 
 .admin-cart {
     &__pattern {
-        margin: get-spacing(4) 0;
-        padding: get-spacing(2);
-        @include amstore-border();
+        margin: spacing.get-spacing(4) 0;
+        padding: spacing.get-spacing(2);
+        @include utils.amstore-border();
 
         display: flex;
         flex-direction: column;
 
-        @include tablet {
+        @include utils.tablet {
             flex-direction: row;
         }
 
         &-image {
-            @include tablet {
+            @include utils.tablet {
                 width: 30%;
             }
         }
 
         &-content {
-            padding: 0 get-spacing(4);
+            padding: 0 spacing.get-spacing(4);
             flex-grow: 1;
         }
     }

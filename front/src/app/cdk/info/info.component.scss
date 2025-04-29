@@ -1,22 +1,22 @@
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/typography.scss";
+@use "theming-var";
+@use "spacing";
+@use "typography";
 
 
 @mixin amstore-info-color($theme) {
-    color:  get-amstore-color(gray, white);
-    background: get-amstore-color($theme, deep);
+    color:  theming-var.get-amstore-color(gray, white);
+    background: theming-var.get-amstore-color($theme, deep);
 
     &.is-contrast {
-        color:  get-amstore-color(gray, deep);
-        background: get-amstore-color($theme, slight);
+        color:  theming-var.get-amstore-color(gray, deep);
+        background: theming-var.get-amstore-color($theme, slight);
     }
 }
 
 :host {
     display: flex;
     flex-direction: row;
-    padding: get-spacing(3);
+    padding: spacing.get-spacing(3);
     border-radius: 8px;
 
     amstore-icon {
@@ -39,5 +39,5 @@
         @include amstore-info-color(turquoise);
     }
 
-    @include get-amstore-font("body", 14, null, null);
+    @include typography.get-amstore-font("body", 14, null, null);
 }

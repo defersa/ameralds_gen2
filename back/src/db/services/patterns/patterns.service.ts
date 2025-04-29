@@ -61,7 +61,7 @@ export class PatternsService {
             additionalPrice,
             colorPrice,
             categories,
-            hidden: data.hidden,
+            hidden: data.hidden ?? false,
             images,
             color,
             sizes,

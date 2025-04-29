@@ -1,9 +1,8 @@
-@import "/src/app/styles/spacing";
-@import "../../../styles/utils";
+@use "spacing";
 
 .amstore-profile-card {
     .amstore-panel-content-wrapper {
-        padding: get-spacing(4) !important;
+        padding: spacing.get-spacing(4) !important;
     }
 
     &__main {
@@ -29,7 +28,7 @@
             }
         }
         &-body {
-            margin: 0 get-spacing(4) 0 get-spacing(8);
+            margin: 0 spacing.get-spacing(4) 0 spacing.get-spacing(8);
             flex-grow: 1;
         }
     }

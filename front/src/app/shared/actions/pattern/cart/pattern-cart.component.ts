@@ -1,12 +1,9 @@
-import { Component, computed, DestroyRef, inject, input, InputSignal, OnInit, Signal } from "@angular/core";
-import { IPattern, PattenSizeFiles } from "@am/interface/pattern.interface";
+import { Component, DestroyRef, inject, input, InputSignal, OnInit } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { SelectOption } from "@am/cdk/forms/forms.abstract.directive";
 import { AdminOrderService } from "@am/services/admin-order.service";
 import { map } from "rxjs/operators";
 import { IAdminCart, IPatternPurchase } from "@am/interface/order.interface";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { AmstoreChipsCheckboxComponent } from "@am/cdk/forms/chips-checkbox/chips-checkbox.component";
 import { AmstoreSlideComponent } from "@am/cdk/slide/slide.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
@@ -19,7 +16,6 @@ import type { PatternEntityDto } from "@am/root/api";
     styleUrls: ["./pattern-cart.component.scss"],
     imports: [
         ReactiveFormsModule,
-        AmstoreChipsCheckboxComponent,
         AmstoreSlideComponent,
         AmstoreButtonComponent,
         IconsComponent

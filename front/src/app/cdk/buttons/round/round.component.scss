@@ -1,6 +1,6 @@
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/typography.scss";
+@use "spacing";
+@use "theming-var";
+@use "typography";
 
 $badge-padding: 14px;
 $badge-size: 32px;
@@ -12,19 +12,19 @@ $button-round-size: 36px;
 $button-round-border: 2px;
 
 @mixin amstore-button-round-color($theme) {
-    color: get-amstore-color(gray, white);
-    background: get-amstore-color($theme, dark);
+    color: theming-var.get-amstore-color(gray, white);
+    background: theming-var.get-amstore-color($theme, dark);
 
     &:hover {
-        background: get-amstore-color($theme, deep);
+        background: theming-var.get-amstore-color($theme, deep);
     }
 }
 
 @mixin amstore-button-round-border-color($theme) {
-    border-color: get-amstore-color($theme, dark);
+    border-color: theming-var.get-amstore-color($theme, dark);
 
     &:hover {
-        border-color: get-amstore-color($theme, deep);
+        border-color: theming-var.get-amstore-color($theme, deep);
     }
 }
 
@@ -38,7 +38,7 @@ $button-round-border: 2px;
 }
 
 :host {
-    padding: get-spacing(2) get-spacing(4);
+    padding: spacing.get-spacing(2) spacing.get-spacing(4);
     text-transform: uppercase;
     box-sizing: border-box;
     min-width: $button-round-size;
@@ -105,7 +105,7 @@ $button-round-border: 2px;
         }
     }
 
-    @include get-amstore-font("body", 16, null, null);
+    @include typography.get-amstore-font("body", 16, null, null);
 }
 
 .amstore-button-round-badge {
@@ -119,9 +119,9 @@ $button-round-border: 2px;
     right: -($badge-padding);
 
     border-radius: $button-round-radius;
-    border: $button-round-border solid get-amstore-color(gray, white);
+    border: $button-round-border solid theming-var.get-amstore-color(gray, white);
 
-    @include get-amstore-font("body", 14, null, null);
+    @include typography.get-amstore-font("body", 14, null, null);
     line-height: $badge-size - $button-round-border * 2;
 }
 
@@ -134,9 +134,10 @@ $button-mobile-round-radius: 14px;
 $button-mobile-round-size: 28px;
 
 $button-mobile-round-border: 1px;
+// TODO
 @media screen and (max-width: 768px) {
     :host {
-        padding: get-spacing(1) get-spacing(2);
+        padding: spacing.get-spacing(1) spacing.get-spacing(2);
         text-transform: uppercase;
         box-sizing: border-box;
         min-width: $button-mobile-round-size;
@@ -155,7 +156,7 @@ $button-mobile-round-border: 1px;
             margin-top: $badge-mobile-padding;
             margin-right: $badge-mobile-padding;
         }
-        @include get-amstore-font("body", 14, null, null);
+        @include typography.get-amstore-font("body", 14, null, null);
     }
 
     .amstore-button-round-badge {
@@ -165,9 +166,9 @@ $button-mobile-round-border: 1px;
         right: -($badge-mobile-padding);
 
         border-radius: $badge-mobile-radius;
-        border: $button-mobile-round-border solid get-amstore-color(gray, white);
+        border: $button-mobile-round-border solid theming-var.get-amstore-color(gray, white);
 
-        @include get-amstore-font("body", 12, null, null);
+        @include typography.get-amstore-font("body", 12, null, null);
         line-height: $badge-mobile-size - $button-mobile-round-border * 2;
     }
 }

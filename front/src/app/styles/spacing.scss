@@ -1,14 +1,17 @@
+@use "sass:meta";
+@use "sass:map";
+
 @function get-spacing-level($config, $default: 4, $xx-small: 1, $x-small: 2, $small: 3, $large: 8, $x-large: 16) {
-    @return map-merge(
+    @return map.merge(
         $config,
         (
-            xx-small: map-get($config, _get-level-by-factor($xx-small)),
-            x-small: map-get($config, _get-level-by-factor($x-small)),
-            small: map-get($config, _get-level-by-factor($small)),
-            default: map-get($config, _get-level-by-factor($default)),
-            medium: map-get($config, _get-level-by-factor($default)),
-            large: map-get($config, _get-level-by-factor($large)),
-            x-large: map-get($config, _get-level-by-factor($x-large)),
+            xx-small: map.get($config, _get-level-by-factor($xx-small)),
+            x-small: map.get($config, _get-level-by-factor($x-small)),
+            small: map.get($config, _get-level-by-factor($small)),
+            default: map.get($config, _get-level-by-factor($default)),
+            medium: map.get($config, _get-level-by-factor($default)),
+            large: map.get($config, _get-level-by-factor($large)),
+            x-large: map.get($config, _get-level-by-factor($x-large)),
         )
     );
 }
@@ -33,9 +36,9 @@
         level-16: 64px,
     );
 
-    @if type-of($keyword-or-factor) == number {
-        @return map-get(get-spacing-level($spacing-config, $keyword-or-factor), default);
+    @if meta.type-of($keyword-or-factor) == number {
+        @return map.get(get-spacing-level($spacing-config, $keyword-or-factor), default);
     }
 
-    @return map-get(get-spacing-level($spacing-config), $keyword-or-factor);
+    @return map.get(get-spacing-level($spacing-config), $keyword-or-factor);
 }

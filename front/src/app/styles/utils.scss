@@ -1,5 +1,5 @@
-@import "typography.scss";
-@import "theming-var.scss";
+@use "typography";
+@use "theming-var";
 
 
 $width-fhd: 1920px;
@@ -58,20 +58,20 @@ $width-mobile-max: $width-tablet - 1px;
 
 @mixin link {
     cursor: pointer;
-    color: get-amstore-color(blue, deep);
+    color: theming-var.get-amstore-color(blue, deep);
     text-decoration: underline;
-    @include get-amstore-font();
+    @include typography.get-amstore-font();
 
     &:hover {
-        color: get-amstore-color(blue, dark);
+        color: theming-var.get-amstore-color(blue, dark);
     }
 
     &:active {
-        color: get-amstore-color(blue, middle);
+        color: theming-var.get-amstore-color(blue, middle);
     }
 
     &[disabled="true"] {
-        color: get-amstore-color(blue, deep);
+        color: theming-var.get-amstore-color(blue, deep);
         cursor: default;
         pointer-events: none;
     }

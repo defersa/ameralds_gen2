@@ -1,12 +1,13 @@
-import { inject, Injectable } from "@angular/core";
+import { DestroyRef, inject, Injectable } from "@angular/core";
 import { LocalStorage } from "@am/decorators/local.decorator";
 import { PatternsService } from "@am/services/patterns.service";
 import { parseJsonWithDefault } from "@am/utils/common.utils";
 import { BehaviorSubject, combineLatest, Observable } from "rxjs";
 import { NumberEntityDto, PatternEntityDto, ShortOrderPatternDto, UserProfileDto } from "@am/root/api";
 import { ProfileService } from "@am/services/profile.service";
-import { map, shareReplay } from "rxjs/operators";
+import { map, shareReplay, skip } from "rxjs/operators";
 import { IdRecord } from "@am/interface/common.interface";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 
 const LOCAL_PATTERN_CART_NAME: string = "localPatternCartName";
@@ -28,6 +29,7 @@ export class CartService {
 
     private readonly patternsService: PatternsService = inject(PatternsService);
     private readonly profileService: ProfileService = inject(ProfileService);
+    private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
     public readonly ownPatterns$: Observable<IdRecord<ShortOrderPatternDto>> = this.initOwnPatternObs();
     private readonly _patternsCart$: BehaviorSubject<IdRecord<ICartPattern>> = new BehaviorSubject<IdRecord<ICartPattern>>({});
@@ -38,6 +40,7 @@ export class CartService {
 
     constructor() {
         this.initPatternsCart();
+        this.initLocalCart();
     }
 
     public addPattern(pattern: ICartPattern, origin: PatternEntityDto): void {
@@ -48,11 +51,9 @@ export class CartService {
     }
 
     public removePattern(id: number): void {
-        const card: IdRecord<ICartPattern> = this._patternsCart$.getValue();
+        const card: IdRecord<ICartPattern> = {...this._patternsCart$.getValue()};
 
         delete card[id];
-
-        console.log(card)
 
         this._patternsCart$.next(card);
     }
@@ -79,6 +80,25 @@ export class CartService {
                 );
 
                 this._patternsCart$.next(cart);
+            });
+    }
+
+    private initLocalCart(): void {
+        this._patternsCart$
+            .pipe(
+                skip(1),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe((cart: IdRecord<ICartPattern>) => {
+                this.localPatternCart = JSON.stringify(
+                    Object.values(cart)
+                        .map(({ id, sizes, pattern, color }: ICartPattern) => ({
+                            id,
+                            sizes,
+                            pattern,
+                            color,
+                        }))
+                );
             });
     }
 

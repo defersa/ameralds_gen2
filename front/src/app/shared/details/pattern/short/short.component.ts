@@ -1,15 +1,7 @@
-import { Component, computed, inject, input, Input, InputSignal, Signal } from "@angular/core";
-import { IPattern } from "@am/interface/pattern.interface";
-import { ILangText, LangType } from "@am/interface/lang.interface";
-import { MONEY_UNIT } from "@am/utils/constants";
+import { Component, computed, inject, input, InputSignal, Signal } from "@angular/core";
+import { LangType } from "@am/interface/lang.interface";
 import { expandAnimation } from "@am/cdk/animations/expand";
 import { AmstoreChipComponent } from "@am/cdk/chip/chip.component";
-import { AmstoreInfoComponent } from "@am/cdk/info/info.component";
-import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
-import { IconsComponent } from "@am/cdk/icons/icons.component";
-import { RouterLink } from "@angular/router";
-import { LangTextComponent } from "@am/shared/lang-text/lang-text.component";
-import { LangNumberComponent } from "@am/shared/lang-text/lang-number.component";
 import type { PatternEntityDto } from "@am/root/api";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { OptionType } from "@am/interface/cdk.interface";
@@ -26,12 +18,6 @@ import { CategoriesService } from "@am/services/categories.service";
     ],
     imports: [
         AmstoreChipComponent,
-        AmstoreInfoComponent,
-        AmstoreButtonComponent,
-        IconsComponent,
-        RouterLink,
-        LangTextComponent,
-        LangNumberComponent
     ]
 })
 export class ShortPatternDetailsComponent {

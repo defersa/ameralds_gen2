@@ -1,5 +1,5 @@
-@import "utils";
-@import "spacing";
+@use 'utils';
+@use 'spacing';
 
 
 .amstore-images {
@@ -12,16 +12,16 @@
     img {
         object-fit: cover;
         cursor: pointer;
-        margin: get-spacing(1);
+        margin: spacing.get-spacing(1);
         border-radius: 4px;
         max-width: 25%;
 
 
-        @include fhd {
+        @include utils.fhd {
             height: 30px;
         }
 
-        @include qhd {
+        @include utils.qhd {
             height: 50px;
         }
 
@@ -29,11 +29,11 @@
             width: 100%;
             max-width: 100%;
 
-            @include fhd {
+            @include utils.fhd {
                 height: 120px;
             }
 
-            @include qhd {
+            @include utils.qhd {
                 height: 160px;
             }
         }

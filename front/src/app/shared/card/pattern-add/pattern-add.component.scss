@@ -1,14 +1,14 @@
-@import "../../../styles/spacing";
-@import "../../../styles/theming-var";
+@use "spacing";
+@use "theming-var";
 
 .amstore-card-edit {
     &-image-add {
-        margin: get-spacing(default) auto;
+        margin: spacing.get-spacing(default) auto;
     }
 }
 
 :host {
     h3 {
-        margin: get-spacing(4) 0;
+        margin: spacing.get-spacing(4) 0;
     }
 }

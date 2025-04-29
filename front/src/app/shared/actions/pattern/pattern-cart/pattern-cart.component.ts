@@ -114,6 +114,8 @@ export class PatternCartComponent {
         const cart: ICartPattern = this.cart();
         const form: FormGroup = this.form();
 
+        console.log(cart)
+
         const bought: boolean = own?.sizes.length === pattern.sizes.length && (pattern.color ? own?.color : true);
         let state: PatternButtonState = PatternButtonState.ToCart;
 
@@ -201,7 +203,7 @@ export class PatternCartComponent {
                 sizes: state.sizes.list
                     .filter((size: PatternSizeForm) => size.control.value)
                     .map((size: PatternSizeForm) => size.sizeId),
-                pattern: Boolean(this.own()),
+                pattern: !this.own(),
                 color: state.color?.control.value,
             },
             pattern,

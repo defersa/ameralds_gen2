@@ -1,11 +1,11 @@
 @use 'sass:math';
-@import "../../../styles/spacing";
-@import "../../../styles/theming-var";
+@use "spacing";
+@use "theming-var";
 
 .amstore-button-base.amstore-snapshot-container-sale {
-    padding: math.div(get-spacing(1), 2);
+    padding: math.div(spacing.get-spacing(1), 2);
     min-width: auto;
-    margin-right: get-spacing(1);
+    margin-right: spacing.get-spacing(1);
     animation: pulse 0.5s infinite alternate;
 
     &.not-active {
@@ -15,9 +15,9 @@
 
 @keyframes pulse {
     from {
-        box-shadow: 0px 0px 3px 1px get-amstore-color(red, slight);
+        box-shadow: 0px 0px 3px 1px theming-var.get-amstore-color(red, slight);
     }
     to {
-        box-shadow: 0px 0px 6px 2px get-amstore-color(red, dark);
+        box-shadow: 0px 0px 6px 2px theming-var.get-amstore-color(red, dark);
     }
 }

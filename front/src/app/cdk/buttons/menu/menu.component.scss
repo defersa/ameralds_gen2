@@ -1,27 +1,27 @@
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/theming-var.scss";
-@import "/src/app/styles/typography.scss";
+@use "spacing";
+@use "theming-var";
+@use "typography";
 
 @mixin amstore-button-menu-color($theme) {
-    background: get-amstore-color(gray, white);
+    background: theming-var.get-amstore-color(gray, white);
 
     &:hover {
-        background: get-amstore-color($theme, light);
+        background: theming-var.get-amstore-color($theme, light);
     }
 
     &:active {
-        background: get-amstore-color($theme, middle);
+        background: theming-var.get-amstore-color($theme, middle);
     }
 
     &.amstore-button-menu-active {
-        background: get-amstore-color($theme, middle);
+        background: theming-var.get-amstore-color($theme, middle);
     }
 
 }
 
 
 :host {
-    padding: get-spacing(2) get-spacing(3);
+    padding: spacing.get-spacing(2) spacing.get-spacing(3);
     text-align: left;
 
     border-radius: 6px;
@@ -42,7 +42,7 @@
         @include amstore-button-menu-color(turquoise);
     }
 
-    @include get-amstore-font("body", 16, null, null);
+    @include typography.get-amstore-font("body", 16, null, null);
 }
 
 // mobile

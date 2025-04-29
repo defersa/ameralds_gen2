@@ -13,7 +13,6 @@ import {
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { AmstoreInputComponent } from "@am/cdk/forms/input/input.component";
-import { AmstoreSelectComponent } from "@am/cdk/forms/select/select.component";
 import { AmstoreChipsCheckboxComponent } from "@am/cdk/forms/chips-checkbox/chips-checkbox.component";
 import { AsyncPipe } from "@angular/common";
 
@@ -28,7 +27,6 @@ import { AsyncPipe } from "@angular/common";
         AmstoreButtonComponent,
         IconsComponent,
         AmstoreInputComponent,
-        AmstoreSelectComponent,
         AmstoreChipsCheckboxComponent,
         AsyncPipe,
         ReactiveFormsModule

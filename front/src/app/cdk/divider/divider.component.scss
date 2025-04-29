@@ -1,7 +1,7 @@
-@import "/src/app/styles/theming-var.scss";
+@use "theming-var";
 
 @mixin amstore-panel-color($theme) {
-    background: get-amstore-color($theme, dark);
+    background: theming-var.get-amstore-color($theme, dark);
 }
 
 :host {
@@ -30,10 +30,10 @@
 
 
     &.is-contrast {
-        background: get-amstore-color(gray, white) !important;
+        background: theming-var.get-amstore-color(gray, white) !important;
     }
 
     &.is-dark {
-        background: get-amstore-color(gray, light) !important;
+        background: theming-var.get-amstore-color(gray, light) !important;
     }
 }

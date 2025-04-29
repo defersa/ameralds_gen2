@@ -1,5 +1,6 @@
-@import "src/app/styles/spacing";
+@use "spacing";
+
 
 amstore-button {
-    margin-bottom: get-spacing(default);
+    margin-bottom: spacing.get-spacing(default);
 }

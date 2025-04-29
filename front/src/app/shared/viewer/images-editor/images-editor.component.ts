@@ -1,6 +1,5 @@
 import { Component, ElementRef, inject, OnInit, Signal, viewChild } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
-import { NgStyle } from "@angular/common";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { ImageDto, ImagesProducer } from "@am/root/api";
@@ -10,8 +9,8 @@ import { ImageDto, ImagesProducer } from "@am/root/api";
     selector: "amstore-images-editor",
     templateUrl: "./images-editor.component.html",
     styleUrls: ["./images-editor.component.scss"],
+    standalone: true,
     imports: [
-        NgStyle,
         MatDialogTitle,
         IconsComponent,
         AmstoreButtonComponent,

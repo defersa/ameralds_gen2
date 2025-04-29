@@ -1,8 +1,8 @@
-@import "/src/app/styles/spacing.scss";
-@import "/src/app/styles/theming-var.scss";
+@use "spacing";
+@use "theming-var";
 
 :host {
-    margin-right: get-spacing(2);
+    margin-right: spacing.get-spacing(2);
 }
 
 .language-panel {
@@ -11,7 +11,7 @@
     padding: 8px 0;
     box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.25);
 
-    background: get-amstore-color(green, dark);
+    background: theming-var.get-amstore-color(green, dark);
 
     &-item {
         min-width: 150px;
@@ -26,13 +26,13 @@
         color: white;
 
         &:hover {
-            background: get-amstore-color(green, deep);
+            background: theming-var.get-amstore-color(green, deep);
         }
         img {
             width: 32px;
             height: 32px;
             border-radius: 16px;
-            border: 1px solid get-amstore-color(gray, middle);
+            border: 1px solid theming-var.get-amstore-color(gray, middle);
         }
     }
 }
@@ -40,6 +40,6 @@
 // mobile
 @media screen and (max-width: 768px) {
     :host {
-        margin-right: get-spacing(1);
+        margin-right: spacing.get-spacing(1);
     }
 }

@@ -9,8 +9,6 @@ import { PattenSizeFiles } from "@am/interface/pattern.interface";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
 import { AmstoreInfoComponent } from "@am/cdk/info/info.component";
 import { IconsComponent } from "@am/cdk/icons/icons.component";
-import { AmstoreSnapshotPatternComponent } from "@am/shared/snapshot/pattern/pattern.component";
-import { AmstoreChipComponent } from "@am/cdk/chip/chip.component";
 
 
 type IAdminOrderWithStatus = IAdminOrder & {
@@ -32,8 +30,6 @@ type IAdminOrderWithStatus = IAdminOrder & {
         AmstoreInfoComponent,
         IconsComponent,
         DatePipe,
-        AmstoreSnapshotPatternComponent,
-        AmstoreChipComponent
     ]
 })
 export class CardComponent implements OnInit {
