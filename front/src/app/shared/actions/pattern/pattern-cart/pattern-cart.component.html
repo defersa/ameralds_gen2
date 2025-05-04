@@ -1,62 +1,67 @@
-@if (patternCartState(); as patternCartState) {
-    <h3></h3>
+<h3>Размер паттерна</h3>
 
-    <h3>Размер паттерна</h3>
-
-    <div class="amstore-pattern-cart-edit-sizes">
-        @for (size of patternCartState.sizes.bought; track size) {
-            <amstore-chip>{{size}}</amstore-chip>
-        }
-
-        @for (size of patternCartState.sizes.list; track size.control) {
-            <amstore-checkbox [label]="size.label" [formControl]="size.control" color="primary"/>
-        }
-    </div>
-
-    @if (patternCartState.color) {
-        <h3>Подбор цвета</h3>
-
-        @if (patternCartState.color.bought) {
-            <h4>Куплен</h4>
+<div class="amstore-line g2">
+    @for (size of form.controls.sizes.controls | keyvalue; track size.key) {
+        @if (size.value.controls.bought.value) {
+            <amstore-chip [style.order]="1">{{size.value.controls.label.value}}</amstore-chip>
         } @else {
-            <amstore-slide [formControl]="patternCartState.color.control"/>
+            @let label = size.value.controls.label.value;
+            <amstore-checkbox [style.order]="label" [label]="label" [formControl]="size.value.controls.value" color="primary"/>
         }
     }
+</div>
 
-    <div>
-        @switch (patternCartState.state) {
-            @case (patternCartStateType.ToCart) {
-                <amstore-button color="primary" (click)="toCart()">
-                    В корзину
-                </amstore-button>
-            }
-            @case (patternCartStateType.Bought) {
-                <amstore-button color="primary" [disabled]="true">
-                    Куплено
-                </amstore-button>
-            }
-            @case (patternCartStateType.Edit) {
-                <amstore-button color="warn" (click)="removeFromCart()">
-                    Удалить
-                </amstore-button>
+@if (form.controls.color.controls.exist.value) {
+    <h3>Подбор цвета</h3>
 
-                <amstore-button color="accent" (click)="change()">
-                    Изменить
-                </amstore-button>
-            }
-            @case (patternCartStateType.Editing) {
-                <amstore-button color="warn" (click)="removeFromCart()">
-                    Удалить
-                </amstore-button>
-
-                <amstore-button color="accent" [stroked]="true" (click)="cancel()">
-                    Отменить
-                </amstore-button>
-
-                <amstore-button color="primary" (click)="toCart()">
-                    Сохранить
-                </amstore-button>
-            }
-        }
-    </div>
+    @if (form.controls.color.controls.bought.value) {
+        <h4>Куплен</h4>
+    } @else {
+        <amstore-slide [formControl]="form.controls.color.controls.value"/>
+    }
 }
+
+<div class="amstore-column right p2">
+    <h3>Цена</h3>
+
+    <h2>
+        <amstore-lang-number [value]="price()"/> {{ currency() }}
+    </h2>
+</div>
+
+<div class="amstore-actions-line right">
+    @switch (patternCartButton()) {
+        @case (patternCartStateType.ToCart) {
+            <amstore-button color="primary" (click)="toCart()">
+                В корзину
+            </amstore-button>
+        }
+        @case (patternCartStateType.Bought) {
+            <amstore-button color="primary" [disabled]="true">
+                Куплено
+            </amstore-button>
+        }
+        @case (patternCartStateType.Edit) {
+            <amstore-button color="warn" (click)="removeFromCart()">
+                Удалить
+            </amstore-button>
+
+            <amstore-button color="accent" (click)="change()">
+                Изменить
+            </amstore-button>
+        }
+        @case (patternCartStateType.Editing) {
+            <amstore-button color="warn" (click)="removeFromCart()">
+                Удалить
+            </amstore-button>
+
+            <amstore-button color="accent" [stroked]="true" (click)="cancel()">
+                Отменить
+            </amstore-button>
+
+            <amstore-button color="primary" (click)="toCart()">
+                Сохранить
+            </amstore-button>
+        }
+    }
+</div>

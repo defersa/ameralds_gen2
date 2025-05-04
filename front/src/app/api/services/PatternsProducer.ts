@@ -55,37 +55,18 @@ export class PatternsProducer {
         });
     }
     /**
-     * @param id Params of entity
-     * @returns FullPatternEntityDto
-     * @throws ApiError
-     */
-    public patternsControllerEntity(
-        id: number,
-    ): Observable<FullPatternEntityDto> {
-        return __request(OpenAPI, this.http, {
-            method: 'GET',
-            url: '/api/patterns/{id}',
-            path: {
-                'id': id,
-            },
-            errors: {
-                400: `Something went wrong.`,
-            },
-        });
-    }
-    /**
-     * @param ids Params with ids
+     * @param id
      * @returns PatternEntityDto
      * @throws ApiError
      */
     public patternsControllerByIds(
-        ids: Array<number>,
+        id: Array<string>,
     ): Observable<Record<string, PatternEntityDto>> {
         return __request(OpenAPI, this.http, {
             method: 'GET',
-            url: '/api/patterns/ids/{ids}',
-            path: {
-                'ids': ids,
+            url: '/api/patterns/ids',
+            query: {
+                'id': id,
             },
             errors: {
                 400: `Something went wrong.`,
@@ -110,6 +91,25 @@ export class PatternsProducer {
             },
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                400: `Something went wrong.`,
+            },
+        });
+    }
+    /**
+     * @param id Params of entity
+     * @returns FullPatternEntityDto
+     * @throws ApiError
+     */
+    public patternsControllerEntity(
+        id: number,
+    ): Observable<FullPatternEntityDto> {
+        return __request(OpenAPI, this.http, {
+            method: 'GET',
+            url: '/api/patterns/{id}',
+            path: {
+                'id': id,
+            },
             errors: {
                 400: `Something went wrong.`,
             },

@@ -1,10 +1,10 @@
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { Roles } from "@am/core/guards/role.guard";
 import { UserRole } from "@am/db/entities";
 import { ErrorsDto } from "../errors/errors.dto";
 import { CreatePatternDto, FullPatternEntityDto, PatternEntityDto, PatternsPaginatedPageDto } from "./patterns.dto";
-import { ParamsEntityDto, ParamsIdsDto, ParamsPaginatedDto, SuccessCreateDto } from "../../common/common.dto";
+import { ParamsEntityDto, ParamsPaginatedDto, SuccessCreateDto } from "../../common/common.dto";
 import { PatternsService } from "@am/db/service/patterns/patterns.service";
 
 
@@ -36,16 +36,7 @@ export class PatternsController {
         return this.patternsService.paginatedPatterns(Number(params.page));
     }
 
-    @Get(':id')
-    @ApiOkResponse({ description: '', type: FullPatternEntityDto })
-    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
-    public async entity(
-        @Param() params: ParamsEntityDto,
-    ): Promise<FullPatternEntityDto> {
-        return this.patternsService.getPattern(params.id);
-    }
-
-    @Get('ids/:ids')
+    @Get('ids')
     @ApiOkResponse({
         description: '',
         schema: {
@@ -55,9 +46,9 @@ export class PatternsController {
     })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async byIds(
-        @Param() params: ParamsIdsDto,
-    ): Promise<Record<string, PatternEntityDto>> {
-        return this.patternsService.patternsById(params.ids);
+        @Query('id') ids: number[],
+    ): Promise<unknown> {
+        return this.patternsService.patternsById(ids);
     }
 
     @Patch('edit/:id')
@@ -69,5 +60,14 @@ export class PatternsController {
         @Body() value: CreatePatternDto,
     ): Promise<SuccessCreateDto> {
         return this.patternsService.editPattern(params.id, value);
+    }
+
+    @Get(':id')
+    @ApiOkResponse({ description: '', type: FullPatternEntityDto })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    public async entity(
+        @Param() params: ParamsEntityDto,
+    ): Promise<FullPatternEntityDto> {
+        return this.patternsService.getPattern(params.id);
     }
 }

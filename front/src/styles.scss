@@ -88,6 +88,33 @@ p {
   text-align: right !important;
 }
 
+.amstore-line {
+    display: flex;
+    flex-direction: row;
+
+    &.g2 {
+        gap: spacing.get-spacing(2);
+    }
+
+}
+
+.amstore-column {
+    display: flex;
+    flex-direction: column;
+
+    &.right {
+        align-items: flex-end
+    }
+
+    &.g2 {
+        gap: spacing.get-spacing(2);
+    }
+
+    &.p2 {
+        padding: spacing.get-spacing(2);
+    }
+}
+
 .amstore-actions-line {
   margin: spacing.get-spacing(2) 0;
   display: flex;

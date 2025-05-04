@@ -5,6 +5,7 @@ import { IconsComponent } from "@am/cdk/icons/icons.component";
 import { Currency, LangService, LangType } from "@am/services/lang.service";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { IdRecord } from "@am/interface/common.interface";
+import { DecimalPipe } from "@angular/common";
 
 
 @Component({
@@ -13,8 +14,9 @@ import { IdRecord } from "@am/interface/common.interface";
     styleUrls: ["./goods-snap.component.scss"],
     imports: [
         AmstoreButtonRoundComponent,
-        IconsComponent
-    ]
+        IconsComponent,
+        DecimalPipe,
+    ],
 })
 export class GoodsSnapComponent {
     private cartService: CartService = inject(CartService);

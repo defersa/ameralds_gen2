@@ -8,6 +8,7 @@ import { AmstorePatternCardComponent } from "@am/shared/card/pattern/pattern.com
 import { Observable } from "rxjs";
 import { FullPatternEntityDto, PatternEntityDto } from "@am/root/api";
 import { PatternsService } from "@am/services/patterns.service";
+import { PatternCartComponent } from "@am/shared/actions/pattern/pattern-cart/pattern-cart.component";
 
 
 type PatterButtonStatus = {
@@ -25,8 +26,9 @@ type PatterButtonStatus = {
         AmstoreButtonComponent,
         RouterLink,
         AmstorePatternCardComponent,
-        AsyncPipe
-    ]
+        AsyncPipe,
+        PatternCartComponent,
+    ],
 })
 export class PatternCardComponent {
     private readonly location: Location = inject(Location);

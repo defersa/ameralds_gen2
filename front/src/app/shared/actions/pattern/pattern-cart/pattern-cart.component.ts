@@ -1,53 +1,34 @@
-import { Component, computed, inject, input, InputSignal, signal, Signal, WritableSignal } from "@angular/core";
+import {
+    Component,
+    computed,
+    inject,
+    Injector,
+    input,
+    InputSignal,
+    OnInit,
+    signal,
+    Signal,
+    WritableSignal,
+} from "@angular/core";
 import { CartService, ICartPattern } from "@am/services/cart.service";
 import {
     FullPatternEntityDto,
-    type FullPatternSizeDto,
     NumberEntityDto,
     PatternEntityDto,
-    ShortOrderPatternDto
+    ShortOrderPatternDto,
 } from "@am/root/api";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { IdRecord } from "@am/interface/common.interface";
 import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.component";
-import { DialogService } from "@am/core/dialog/dialog.service";
-import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AmstoreCheckboxComponent } from "@am/cdk/forms/checkbox/checkbox.component";
 import { AmstoreSlideComponent } from "@am/cdk/slide/slide.component";
 import { AmstoreChipComponent } from "@am/cdk/chip/chip.component";
+import { LangNumberComponent } from "@am/shared/lang-text/lang-number.component";
+import { Currency, LangService } from "@am/services/lang.service";
+import { PatternCartGroup, PatternCartService } from "@am/shared/actions/pattern/pattern-cart/pattern-cart.service";
+import { KeyValuePipe } from "@angular/common";
 
-
-interface PatternSizeForm {
-    sizeId: number;
-    label: number;
-    control: FormControl<boolean>;
-}
-
-interface PatternSizesCart {
-    bought: number[];
-    list: PatternSizeForm[];
-    form: FormGroup;
-}
-
-interface PatternCartState {
-    state: PatternButtonState;
-    sizes: PatternSizesCart;
-    color?: {
-        bought: boolean;
-        control: FormControl<boolean>;
-    };
-}
-
-interface PatternCartEditForm {
-    sizes: PatternSizeForm[];
-    hasColor: boolean;
-    own: boolean;
-    form: {
-        sizes: FormGroup;
-        color: FormControl<boolean>;
-    };
-    buttonState: PatternButtonState;
-}
 
 export enum PatternButtonState {
     Bought = 1,
@@ -57,21 +38,27 @@ export enum PatternButtonState {
 }
 
 @Component({
-    selector: "app-pattern-cart",
+    selector: "amstore-pattern-cart",
     imports: [
         AmstoreButtonComponent,
         AmstoreCheckboxComponent,
         AmstoreSlideComponent,
         ReactiveFormsModule,
-        AmstoreChipComponent
+        AmstoreChipComponent,
+        LangNumberComponent,
+        KeyValuePipe,
     ],
+    providers: [PatternCartService],
     templateUrl: "./pattern-cart.component.html",
-    styleUrl: "./pattern-cart.component.scss"
+    styleUrl: "./pattern-cart.component.scss",
 })
-export class PatternCartComponent {
+export class PatternCartComponent implements OnInit {
     public readonly pattern: InputSignal<FullPatternEntityDto> = input.required();
 
     private readonly cartService: CartService = inject(CartService);
+    private readonly langService: LangService = inject(LangService);
+    private readonly injector: Injector = inject(Injector);
+    private readonly patternCartService: PatternCartService = inject(PatternCartService);
 
     public readonly ownPatterns: Signal<IdRecord<ShortOrderPatternDto>> = toSignal(this.cartService.ownPatterns$);
     public readonly cartPatterns: Signal<IdRecord<ICartPattern>> = toSignal(this.cartService.patternsCart$);
@@ -83,6 +70,7 @@ export class PatternCartComponent {
         return ownPatterns[pattern?.id];
     });
 
+
     public readonly cart: Signal<ICartPattern> = computed(() => {
         const pattern: FullPatternEntityDto = this.pattern();
         const cartPatterns: IdRecord<ICartPattern> = this.cartPatterns();
@@ -90,128 +78,52 @@ export class PatternCartComponent {
         return cartPatterns[pattern?.id];
     });
 
-    public readonly form: Signal<FormGroup> = computed(() => {
-        const pattern: FullPatternEntityDto = this.pattern();
-        console.log('??')
-
-        const form: FormGroup = new FormGroup(
-            Object.fromEntries(
-                pattern.sizes.map((size: FullPatternSizeDto) => [size.id, new FormControl()]),
-            ),
-        );
-
-        if (pattern.color) {
-            form.addControl('color', new FormControl());
-        }
-
-        return form;
-    });
-
     public readonly editing: WritableSignal<boolean> = signal(false);
-    public readonly patternCartState: Signal<PatternCartState> = computed(() => {
+    public form: FormGroup<PatternCartGroup>;
+    public formCart: Signal<[ICartPattern, PatternEntityDto]>;
+    public price: Signal<NumberEntityDto>;
+
+    public readonly currency: Signal<Currency> = this.langService.currency;
+    public readonly patternCartButton: Signal<PatternButtonState> = computed(() => {
         const pattern: FullPatternEntityDto = this.pattern();
         const own: ShortOrderPatternDto = this.own();
         const cart: ICartPattern = this.cart();
-        const form: FormGroup = this.form();
-
-        console.log(cart)
 
         const bought: boolean = own?.sizes.length === pattern.sizes.length && (pattern.color ? own?.color : true);
-        let state: PatternButtonState = PatternButtonState.ToCart;
 
-        if (this.editing()) {
-            state = PatternButtonState.Editing;
+        if (cart && this.editing()) {
+            return PatternButtonState.Editing;
         } else if (bought) {
-            state = PatternButtonState.Bought;
+            return PatternButtonState.Bought;
         } else if (cart) {
-            state = PatternButtonState.Edit;
+            return PatternButtonState.Edit;
         }
 
-        const cartState: PatternCartState = {
-            state,
-            sizes: this.getSizesState(pattern, own, cart),
-        };
-
-        if (pattern.color) {
-            const control: FormControl = form.get('color') as FormControl;
-
-            control.setValue(cart?.color);
-
-            cartState.color = {
-                bought: own?.color,
-                control,
-            };
-        }
-
-        PatternCartComponent.canEdit(state) ? form.enable() : form.disable();
-
-        return cartState;
+        return PatternButtonState.ToCart;
     });
 
-    private getSizesState(
-        pattern: FullPatternEntityDto,
-        own: ShortOrderPatternDto,
-        cart: ICartPattern,
-    ): PatternSizesCart {
-        const form: FormGroup = this.form();
-        const bought: number[] = own?.sizes
-            .map((id: number) => pattern.sizes.find((size: FullPatternSizeDto) => size.id === id))
-            .filter(Boolean)
-            .map((size: FullPatternSizeDto) => size.size.value) ?? [];
-
-        const list: PatternSizeForm[] = pattern
-            .sizes
-            .filter((size: FullPatternSizeDto) => !(own?.sizes.includes(size.id)))
-            .map((size: FullPatternSizeDto) => {
-                const control: FormControl<boolean> = form.get(String(size.id)) as FormControl;
-
-                control.setValue(cart?.sizes.includes(size.id));
-
-                return {
-                    control,
-                    sizeId: size.id,
-                    label: size.size.value
-                };
-            });
-
-        return {
-            bought,
-            form,
-            list,
-        };
-    }
-
-    private static canEdit(state: PatternButtonState): boolean {
-        return [PatternButtonState.Editing, PatternButtonState.ToCart].includes(state);
+    public ngOnInit(): void {
+        this.editing.set(!this.cart());
+        this.form = this.patternCartService.initForm(this.pattern(), this.own, this.cart, this.editing);
+        this.formCart = toSignal(this.patternCartService.getFormCartObservable(), { injector: this.injector });
+        this.price = computed(() => this.cartService.getPrice(...this.formCart()));
     }
 
     public toCart(): void {
-        const pattern: PatternEntityDto = {
-            ...this.pattern(),
-            sizes: this.pattern().sizes.map((size: FullPatternSizeDto) => ({
-                ...size,
-                size: size.size.id,
-            }))
-        };
+        const [cart, pattern]: [ICartPattern, PatternEntityDto] = this.formCart();
+        if (cart.sizes.length === 0 && !cart.color) {
+            this.form.setErrors({ incorrect: true });
 
-        const state: PatternCartState = this.patternCartState();
+            return;
+        }
+
+        this.cartService.addPattern(cart, pattern);
         this.editing.set(false);
-
-        this.cartService.addPattern(
-            {
-                id: pattern.id,
-                sizes: state.sizes.list
-                    .filter((size: PatternSizeForm) => size.control.value)
-                    .map((size: PatternSizeForm) => size.sizeId),
-                pattern: !this.own(),
-                color: state.color?.control.value,
-            },
-            pattern,
-        );
     }
 
     public removeFromCart(): void {
         this.cartService.removePattern(this.pattern().id);
+        this.editing.set(true);
     }
 
     public change(): void {

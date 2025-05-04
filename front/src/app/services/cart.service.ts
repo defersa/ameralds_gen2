@@ -118,12 +118,12 @@ export class CartService {
         const priceByLang: (lang: "ru" | "en", pattern: ICartPattern, origin: PatternEntityDto) => number =
             (lang: "ru" | "en", pattern: ICartPattern, origin: PatternEntityDto) =>
                 origin.basePrice[lang] * Number(pattern.pattern)
-                + origin.additionalPrice[lang] * (pattern.sizes.length - 1)
+                + origin.additionalPrice[lang] * (pattern.sizes.length > 0 ? (pattern.sizes.length - 1) : 0)
                 + origin.colorPrice[lang] * Number(pattern.color);
 
         return {
-            ru: priceByLang("ru", pattern, origin),
-            en: priceByLang("en", pattern, origin)
+            ru: priceByLang("ru", pattern, origin) || 0,
+            en: priceByLang("en", pattern, origin) || 0
         };
     }
 

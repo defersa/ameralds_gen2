@@ -1,5 +1,5 @@
 <button amstore-button-round [badge]="cartCount()">
     <amstore-icon iconName="order" [size]="20" [contrast]="true"/>
 
-    <span class="header-button-label">Корзина:</span> {{cartPrice()}} {{currency()}}
+    <span class="header-button-label">Корзина:</span> {{ cartPrice() | number }} {{currency()}}
 </button>
