@@ -15,14 +15,16 @@ import { DataSourceService } from "../../data-source.service";
 import { CategoriesService } from "@am/db/service/patterns/categories.service";
 import { PatternsSizeService } from "@am/db/service/patterns/pattern-sizes.service";
 import {
-    CreatePatternDto, FullPatternEntityDto,
+    CreatePatternDto, FullPatternEntityDto, FullPatternSizeDto,
     PatternEntityDto,
     PatternSizeDto,
-    PatternsPaginatedPageDto
+    PatternsPaginatedPageDto,
 } from "../../../modules/patterns/patterns.dto";
 import { ModelState } from "../../abstract/abstract.model";
 import { ApiErrorCodes } from "../../../modules/errors/errors.dto";
 
+
+const idOnlySelect: { id: boolean } = { id: true };
 
 @Injectable()
 export class PatternsService {
@@ -152,6 +154,11 @@ export class PatternsService {
                     index: "ASC",
                 },
             },
+            select: {
+                sizes: {
+                    id: true,
+                },
+            },
             loadRelationIds: { relations: ["categories"] },
             take,
             skip,
@@ -187,7 +194,14 @@ export class PatternsService {
                     index: "ASC",
                 },
             },
-            loadRelationIds: { relations: ["categories"] },
+            select: {
+                sizes: {
+                    id: true,
+                },
+            },
+            loadRelationIds: {
+                relations: ["categories"],
+            },
         });
 
         return Object.fromEntries(patterns.map((item: PatternEntity) => [item.id, item as unknown as PatternEntityDto]));

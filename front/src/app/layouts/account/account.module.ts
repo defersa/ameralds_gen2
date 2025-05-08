@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AccountComponent } from './account.component';
-import { GoodsComponent } from './pages/goods/goods.component';
+import { CartComponent } from '@am/root/layouts/account/pages/cart/cart.component';
 import { OrdersComponent } from './pages/orders/orders.component';
 import { PatternsComponent } from './pages/patterns/patterns.component';
 import { ProfileComponent } from './pages/profile/profile.component';
@@ -21,8 +21,8 @@ export const routes: Routes = [{
             component: ProfileComponent,
         },
         {
-            path: 'goods',
-            component: GoodsComponent,
+            path: 'cart',
+            component: CartComponent,
         },
         {
             path: 'orders',

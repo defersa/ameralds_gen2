@@ -11,7 +11,7 @@ import { AppComponent } from './app.component';
 import { HeaderComponent } from "@am/core/header/header.component";
 import { AmstoreHeaderAdminComponent } from "@am/core/header/admin/admin.component";
 import { AmastoreLanguageComponent } from "@am/core/language/language.component";
-import { GoodsSnapComponent } from "@am/core/goods-snap/goods-snap.component";
+import { CartSnapComponent } from "@am/core/cart-snap/cart-snap.component";
 import { ProfileComponent } from "@am/core/profile/profile.component";
 import { AuthInterceptor } from "@am/root/auth.interceptor";
 import { DownloadInterceptor } from "@am/root/download.interceptor";
@@ -28,7 +28,7 @@ registerLocaleData(localeRu, 'ru-RU', localeRuExtra);
         HeaderComponent,
         AmstoreHeaderAdminComponent,
         AmastoreLanguageComponent,
-        GoodsSnapComponent,
+        CartSnapComponent,
         ProfileComponent], providers: [
         provideHttpClient(withInterceptors([AuthInterceptor, DownloadInterceptor])),
         {

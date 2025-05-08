@@ -43,7 +43,7 @@ export class AmstorePatternSizesComponent {
     private changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
     private dialog: DialogService = inject(DialogService);
 
-    public sizesList$: Observable<OptionType[]> = this.sizeService.sizesList$;
+    public sizesList$: Observable<OptionType[]> = this.sizeService.list$;
 
     public addSize(size: Partial<FullPatternSizeDto> = {}): void {
         this.formArray().push(new FormGroup({

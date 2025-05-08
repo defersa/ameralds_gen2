@@ -39,7 +39,6 @@ $button-round-border: 2px;
 
 :host {
     padding: spacing.get-spacing(2) spacing.get-spacing(4);
-    text-transform: uppercase;
     box-sizing: border-box;
     min-width: $button-round-size;
     min-height: $button-round-size;
@@ -138,7 +137,6 @@ $button-mobile-round-border: 1px;
 @media screen and (max-width: 768px) {
     :host {
         padding: spacing.get-spacing(1) spacing.get-spacing(2);
-        text-transform: uppercase;
         box-sizing: border-box;
         min-width: $button-mobile-round-size;
         min-height: $button-mobile-round-size;

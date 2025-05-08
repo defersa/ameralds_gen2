@@ -1,0 +1,30 @@
+:host {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    flex-grow: 1;
+}
+
+.amstore-layout-side, .amstore-layout-body {
+    width: 100%;
+}
+
+@media screen and (min-width: 1280px) {
+    .amstore-layout-side {
+        width: 280px;
+    }
+    .amstore-layout-body {
+        width: 600px;
+    }
+
+}
+
+@media screen and (min-width: 1920px) {
+    .amstore-layout-side {
+        width: 360px;
+    }
+    .amstore-layout-body {
+        width: 800px;
+    }
+}

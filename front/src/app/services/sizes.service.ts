@@ -1,14 +1,15 @@
 import { inject, Injectable } from "@angular/core";
 
-import { Observable, OperatorFunction, pipe } from 'rxjs';
+import { combineLatest, Observable, OperatorFunction, pipe } from "rxjs";
 import { map, tap } from 'rxjs/operators';
 
 import { OptionType } from "@am/interface/cdk.interface";
 import { BehaviorObservable, GetDataAction, GetOptionsObservable } from "@am/utils/data-action.subject";
 import { SnackService } from "@am/services/snackbar.service";
 import {
-    type SizesPaginatedPageDto, type SizeDto, type SizesDto, SizesProducer
+    type SizesPaginatedPageDto, type SizeDto, type SizesDto, SizesProducer, type CategoryDto,
 } from "@am/root/api";
+import { LangType } from "@am/services/lang.service";
 
 
 @Injectable({
@@ -19,7 +20,8 @@ export class SizesService {
     private sizesService: SizesProducer = inject(SizesProducer);
 
     public sizes$: BehaviorObservable<SizeDto[]> = GetDataAction([], () => this.getAllSizes());
-    public sizesList$: Observable<OptionType[]> = GetOptionsObservable(this.sizes$);
+    public list$: Observable<OptionType[]> = GetOptionsObservable(this.sizes$);
+    public byIds$: Observable<Record<number, SizeDto>> = this.getByIds();
 
     public getSizes(page: number): Observable<SizesPaginatedPageDto> {
         return this.sizesService.sizesControllerPage(page);
@@ -58,5 +60,12 @@ export class SizesService {
                 this.sizes$.retake();
             })
         )
+    }
+
+    private getByIds(): Observable<Record<number, SizeDto>> {
+        return this.sizes$.pipe(
+            map((sizes: SizeDto[]) =>
+                Object.fromEntries(sizes.map((size: SizeDto) => [size.id, size]))),
+        );
     }
 }

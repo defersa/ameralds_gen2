@@ -6,19 +6,21 @@ import { Currency, LangService, LangType } from "@am/services/lang.service";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { IdRecord } from "@am/interface/common.interface";
 import { DecimalPipe } from "@angular/common";
+import { RouterLink } from "@angular/router";
 
 
 @Component({
-    selector: "amstore-goods-snap",
-    templateUrl: "./goods-snap.component.html",
-    styleUrls: ["./goods-snap.component.scss"],
+    selector: "amstore-cart-snap",
+    templateUrl: "./cart-snap.component.html",
+    styleUrls: ["./cart-snap.component.scss"],
     imports: [
         AmstoreButtonRoundComponent,
         IconsComponent,
         DecimalPipe,
+        RouterLink,
     ],
 })
-export class GoodsSnapComponent {
+export class CartSnapComponent {
     private cartService: CartService = inject(CartService);
     private langService: LangService = inject(LangService);
 

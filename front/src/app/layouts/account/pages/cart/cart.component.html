@@ -1,0 +1,10 @@
+<h2>Схемы</h2>
+
+
+@for (item of items$ | async; track item) {
+    <amstore-snapshot-pattern [pattern]="item.pattern" [routerLink]="[item.pattern.id]">
+        <amstore-pattern-cart-short [pattern]="item.pattern" [cart]="item.cart"/>
+    </amstore-snapshot-pattern>
+} @empty {
+    <h4>Список пуст</h4>
+}

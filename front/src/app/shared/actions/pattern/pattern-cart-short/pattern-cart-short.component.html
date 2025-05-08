@@ -1,0 +1,23 @@
+@let state = viewState();
+
+<h4>Размеры: </h4>
+
+<div class="amstore-row">
+    @for (size of state.sizes; track size) {
+        <amstore-chip [isDark]="true">
+            {{size}}
+        </amstore-chip>
+    }
+</div>
+
+<h4>Включен подбор цвета: </h4>
+@if (state.color) {
+    <h5 class="amstore-text-primary">Да</h5>
+} @else {
+    <h5 class="amstore-text-warn">Нет</h5>
+}
+
+<div class="amstore-column right">
+    <h4>Цена</h4>
+    <h4>{{ state.price }} {{ currency() }}</h4>
+</div>

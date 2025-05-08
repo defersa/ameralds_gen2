@@ -28,21 +28,4 @@ import type { PatternEntityDto } from "@am/root/api";
 })
 export class AmstoreSnapshotPatternComponent extends AmstoreSnapshotBaseDirective {
     public pattern: InputSignal<PatternEntityDto> = input();
-
-    public status: Signal<'buy' | 'remove' | 'bought'> = computed(() => {
-        // const goods: GoodsCard = toSignal(this.goodsService.goods$)();
-        // const bought: number[] = toSignal(this.profileService.boughtPatterns$)();
-        // const pattern: PatternEntityDto = this.pattern();
-        //
-        // if (goods.patterns.find((value: PatternEntityDto) => value.id === pattern.id)) {
-        //     return 'remove';
-        // } else  if (bought.find((value: number) => value === pattern.id)) {
-        //     return 'bought';
-        // }
-
-        return 'buy';
-    });
-
-    private profileService: ProfileService = inject(ProfileService);
-    private goodsService: CartService = inject(CartService);
 }

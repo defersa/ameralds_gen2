@@ -177,7 +177,7 @@ export class PatternEntityDto extends BaseEntityDto {
         type: PatternSizeDto,
         isArray: true,
     })
-    public sizes: PatternSizeDto;
+    public sizes: PatternSizeDto[];
 }
 
 export class FullPatternEntityDto extends BaseEntityDto {
@@ -186,7 +186,7 @@ export class FullPatternEntityDto extends BaseEntityDto {
         type: FullPatternSizeDto,
         isArray: true,
     })
-    public sizes: FullPatternSizeDto;
+    public sizes: FullPatternSizeDto[];
 }
 
 export class PatternsPaginatedPageDto extends PaginatedPageDto {

@@ -13,7 +13,7 @@ export const accountConfig: SectionsConfig = {
             },
             {
                 label: 'Корзина',
-                path: ['/', 'account', 'goods'],
+                path: ['/', 'account', 'cart'],
                 icon: 'card',
             },
             {

@@ -40,7 +40,7 @@ export class AmstoreFilterComponent extends AbstractFilterComponent {
     private categoriesService: CategoriesService = inject(CategoriesService);
 
     public categoriesList$: Observable<OptionType[]> = this.categoriesService.categoriesList$;
-    public sizesList$: Observable<OptionType[]> = this.sizeService.sizesList$;
+    public sizesList$: Observable<OptionType[]> = this.sizeService.list$;
 
     public filterForm: FormGroup = new FormGroup({
             search: new FormControl(),
