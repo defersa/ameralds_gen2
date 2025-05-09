@@ -15,16 +15,16 @@ import { DataSourceService } from "../../data-source.service";
 import { CategoriesService } from "@am/db/service/patterns/categories.service";
 import { PatternsSizeService } from "@am/db/service/patterns/pattern-sizes.service";
 import {
-    CreatePatternDto, FullPatternEntityDto, FullPatternSizeDto,
+    CreatePatternDto, FullPatternEntityDto,
     PatternEntityDto,
     PatternSizeDto,
     PatternsPaginatedPageDto,
 } from "../../../modules/patterns/patterns.dto";
 import { ModelState } from "../../abstract/abstract.model";
 import { ApiErrorCodes } from "../../../modules/errors/errors.dto";
+import { classToPlain, instanceToPlain } from "class-transformer";
 
 
-const idOnlySelect: { id: boolean } = { id: true };
 
 @Injectable()
 export class PatternsService {
@@ -167,7 +167,7 @@ export class PatternsService {
         return {
             page,
             count,
-            items: patterns as unknown as PatternEntityDto[],
+            items: this.processPatterns(patterns),
         };
     }
 
@@ -204,7 +204,9 @@ export class PatternsService {
             },
         });
 
-        return Object.fromEntries(patterns.map((item: PatternEntity) => [item.id, item as unknown as PatternEntityDto]));
+       const plainPatterns: PatternEntityDto[] = this.processPatterns(patterns);
+
+        return Object.fromEntries(plainPatterns.map((item: PatternEntityDto) => [item.id, item]));
     }
 
     public async getPattern(id: number): Promise<FullPatternEntityDto> {
@@ -242,5 +244,15 @@ export class PatternsService {
         }
 
         return pattern;
+    }
+
+    private processPatterns(patterns: PatternEntity[]): PatternEntityDto[] {
+        return patterns
+            .map((pattern: PatternEntity) => instanceToPlain(pattern))
+            .map((pattern: PatternEntity) =>
+                ({
+                    ...pattern,
+                    sizes: pattern.sizes.map((size: PatternSizeEntity) => ({ ...size, size: size.size.id })),
+                })) as unknown as PatternEntityDto[];
     }
 }

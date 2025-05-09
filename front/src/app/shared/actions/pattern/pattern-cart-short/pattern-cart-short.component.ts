@@ -37,13 +37,14 @@ export class PatternCartShortComponent {
         const sizesByIds: Record<number, SizeDto> = this.sizesByIds();
         const lang: LangType = this.langService.lang();
 
-        console.log(cart.sizes
-            .map((id: number) => pattern.sizes.find((size: PatternSizeDto) => size.id === id)));
+        if (Object.keys(sizesByIds).length === 0) {
+            return null;
+        }
 
         return {
             sizes: cart.sizes
                 .map((id: number) => pattern.sizes.find((size: PatternSizeDto) => size.id === id))
-                .map((size: PatternSizeDto) => sizesByIds[size.size].value),
+                .map((size: PatternSizeDto) => sizesByIds[size.size]?.value),
             color: cart.color,
             price: cart.price[lang],
         };

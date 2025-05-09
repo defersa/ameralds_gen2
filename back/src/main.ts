@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { join } from "path";
 import helmet from "helmet";
+import 'reflect-metadata';
 
 
 async function bootstrap() {
