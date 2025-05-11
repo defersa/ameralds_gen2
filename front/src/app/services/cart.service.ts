@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Injectable } from "@angular/core";
+import { DestroyRef, inject, Injectable, Signal } from "@angular/core";
 import { LocalStorage } from "@am/decorators/local.decorator";
 import { PatternsService } from "@am/services/patterns.service";
 import { parseJsonWithDefault } from "@am/utils/common.utils";
@@ -7,7 +7,7 @@ import { NumberEntityDto, PatternEntityDto, ShortOrderPatternDto, UserProfileDto
 import { ProfileService } from "@am/services/profile.service";
 import { map, shareReplay, skip } from "rxjs/operators";
 import { IdRecord } from "@am/interface/common.interface";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 
 
 const LOCAL_PATTERN_CART_NAME: string = "localPatternCartName";
@@ -34,6 +34,7 @@ export class CartService {
     public readonly ownPatterns$: Observable<IdRecord<ShortOrderPatternDto>> = this.initOwnPatternObs();
     private readonly _patternsCart$: BehaviorSubject<IdRecord<ICartPattern>> = new BehaviorSubject<IdRecord<ICartPattern>>({});
 
+    public readonly patternCart: Signal<IdRecord<ICartPattern>> = toSignal(this._patternsCart$)
     public get patternsCart$(): Observable<IdRecord<ICartPattern>> {
         return this._patternsCart$.asObservable();
     }

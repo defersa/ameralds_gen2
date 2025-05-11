@@ -6,6 +6,7 @@ import { DataSourceService } from "../../data-source.service";
 import { ModelState } from "../../abstract/abstract.model";
 import { ApiEntityNames, ApiErrorCodes } from "../../../modules/errors/errors.dto";
 import { CategoriesPaginatedPageDto } from "../../../modules/categories/categories.dto";
+import { defaultActiveEntity } from "@am/db/service/utils/default.config";
 
 
 @Injectable()
@@ -68,12 +69,10 @@ export class CategoriesService {
     public async paginatedCategories(page: number): Promise<CategoriesPaginatedPageDto> {
         const take: number = 10;
         const skip: number = take * (page - 1);
-        const count: number = Math.ceil(await this.categoriesRepository.count() / take);
+        const count: number = Math.ceil(await this.categoriesRepository.count(defaultActiveEntity) / take);
 
         const categories: CategoryEntity[] = await this.categoriesRepository.find({
-            where: {
-                state: ModelState.ACTIVE,
-            },
+            where: defaultActiveEntity.where,
             relations: {
                 label: true,
             },
@@ -91,8 +90,8 @@ export class CategoriesService {
     public async getCategory(id: number): Promise<CategoryEntity> {
         return this.categoriesRepository.findOne({
             where: {
+                ...defaultActiveEntity.where,
                 id,
-                state: ModelState.ACTIVE,
             },
             relations: {
                 label: true,
@@ -103,8 +102,8 @@ export class CategoriesService {
     public async getCategoriesByIds(ids: number[]): Promise<CategoryEntity[]> {
         return this.categoriesRepository.find({
             where: {
+                ...defaultActiveEntity.where,
                 id: In(ids),
-                state: ModelState.ACTIVE,
             },
             relations: {
                 label: true,

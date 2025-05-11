@@ -46,9 +46,13 @@ export class PatternsController {
     })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async byIds(
-        @Query('id') ids: number[],
+        @Query('id') ids: number[] | number,
     ): Promise<unknown> {
-        return this.patternsService.patternsById(ids);
+        if (!ids) {
+            return {};
+        }
+
+        return this.patternsService.patternsById(toArray(ids));
     }
 
     @Patch('edit/:id')
@@ -70,4 +74,8 @@ export class PatternsController {
     ): Promise<FullPatternEntityDto> {
         return this.patternsService.getPattern(params.id);
     }
+}
+
+function toArray<T>(values: T | T[]): T[] {
+    return Array.isArray(values) ? values : [values];
 }

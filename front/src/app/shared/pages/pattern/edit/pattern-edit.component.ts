@@ -7,6 +7,7 @@ import { AmstoreButtonComponent } from "@am/cdk/buttons/default/amstore-button.c
 import { AmstorePatternAddCardComponent } from "@am/shared/card/pattern-add/pattern-add.component";
 import { PatternsService } from "@am/services/patterns.service";
 import { FullPatternEntityDto, PatternEntityDto } from "@am/root/api";
+import { AMSTORE_PATTERN_BACK_ROUTE } from "@am/shared/pages/pattern/pattern-route.token";
 
 
 @Component({

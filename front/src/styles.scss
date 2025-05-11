@@ -5,6 +5,7 @@
 @use "utils";
 @use "material";
 @use "../cdk/cdk.base" as cdkBase;
+@use "sass:math" as math;
 
 @include mat.elevation-classes();
 @include mat.app-background();
@@ -57,11 +58,11 @@ h3 {
 h4 {
   @include typography.get-amstore-font("header", 16, null, null);
 
-  margin: spacing.get-spacing(2) 0;
+  margin: spacing.get-spacing(1) 0;
 }
 
 p {
-  margin: spacing.get-spacing(1) 0;
+  margin: math.div(spacing.get-spacing(1), 2) 0;
 }
 
 .amstore-text-primary {
@@ -88,31 +89,68 @@ p {
   text-align: right !important;
 }
 
-.amstore-line {
-    display: flex;
-    flex-direction: row;
-
-    &.g2 {
-        gap: spacing.get-spacing(2);
-    }
-
+.d-block {
+  display: block;
 }
 
+.d-flex {
+  display: flex;
+}
+
+.amstore-line {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &.space-between {
+    justify-content: space-between;
+  }
+
+  &.right {
+    justify-content: flex-end;
+  }
+}
+
+.g2 {
+  gap: spacing.get-spacing(2);
+}
+
+.g4 {
+  gap: spacing.get-spacing(4);
+}
+
+.p2 {
+  padding: spacing.get-spacing(2);
+}
+
+.p4 {
+  padding: spacing.get-spacing(4);
+}
+
+.p-top2 {
+  padding-top: spacing.get-spacing(2);
+}
+
+.p-top4 {
+  padding-top: spacing.get-spacing(4);
+}
+
+.p-bottom2 {
+  padding-bottom: spacing.get-spacing(2);
+}
+
+.p-bottom4 {
+  padding-bottom: spacing.get-spacing(4);
+}
+
+
 .amstore-column {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    &.right {
-        align-items: flex-end
-    }
-
-    &.g2 {
-        gap: spacing.get-spacing(2);
-    }
-
-    &.p2 {
-        padding: spacing.get-spacing(2);
-    }
+  &.right {
+    align-items: flex-end
+  }
 }
 
 .amstore-actions-line {

@@ -5,6 +5,7 @@ import { DataSourceService } from "../../data-source.service";
 import { ModelState } from "../../abstract/abstract.model";
 import { SizesPaginatedPageDto } from "../../../modules/sizes/sizes.dto";
 import { ApiEntityNames, ApiErrorCodes } from "../../../modules/errors/errors.dto";
+import { defaultActiveEntity } from "@am/db/service/utils/default.config";
 
 
 @Injectable()
@@ -31,7 +32,7 @@ export class SizesService {
         const size: SizeEntity = await this.sizesRepository.findOne({
             where: {
                 id,
-                state: ModelState.ACTIVE,
+                ...defaultActiveEntity.where,
             },
         });
 
@@ -48,7 +49,7 @@ export class SizesService {
         const size: SizeEntity = await this.sizesRepository.findOne({
             where: {
                 id,
-                state: ModelState.ACTIVE,
+                ...defaultActiveEntity.where,
             },
         });
 
@@ -64,12 +65,10 @@ export class SizesService {
     public async paginatedSizes(page: number): Promise<SizesPaginatedPageDto> {
         const take: number = 10;
         const skip: number = take * (page - 1);
-        const count: number = Math.ceil(await this.sizesRepository.count() / take);
+        const count: number = Math.ceil(await this.sizesRepository.count(defaultActiveEntity) / take);
 
         const sizes: SizeEntity[] = await this.sizesRepository.find({
-            where: {
-                state: ModelState.ACTIVE,
-            },
+            where: defaultActiveEntity.where,
             take,
             skip,
         });
@@ -85,7 +84,7 @@ export class SizesService {
         const size: SizeEntity = await this.sizesRepository.findOne({
             where: {
                 id,
-                state: ModelState.ACTIVE,
+                ...defaultActiveEntity.where,
             },
         });
 
@@ -98,8 +97,9 @@ export class SizesService {
 
     public async getAllSizes(): Promise<SizeEntity[]> {
         return this.sizesRepository.find({
-            where: {
-                state: ModelState.ACTIVE,
+            where: defaultActiveEntity.where,
+            order: {
+                value: 'ASC',
             },
         });
     }
@@ -108,7 +108,7 @@ export class SizesService {
         const sameSize: SizeEntity = await this.sizesRepository.findOne({
             where: {
                 value,
-                state: ModelState.ACTIVE,
+                ...defaultActiveEntity.where,
             },
         });
 

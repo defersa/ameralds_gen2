@@ -69,6 +69,7 @@ export class PatternsService {
             sizes,
         });
 
+        await this.imagesService.updateIndex(pattern.images, data.images);
         await this.patternsRepository.save(pattern);
 
         return pattern;
@@ -136,6 +137,7 @@ export class PatternsService {
         const patterns: PatternEntity[] = await this.patternsRepository.find({
             where: {
                 state: ModelState.ACTIVE,
+                hidden: false,
             },
             relations: {
                 name: true,
@@ -153,6 +155,7 @@ export class PatternsService {
                 images: {
                     index: "ASC",
                 },
+                createdAt: "DESC"
             },
             select: {
                 sizes: {
@@ -176,6 +179,7 @@ export class PatternsService {
             where: {
                 id: In(ids),
                 state: ModelState.ACTIVE,
+                hidden: false,
             },
             relations: {
                 name: true,

@@ -1,7 +1,7 @@
 import { NgModule } from "@angular/core";
 import { PatternsComponent } from "./patterns/patterns.component";
-import { PatternCardComponent } from "./pattern-card/pattern-card.component";
 import { RouterModule, Routes } from "@angular/router";
+import { PatternRoutes } from "@am/shared/pages/pattern/pattern.routes";
 
 
 export const routes: Routes = [
@@ -9,10 +9,7 @@ export const routes: Routes = [
         path: '',
         component: PatternsComponent,
     },
-    {
-        path: ':id',
-        component: PatternCardComponent,
-    },
+    ...PatternRoutes,
 ]
 
 @NgModule({

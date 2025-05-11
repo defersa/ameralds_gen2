@@ -7,6 +7,7 @@ import { PatternsComponent } from './pages/patterns/patterns.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { AMSTORE_SECTION_CONFIG } from "@am/shared/menu/menu.component";
 import { accountConfig } from "@am/root/layouts/account/section.config";
+import { PatternRoutes } from "@am/shared/pages/pattern/pattern.routes";
 
 
 export const routes: Routes = [{
@@ -22,7 +23,16 @@ export const routes: Routes = [{
         },
         {
             path: 'cart',
-            component: CartComponent,
+            children: [
+                {
+                    path: 'pattern',
+                    children: PatternRoutes,
+                },
+                {
+                    path: '',
+                    component: CartComponent,
+                }
+            ]
         },
         {
             path: 'orders',
