@@ -9,6 +9,8 @@ import { CategoriesService } from "@am/db/service/patterns/categories.service";
 import { PatternsSizeService } from "@am/db/service/patterns/pattern-sizes.service";
 import { PatternsService } from "@am/db/service/patterns/patterns.service";
 import { FilesService } from "@am/db/service/files.service";
+import { OrderService } from "@am/db/service/general/order.service";
+import { PatternOrdersService } from "@am/db/service/patterns/pattern-orders.service";
 
 
 const services: any[] = [
@@ -22,6 +24,8 @@ const services: any[] = [
     PatternsSizeService,
     PatternsService,
     FilesService,
+    PatternOrdersService,
+    OrderService,
 ];
 
 @Module({

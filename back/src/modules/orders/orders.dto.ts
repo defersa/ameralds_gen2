@@ -3,8 +3,9 @@ import { BaseEntityDto, EntityDto, LabelEntityDto, NumberEntityDto, PaginatedPag
 import { ImageDto } from "../images/images.dto";
 import { FileDto } from "../files/files.dto";
 import { Column, JoinTable, ManyToMany, ManyToOne } from "typeorm";
-import { PatternEntity, PatternSizeEntity } from "@am/db/entities";
+import { OrderStatus, PatternEntity, PatternSizeEntity } from "@am/db/entities";
 import { PatternEntityDto, PatternSizeDto } from "../patterns/patterns.dto";
+import { ApiErrorCodes } from "../errors/errors.dto";
 
 // @ManyToMany(() => PatternSizeEntity)
 // @JoinTable()
@@ -35,6 +36,12 @@ export class ShortOrderPatternDto extends BaseEntityDto {
         type: 'boolean',
     })
     public color: boolean;
+
+    @ApiProperty({
+        description: 'Status of colors able',
+        type: 'boolean',
+    })
+    public bought: boolean;
 }
 
 export class OrderPatternDto extends BaseEntityDto {
@@ -56,4 +63,20 @@ export class OrderPatternDto extends BaseEntityDto {
         type: 'boolean',
     })
     public color: boolean;
+}
+
+export class UserOrderDto extends BaseEntityDto {
+    @ApiProperty({
+        description: 'Order status',
+        enum: OrderStatus,
+        enumName: 'EnumOrderStatus',
+    })
+    public status: OrderStatus;
+
+    @ApiProperty({
+        description: 'Patterns',
+        type: ShortOrderPatternDto,
+        isArray: true,
+    })
+    public patterns: ShortOrderPatternDto[];
 }

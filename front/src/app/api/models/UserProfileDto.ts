@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { EnumUserRole } from './EnumUserRole';
 import type { ShortOrderPatternDto } from './ShortOrderPatternDto';
+import type { UserOrderDto } from './UserOrderDto';
 export type UserProfileDto = {
     /**
      * Id of entity
@@ -12,11 +13,11 @@ export type UserProfileDto = {
     /**
      * Id of entity
      */
-    createdAt: string;
+    createdAt?: string;
     /**
      * Id of entity
      */
-    updatedAt: string;
+    updatedAt?: string;
     /**
      * Email of user
      */
@@ -30,5 +31,9 @@ export type UserProfileDto = {
      * Bought patterns
      */
     ownPatterns: Array<ShortOrderPatternDto>;
+    /**
+     * Current cart
+     */
+    cart: UserOrderDto;
 };
 

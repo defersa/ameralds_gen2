@@ -1,13 +1,14 @@
-import { DestroyRef, inject, Injectable, Signal } from "@angular/core";
+import { computed, DestroyRef, inject, Injectable, Signal } from "@angular/core";
 import { LocalStorage } from "@am/decorators/local.decorator";
 import { PatternsService } from "@am/services/patterns.service";
 import { parseJsonWithDefault } from "@am/utils/common.utils";
 import { BehaviorSubject, combineLatest, Observable } from "rxjs";
-import { NumberEntityDto, PatternEntityDto, ShortOrderPatternDto, UserProfileDto } from "@am/root/api";
+import { NumberEntityDto, OrdersProducer, PatternEntityDto, ShortOrderPatternDto, UserProfileDto } from "@am/root/api";
 import { ProfileService } from "@am/services/profile.service";
-import { map, shareReplay, skip } from "rxjs/operators";
+import { filter, map, shareReplay, skip, switchMap, takeUntil } from "rxjs/operators";
 import { IdRecord } from "@am/interface/common.interface";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
+import { LangService, LangType } from "@am/services/lang.service";
 
 
 const LOCAL_PATTERN_CART_NAME: string = "localPatternCartName";
@@ -30,11 +31,29 @@ export class CartService {
     private readonly patternsService: PatternsService = inject(PatternsService);
     private readonly profileService: ProfileService = inject(ProfileService);
     private readonly destroyRef: DestroyRef = inject(DestroyRef);
+    private readonly langService: LangService = inject(LangService);
+    private readonly ordersProducer: OrdersProducer = inject(OrdersProducer);
 
     public readonly ownPatterns$: Observable<IdRecord<ShortOrderPatternDto>> = this.initOwnPatternObs();
     private readonly _patternsCart$: BehaviorSubject<IdRecord<ICartPattern>> = new BehaviorSubject<IdRecord<ICartPattern>>({});
+    private readonly _cartInit$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    public readonly patternCart: Signal<IdRecord<ICartPattern>> = toSignal(this._patternsCart$)
+    public readonly cart: Signal<IdRecord<ICartPattern>> = toSignal(this._patternsCart$);
+    public readonly cartCount: Signal<number> = computed(() => {
+        const cart: IdRecord<ICartPattern> = this.cart();
+
+        return Object.values(cart).length;
+    });
+
+    public readonly cartPrice: Signal<number> = computed(() => {
+        const cart: IdRecord<ICartPattern> = this.cart();
+        const lang: LangType = this.langService.lang();
+
+        return Object.values(cart)
+            .map((pattern: ICartPattern) => pattern.price[lang])
+            .reduce((a: number, b: number) => a + b, 0);
+    });
+
     public get patternsCart$(): Observable<IdRecord<ICartPattern>> {
         return this._patternsCart$.asObservable();
     }
@@ -42,6 +61,31 @@ export class CartService {
     constructor() {
         this.initPatternsCart();
         this.initLocalCart();
+        this.initOrderProfileUpdateListener();
+    }
+
+    public initOrderProfileUpdateListener(): void {
+        this.profileService.user$
+            .pipe(
+                filter(Boolean),
+                switchMap(() => this._cartInit$),
+                filter(Boolean),
+                switchMap(() => this._patternsCart$.pipe(takeUntil(this.profileService.user$.pipe(skip(1))))),
+                switchMap((patterns: IdRecord<ICartPattern>) => {
+                    // TODO : + USER CART
+                    const orders: ShortOrderPatternDto[] = Object.entries(patterns)
+                        .map(([key, order]: [string, ICartPattern]) => ({
+                            ...order,
+                            bought: order.pattern,
+                            sizes: order.sizes,
+                            pattern: Number(key),
+                        }));
+
+                    return this.ordersProducer.ordersControllerUpdate(orders);
+                }),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe();
     }
 
     public addPattern(pattern: ICartPattern, origin: PatternEntityDto): void {
@@ -52,7 +96,7 @@ export class CartService {
     }
 
     public removePattern(id: number): void {
-        const card: IdRecord<ICartPattern> = {...this._patternsCart$.getValue()};
+        const card: IdRecord<ICartPattern> = { ...this._patternsCart$.getValue() };
 
         delete card[id];
 
@@ -75,12 +119,13 @@ export class CartService {
                         pattern.id,
                         {
                             ...pattern,
-                            price: this.getPrice(pattern, patterns[pattern.id]),
-                        },
-                    ]),
+                            price: this.getPrice(pattern, patterns[pattern.id])
+                        }
+                    ])
                 );
 
                 this._patternsCart$.next(cart);
+                this._cartInit$.next(true);
             });
     }
 
@@ -88,7 +133,7 @@ export class CartService {
         this._patternsCart$
             .pipe(
                 skip(1),
-                takeUntilDestroyed(this.destroyRef),
+                takeUntilDestroyed(this.destroyRef)
             )
             .subscribe((cart: IdRecord<ICartPattern>) => {
                 this.localPatternCart = JSON.stringify(
@@ -97,7 +142,7 @@ export class CartService {
                             id,
                             sizes,
                             pattern,
-                            color,
+                            color
                         }))
                 );
             });
@@ -110,8 +155,8 @@ export class CartService {
         ]).pipe(
             map(([ownPatterns, patternsCart]: [IdRecord<ShortOrderPatternDto>, IdRecord<ICartPattern>]) => ({
                 own: ownPatterns[pattern.id],
-                cart: patternsCart[pattern.id],
-            })),
+                cart: patternsCart[pattern.id]
+            }))
         );
     }
 

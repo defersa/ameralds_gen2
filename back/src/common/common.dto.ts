@@ -19,12 +19,14 @@ export class BaseEntityDto {
     @ApiProperty({
         description: 'Id of entity',
         type: Date,
+        required: false,
     })
-    public createdAt: Date;
+    public createdAt?: Date;
 
     @ApiProperty({
         description: 'Id of entity',
         type: Date,
+        required: false,
     })
     public updatedAt: Date;
 }

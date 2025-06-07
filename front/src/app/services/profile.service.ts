@@ -80,16 +80,6 @@ export class ProfileService {
         return this.userService.userControllerSignIn(body);
     }
 
-    // public getOwnProfile(): Observable<IProfile> {
-    //     return this.httpClient.get<ProfileInterfaceResponse>(getAction(HttpProfileActions.Own, RestSuffixFragments.Profile))
-    //         .pipe(
-    //             map((response: ProfileInterfaceResponse) => ({
-    //                 ...response.user,
-    //                 dateJoined: moment(response.user.date_joined).format("YYYY.MM.DD HH:mm"),
-    //                 isStaff: response.user.is_staff
-    //             })));
-    // }
-
     public createUser(data: UserCredentialsDto): Observable<string> {
         return this.userService.userControllerRegister(data);
     }

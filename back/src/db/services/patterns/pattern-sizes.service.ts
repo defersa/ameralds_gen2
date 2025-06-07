@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import {
     FileEntity,
     PatternSizeEntity, SizeEntity,
@@ -93,6 +93,13 @@ export class PatternsSizeService {
         return patternSize;
     }
 
+    public async getPatternSizes(ids: number[]): Promise<PatternSizeEntity[]> {
+        return await this.patternsSizeRepository.find({
+            where: {
+                id: In(ids),
+            },
+        });
+    }
 
     public async removePatternSize(patternSize: PatternSizeEntity): Promise<PatternSizeEntity> {
         patternSize.state = ModelState.INACTIVE;

@@ -143,6 +143,16 @@ p {
   padding-bottom: spacing.get-spacing(4);
 }
 
+.p-x4 {
+  padding-left: spacing.get-spacing(4);
+  padding-right: spacing.get-spacing(4);
+}
+
+.p-x6 {
+  padding-left: spacing.get-spacing(6);
+  padding-right: spacing.get-spacing(6);
+}
+
 
 .amstore-column {
   display: flex;

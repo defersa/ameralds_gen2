@@ -16,6 +16,7 @@ import { PatternsModule } from "./modules/patterns/patterns.module";
 import { ImagesModule } from "./modules/images/images.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { FilesModule } from "./modules/files/files.module";
+import { OrdersModule } from "./modules/orders/orders.module";
 
 
 @Module({
@@ -37,6 +38,7 @@ import { FilesModule } from "./modules/files/files.module";
         PatternsModule,
         ImagesModule,
         FilesModule,
+        OrdersModule,
         DbSharedModule,
     ],
     controllers: [AppController],

@@ -1,11 +1,14 @@
 import { Injectable, Scope } from "@nestjs/common";
 import { DataSourceService } from "../data-source.service";
 import { FindOneOptions, Repository } from "typeorm";
-import { TokenAccessEntity, TokenRefreshEntity, UserEntity } from "@am/db/entities";
+import { OrderStatus, TokenAccessEntity, TokenRefreshEntity, UserEntity, UserOrderEntity } from "@am/db/entities";
 import * as bcrypt from "bcrypt";
 import { TokenService } from "@am/db/service/token.service";
+import { OrderService } from "@am/db/service/general/order.service";
 import { addDays } from "date-fns";
-import { UserTokensDTO } from "../../modules/user/user.dto";
+import { UserProfileDto, UserTokensDTO } from "../../modules/user/user.dto";
+import { instanceToPlain } from "class-transformer";
+import { UserOrderDto } from "../../modules/orders/orders.dto";
 
 
 @Injectable({
@@ -16,7 +19,8 @@ export class UserService {
 
     constructor(
         private dataSource: DataSourceService,
-        private tokenService: TokenService
+        private tokenService: TokenService,
+        private orderService: OrderService,
     ) {
         this.userRepository = this.dataSource.getRepository<UserEntity>(UserEntity);
     }
@@ -127,17 +131,33 @@ export class UserService {
         } as FindOneOptions<UserEntity>);
     }
 
-    public async getUser(id: number): Promise<UserEntity> {
-        return await this.userRepository.findOne({
+    public async getUser(id: number): Promise<UserProfileDto> {
+        const userEntity: UserEntity = await this.userRepository.findOne({
             where: {
                 id,
             },
             relations: {
+                orders: true,
                 ownPatterns: {
                     pattern: true,
                     sizes: true,
                 },
+            },
+            select: {
+                orders: {
+                    status: true,
+                }
             }
-        } as FindOneOptions<UserEntity>);
+        });
+
+        const plainUser: UserProfileDto = instanceToPlain(userEntity) as UserProfileDto;
+
+        if (userEntity.orders.every((order: UserOrderEntity) => order.status !== OrderStatus.OPEN)) {
+            await this.orderService.createOrder(userEntity);
+        }
+
+        plainUser.cart = await this.orderService.getOpenUserOrder(userEntity) as unknown as UserOrderDto;
+
+        return plainUser;
     }
 }

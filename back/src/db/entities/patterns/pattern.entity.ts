@@ -7,6 +7,7 @@ import { ImageEntity } from "../image/image.entity";
 import { CategoryEntity } from "./category.entity";
 import { PatternSizeEntity } from "./pattern-size.entity";
 import { NumberLangEntity } from "../common/number-lang.entity";
+import { OrderPatternEntity, SelectedPatternEntity, UserPatternEntity } from "./pattern-order.entity";
 
 
 @Entity({ schema: 'patterns' })
@@ -61,6 +62,12 @@ export class PatternEntity extends BaseModel {
 
     @OneToMany(() => PatternSizeEntity, (size: PatternSizeEntity) => size.pattern)
     public sizes: PatternSizeEntity[];
+
+    @OneToMany(() => OrderPatternEntity, (order: OrderPatternEntity) => order.pattern)
+    public orders: OrderPatternEntity[];
+
+    @OneToMany(() => UserPatternEntity, (order: UserPatternEntity) => order.pattern)
+    public own: UserPatternEntity[];
 
     @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn({ foreignKeyConstraintName: 'patternColor' })

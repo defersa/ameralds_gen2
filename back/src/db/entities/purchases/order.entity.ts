@@ -26,7 +26,7 @@ export class UserOrderEntity extends BaseModel {
     public patterns: OrderPatternEntity[];
 
     @ManyToOne(() => UserEntity, (user: UserEntity) => user.orders, { onDelete: 'SET NULL', nullable: true })
-    public user: string;
+    public user: UserEntity;
 
     @OneToOne(() => UserPaymentEntity, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn()

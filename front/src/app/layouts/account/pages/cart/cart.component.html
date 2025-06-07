@@ -1,7 +1,23 @@
-<h2 class="p-bottom4">Схемы</h2>
+<h2>Корзина</h2>
+
+<amstore-info [contrast]="true" [needIcon]="false" class="amstore-line space-between p-x6">
+    <div class="amstore-column right">
+        <h3>Позиций</h3>
+        <h2><strong>{{ count() }} cхем</strong></h2>
+    </div>
+
+    <div class="amstore-column right">
+        <h3>Цена</h3>
+        <h2><strong>{{ price() }} {{ currency() }}</strong></h2>
+    </div>
+
+    <amstore-button size="large">Оформить</amstore-button>
+</amstore-info>
+
+<h2 class="p-bottom4">Список паттернов</h2>
 
 <div class="amstore-column">
-    @for (item of items(); track item) {
+    @for (item of items(); track item.index + item.pattern.id) {
         <amstore-snapshot-pattern [pattern]="item.pattern"
                                   [routerLink]="['pattern', item.pattern.id]"
                                   [style.order]="item.index">
@@ -10,7 +26,7 @@
                                         [inCart]="!item.removed"
                                         (removeFromCart)="removeFromCart(item)"
                                         (returnToCart)="returnToCart(item)"
-                                        (goToCard)="goToCart(item.pattern.id)"/>
+                                        (goToCard)="goToCart(item.pattern.id)" />
         </amstore-snapshot-pattern>
     } @empty {
         <h4>Список пуст</h4>

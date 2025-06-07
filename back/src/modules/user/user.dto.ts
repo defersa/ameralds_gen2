@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from "@am/db/entities";
-import { ShortOrderPatternDto } from "../orders/orders.dto";
+import { ShortOrderPatternDto, UserOrderDto } from "../orders/orders.dto";
 import { BaseEntityDto } from "../../common/common.dto";
 
 
@@ -74,4 +74,10 @@ export class UserProfileDto extends BaseEntityDto {
         isArray: true
     })
     public ownPatterns: ShortOrderPatternDto[];
+
+    @ApiProperty({
+        description: 'Current cart',
+        type: UserOrderDto,
+    })
+    public cart: UserOrderDto;
 }

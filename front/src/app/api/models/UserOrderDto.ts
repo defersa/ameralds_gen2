@@ -2,7 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type ShortOrderPatternDto = {
+import type { EnumOrderStatus } from './EnumOrderStatus';
+import type { ShortOrderPatternDto } from './ShortOrderPatternDto';
+export type UserOrderDto = {
     /**
      * Id of entity
      */
@@ -15,21 +17,10 @@ export type ShortOrderPatternDto = {
      * Id of entity
      */
     updatedAt?: string;
+    status: EnumOrderStatus;
     /**
-     * Sizes ids
+     * Patterns
      */
-    sizes: Array<number>;
-    /**
-     * Pattern id
-     */
-    pattern: number;
-    /**
-     * Status of colors able
-     */
-    color: boolean;
-    /**
-     * Status of colors able
-     */
-    bought: boolean;
+    patterns: Array<ShortOrderPatternDto>;
 };
 

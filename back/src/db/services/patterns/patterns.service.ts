@@ -22,7 +22,7 @@ import {
 } from "../../../modules/patterns/patterns.dto";
 import { ModelState } from "../../abstract/abstract.model";
 import { ApiErrorCodes } from "../../../modules/errors/errors.dto";
-import { classToPlain, instanceToPlain } from "class-transformer";
+import { instanceToPlain } from "class-transformer";
 
 
 
@@ -213,8 +213,8 @@ export class PatternsService {
         return Object.fromEntries(plainPatterns.map((item: PatternEntityDto) => [item.id, item]));
     }
 
-    public async getPattern(id: number): Promise<FullPatternEntityDto> {
-        const pattern: FullPatternEntityDto = await this.patternsRepository.findOne({
+    public async getPattern(id: number): Promise<PatternEntity> {
+        const pattern: PatternEntity = await this.patternsRepository.findOne({
             where: {
                 id,
                 state: ModelState.ACTIVE,
@@ -241,7 +241,7 @@ export class PatternsService {
                 },
             },
             loadRelationIds: { relations: ["categories"] },
-        }) as unknown as FullPatternEntityDto;
+        });
 
         if (!pattern) {
             throw new HttpException({ code: ApiErrorCodes.NOT_EXIST }, HttpStatus.BAD_REQUEST);

@@ -63,8 +63,6 @@ export class PatternCartService {
             const iCart: ICartPattern = cart();
             const iCartEdit: boolean = canEdit();
 
-            console.log(iCart)
-
             if (pattern.color) {
                 const colorGroup: FormGroup<PatternColorGroup> = formGroup.controls.color;
 

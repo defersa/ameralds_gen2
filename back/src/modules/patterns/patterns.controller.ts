@@ -46,7 +46,7 @@ export class PatternsController {
     })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async byIds(
-        @Query('id') ids: number[] | number,
+        @Query('id') ids: number[],
     ): Promise<unknown> {
         if (!ids) {
             return {};
@@ -72,7 +72,7 @@ export class PatternsController {
     public async entity(
         @Param() params: ParamsEntityDto,
     ): Promise<FullPatternEntityDto> {
-        return this.patternsService.getPattern(params.id);
+        return await this.patternsService.getPattern(params.id) as unknown as FullPatternEntityDto;
     }
 }
 
