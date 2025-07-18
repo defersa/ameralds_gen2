@@ -2,8 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { PatternWithPriceDto } from './PatternWithPriceDto';
-export type ShortOrderPatternDto = {
+export type InputShortOrderPatternDto = {
     /**
      * Id of entity
      */
@@ -29,8 +28,8 @@ export type ShortOrderPatternDto = {
      */
     bought: boolean;
     /**
-     * Pattern with prices
+     * Pattern id
      */
-    pattern: PatternWithPriceDto;
+    pattern: number;
 };
 

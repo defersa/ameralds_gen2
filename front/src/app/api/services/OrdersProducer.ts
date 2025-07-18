@@ -5,7 +5,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
-import type { ShortOrderPatternDto } from '../models/ShortOrderPatternDto';
+import type { InputShortOrderPatternDto } from '../models/InputShortOrderPatternDto';
 import type { SuccessCreateDto } from '../models/SuccessCreateDto';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -20,7 +20,7 @@ export class OrdersProducer {
      * @throws ApiError
      */
     public ordersControllerUpdate(
-        requestBody: Array<ShortOrderPatternDto>,
+        requestBody: Array<InputShortOrderPatternDto>,
     ): Observable<SuccessCreateDto> {
         return __request(OpenAPI, this.http, {
             method: 'POST',

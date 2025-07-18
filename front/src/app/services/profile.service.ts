@@ -15,7 +15,7 @@ import { LocalStorage } from "@am/decorators/local.decorator";
 import {
     EnumUserRole,
     type ShortOrderPatternDto,
-    UserCredentialsDto,
+    UserCredentialsDto, type UserOrderDto,
     UserProducer,
     UserProfileDto,
     UserTokensDTO
@@ -42,6 +42,7 @@ export class ProfileService {
     public isAdmin$: Observable<boolean> = this.userStatus$.pipe(map((role: EnumUserRole) => role === EnumUserRole.ADMIN));
 
     public boughtPatterns$: BehaviorSubject<ShortOrderPatternDto[]> = new BehaviorSubject<ShortOrderPatternDto[]>([]);
+    public userCart$: BehaviorSubject<UserOrderDto> = new BehaviorSubject<UserOrderDto>(null);
 
     constructor() {
         this.initProfile();
@@ -55,6 +56,7 @@ export class ProfileService {
             .subscribe((user: UserProfileDto) => {
                 this.userStatus$.next(user?.role ?? null);
                 this.boughtPatterns$.next(user?.ownPatterns ?? []);
+                this.userCart$.next(user?.cart ?? null);
             });
 
         this.authService.authStatus$

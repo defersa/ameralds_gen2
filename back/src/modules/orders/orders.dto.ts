@@ -1,35 +1,36 @@
-import { ApiProperty, getSchemaPath } from "@nestjs/swagger";
-import { BaseEntityDto, EntityDto, LabelEntityDto, NumberEntityDto, PaginatedPageDto } from "../../common/common.dto";
-import { ImageDto } from "../images/images.dto";
-import { FileDto } from "../files/files.dto";
-import { Column, JoinTable, ManyToMany, ManyToOne } from "typeorm";
-import { OrderStatus, PatternEntity, PatternSizeEntity } from "@am/db/entities";
+import { ApiProperty } from "@nestjs/swagger";
+import { BaseEntityDto, NumberEntityDto } from "../../common/common.dto";
+import { OrderStatus } from "@am/db/entities";
 import { PatternEntityDto, PatternSizeDto } from "../patterns/patterns.dto";
-import { ApiErrorCodes } from "../errors/errors.dto";
 
-// @ManyToMany(() => PatternSizeEntity)
-// @JoinTable()
-// public sizes: PatternSizeEntity[];
-//
-// @ManyToOne(() => PatternEntity, (pattern: PatternEntity) => pattern.sizes, { onDelete: 'SET NULL', nullable: true })
-// public pattern: PatternEntity;
-//
-// @Column({ type: 'boolean', default: false })
-// public color: boolean;
 
-export class ShortOrderPatternDto extends BaseEntityDto {
+export class PatternWithPriceDto extends BaseEntityDto {
+    @ApiProperty({
+        description: 'Base price of pattern',
+        type: NumberEntityDto,
+    })
+    public basePrice: NumberEntityDto;
+
+    @ApiProperty({
+        description: 'Additional price of pattern',
+        type: NumberEntityDto,
+    })
+    public additionalPrice: NumberEntityDto;
+
+    @ApiProperty({
+        description: 'Color price of pattern',
+        type: NumberEntityDto,
+    })
+    public colorPrice: NumberEntityDto;
+}
+
+export class BaseShortOrderPatternDto extends BaseEntityDto {
     @ApiProperty({
         description: 'Sizes ids',
         type: 'number',
         isArray: true,
     })
     public sizes: number[];
-
-    @ApiProperty({
-        description: 'Pattern id',
-        type: 'number',
-    })
-    public pattern: number;
 
     @ApiProperty({
         description: 'Status of colors able',
@@ -42,6 +43,22 @@ export class ShortOrderPatternDto extends BaseEntityDto {
         type: 'boolean',
     })
     public bought: boolean;
+}
+
+export class ShortOrderPatternDto extends BaseShortOrderPatternDto {
+    @ApiProperty({
+        description: 'Pattern with prices',
+        type: PatternWithPriceDto,
+    })
+    public pattern: PatternWithPriceDto;
+}
+
+export class InputShortOrderPatternDto extends BaseShortOrderPatternDto {
+    @ApiProperty({
+        description: 'Pattern id',
+        type: 'number',
+    })
+    public pattern: number;
 }
 
 export class OrderPatternDto extends BaseEntityDto {

@@ -3,9 +3,17 @@ import { LocalStorage } from "@am/decorators/local.decorator";
 import { PatternsService } from "@am/services/patterns.service";
 import { parseJsonWithDefault } from "@am/utils/common.utils";
 import { BehaviorSubject, combineLatest, Observable } from "rxjs";
-import { NumberEntityDto, OrdersProducer, PatternEntityDto, ShortOrderPatternDto, UserProfileDto } from "@am/root/api";
+import {
+    InputShortOrderPatternDto,
+    NumberEntityDto,
+    OrdersProducer,
+    PatternEntityDto, type PatternWithPriceDto,
+    ShortOrderPatternDto,
+    type UserOrderDto,
+    UserProfileDto
+} from "@am/root/api";
 import { ProfileService } from "@am/services/profile.service";
-import { filter, map, shareReplay, skip, switchMap, takeUntil } from "rxjs/operators";
+import { debounceTime, filter, map, shareReplay, skip, switchMap, takeUntil } from "rxjs/operators";
 import { IdRecord } from "@am/interface/common.interface";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { LangService, LangType } from "@am/services/lang.service";
@@ -61,19 +69,20 @@ export class CartService {
     constructor() {
         this.initPatternsCart();
         this.initLocalCart();
+        this.initUserCartCalculator();
         this.initOrderProfileUpdateListener();
     }
 
-    public initOrderProfileUpdateListener(): void {
-        this.profileService.user$
+    private initOrderProfileUpdateListener(): void {
+        this._cartInit$
             .pipe(
                 filter(Boolean),
-                switchMap(() => this._cartInit$),
+                switchMap(() => this._patternsCart$),
+                switchMap(() => this.profileService.user$),
+                debounceTime(100),
                 filter(Boolean),
-                switchMap(() => this._patternsCart$.pipe(takeUntil(this.profileService.user$.pipe(skip(1))))),
-                switchMap((patterns: IdRecord<ICartPattern>) => {
-                    // TODO : + USER CART
-                    const orders: ShortOrderPatternDto[] = Object.entries(patterns)
+                switchMap(() => {
+                    const orders: InputShortOrderPatternDto[] = Object.entries(this._patternsCart$.getValue())
                         .map(([key, order]: [string, ICartPattern]) => ({
                             ...order,
                             bought: order.pattern,
@@ -83,12 +92,12 @@ export class CartService {
 
                     return this.ordersProducer.ordersControllerUpdate(orders);
                 }),
-                takeUntilDestroyed(this.destroyRef)
+                takeUntilDestroyed(this.destroyRef),
             )
             .subscribe();
     }
 
-    public addPattern(pattern: ICartPattern, origin: PatternEntityDto): void {
+    public addPattern(pattern: ICartPattern, origin: PatternWithPriceDto): void {
         this._patternsCart$.next({
             ...this._patternsCart$.getValue(),
             [pattern.id]: { ...pattern, price: this.getPrice(pattern, origin) }
@@ -101,6 +110,55 @@ export class CartService {
         delete card[id];
 
         this._patternsCart$.next(card);
+    }
+
+    private initUserCartCalculator(): void {
+        this.profileService.userCart$
+            .pipe(
+                filter(Boolean),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe((userCart: UserOrderDto) => {
+                const cart: IdRecord<ICartPattern> = {...this._patternsCart$.getValue()};
+                const boughtPatterns: ShortOrderPatternDto[] = [...this.profileService.boughtPatterns$.getValue()];
+
+                userCart.patterns.forEach((userPatternOrder: ShortOrderPatternDto) => {
+                    const previousItem: ICartPattern = cart[userPatternOrder.pattern.id];
+                    const item: ICartPattern = {
+                        id: userPatternOrder.pattern.id,
+                        pattern: userPatternOrder.bought || previousItem?.pattern,
+                        color: userPatternOrder.color || previousItem?.color,
+                        sizes: [...userPatternOrder.sizes, ...(previousItem?.sizes || [])],
+                    };
+
+                    cart[item.id] = {
+                        ...item,
+                        price: this.getPrice(item, userPatternOrder.pattern),
+                    };
+                });
+
+                Object.keys(cart)
+                    .map(Number)
+                    .map((id: number) => boughtPatterns
+                        .find(((item: ShortOrderPatternDto) => item.id === id)))
+                    .filter(Boolean)
+                    .forEach((bought: ShortOrderPatternDto) => {
+                        const item: ICartPattern = cart[bought.id];
+                        const newItem: ICartPattern ={
+                            ...item,
+                            color: !bought.color && item.color,
+                            pattern: false,
+                            sizes: item.sizes.filter((size: number) => !bought.sizes.includes(size)),
+                        };
+
+                        cart[bought.id] = {
+                            ...newItem,
+                            price: this.getPrice(newItem, bought.pattern),
+                        };
+                    });
+
+                this._patternsCart$.next(cart);
+            });
     }
 
     private initPatternsCart(): void {
@@ -123,6 +181,8 @@ export class CartService {
                         }
                     ])
                 );
+
+                console.log(cart)
 
                 this._patternsCart$.next(cart);
                 this._cartInit$.next(true);
@@ -160,9 +220,9 @@ export class CartService {
         );
     }
 
-    public getPrice(pattern: ICartPattern, origin: PatternEntityDto): NumberEntityDto {
-        const priceByLang: (lang: "ru" | "en", pattern: ICartPattern, origin: PatternEntityDto) => number =
-            (lang: "ru" | "en", pattern: ICartPattern, origin: PatternEntityDto) =>
+    public getPrice(pattern: ICartPattern, origin: PatternWithPriceDto): NumberEntityDto {
+        const priceByLang: (lang: "ru" | "en", pattern: ICartPattern, origin: PatternWithPriceDto) => number =
+            (lang: "ru" | "en", pattern: ICartPattern, origin: PatternWithPriceDto) =>
                 origin.basePrice[lang] * Number(pattern.pattern)
                 + origin.additionalPrice[lang] * (pattern.sizes.length > 0 ? (pattern.sizes.length - 1) : 0)
                 + origin.colorPrice[lang] * Number(pattern.color);

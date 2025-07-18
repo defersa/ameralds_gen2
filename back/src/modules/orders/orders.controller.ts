@@ -4,7 +4,7 @@ import { SuccessCreateDto } from "../../common/common.dto";
 import { ErrorsDto } from "../errors/errors.dto";
 import { OrderService } from "@am/db/service/general/order.service";
 import { RequestModel } from "@am/models/request.model";
-import { ShortOrderPatternDto } from "./orders.dto";
+import { InputShortOrderPatternDto } from "./orders.dto";
 
 
 @Controller('orders')
@@ -16,11 +16,11 @@ export class OrdersController {
     }
 
     @Post('update')
-    @ApiBody({ type: [ShortOrderPatternDto] })
+    @ApiBody({ type: [InputShortOrderPatternDto] })
     @ApiCreatedResponse({ description: 'The pattern successfully created.', type: SuccessCreateDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async update(
-        @Body() patterns: ShortOrderPatternDto[],
+        @Body() patterns: InputShortOrderPatternDto[],
         @Req() request: RequestModel,
     ): Promise<SuccessCreateDto> {
         return await this.orderService.updateOpenUserOrder(request.user, patterns);

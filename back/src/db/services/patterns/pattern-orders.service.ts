@@ -3,7 +3,7 @@ import { Repository } from "typeorm";
 import { OrderPatternEntity, PatternEntity, PatternSizeEntity, UserPatternEntity } from "@am/db/entities";
 import { DataSourceService } from "../../data-source.service";
 import { CommonEntitiesService } from "@am/db/service/common-entities.service";
-import { ShortOrderPatternDto } from "../../../modules/orders/orders.dto";
+import { InputShortOrderPatternDto } from "../../../modules/orders/orders.dto";
 import { PatternsService } from "@am/db/service/patterns/patterns.service";
 import { PatternsSizeService } from "@am/db/service/patterns/pattern-sizes.service";
 
@@ -23,7 +23,7 @@ export class PatternOrdersService {
         this.orderPatternRepository = this.dataSource.getRepository<OrderPatternEntity>(OrderPatternEntity);
     }
 
-    public async createOrderPattern(order: ShortOrderPatternDto): Promise<OrderPatternEntity> {
+    public async createOrderPattern(order: InputShortOrderPatternDto): Promise<OrderPatternEntity> {
         const pattern: PatternEntity = await this.patternsService.getPattern(order.pattern);
         const sizes: PatternSizeEntity[] = await this.patternSizeService.getPatternSizes(order.sizes);
 
@@ -40,6 +40,6 @@ export class PatternOrdersService {
     }
 
     public async removeOrderPatter(order: OrderPatternEntity): Promise<void> {
-        await this.orderPatternRepository.delete(order);
+        await this.orderPatternRepository.remove(order);
     }
 }

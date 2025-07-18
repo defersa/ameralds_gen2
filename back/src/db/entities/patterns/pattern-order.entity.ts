@@ -7,7 +7,11 @@ import { AdminOrderEntity, UserOrderEntity } from "../purchases/order.entity";
 
 
 export abstract class SelectedPatternEntity extends BaseModel {
-    @ManyToMany(() => PatternSizeEntity)
+    @ManyToMany(() => PatternSizeEntity, {
+        cascade: true,
+        onDelete: 'CASCADE',
+        onUpdate:'CASCADE',
+    })
     @JoinTable()
     public sizes: PatternSizeEntity[];
 

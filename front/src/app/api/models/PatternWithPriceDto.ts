@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { PatternWithPriceDto } from './PatternWithPriceDto';
-export type ShortOrderPatternDto = {
+import type { NumberEntityDto } from './NumberEntityDto';
+export type PatternWithPriceDto = {
     /**
      * Id of entity
      */
@@ -17,20 +17,16 @@ export type ShortOrderPatternDto = {
      */
     updatedAt?: string;
     /**
-     * Sizes ids
+     * Base price of pattern
      */
-    sizes: Array<number>;
+    basePrice: NumberEntityDto;
     /**
-     * Status of colors able
+     * Additional price of pattern
      */
-    color: boolean;
+    additionalPrice: NumberEntityDto;
     /**
-     * Status of colors able
+     * Color price of pattern
      */
-    bought: boolean;
-    /**
-     * Pattern with prices
-     */
-    pattern: PatternWithPriceDto;
+    colorPrice: NumberEntityDto;
 };
 
