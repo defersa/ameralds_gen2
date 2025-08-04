@@ -149,5 +149,31 @@
     },
     "cli": {
         "analytics": "e8dc741e-5dc3-4c36-9e60-e01f4c482f08"
+    },
+    "schematics": {
+      "@schematics/angular:component": {
+        "type": "component"
+      },
+      "@schematics/angular:directive": {
+        "type": "directive"
+      },
+      "@schematics/angular:service": {
+        "type": "service"
+      },
+      "@schematics/angular:guard": {
+        "typeSeparator": "."
+      },
+      "@schematics/angular:interceptor": {
+        "typeSeparator": "."
+      },
+      "@schematics/angular:module": {
+        "typeSeparator": "."
+      },
+      "@schematics/angular:pipe": {
+        "typeSeparator": "."
+      },
+      "@schematics/angular:resolver": {
+        "typeSeparator": "."
+      }
     }
 }
