@@ -119,6 +119,7 @@ export class CartService {
                 takeUntilDestroyed(this.destroyRef),
             )
             .subscribe((userCart: UserOrderDto) => {
+                // TODO: TUTA
                 const cart: IdRecord<ICartPattern> = {...this._patternsCart$.getValue()};
                 const boughtPatterns: ShortOrderPatternDto[] = [...this.profileService.boughtPatterns$.getValue()];
 

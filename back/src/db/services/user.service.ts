@@ -1,7 +1,14 @@
 import { Injectable, Scope } from "@nestjs/common";
 import { DataSourceService } from "../data-source.service";
 import { FindOneOptions, Repository } from "typeorm";
-import { OrderStatus, TokenAccessEntity, TokenRefreshEntity, UserEntity, UserOrderEntity } from "@am/db/entities";
+import {
+    OrderPatternEntity,
+    OrderStatus, PatternSizeEntity,
+    TokenAccessEntity,
+    TokenRefreshEntity,
+    UserEntity,
+    UserOrderEntity
+} from "@am/db/entities";
 import * as bcrypt from "bcrypt";
 import { TokenService } from "@am/db/service/token.service";
 import { OrderService } from "@am/db/service/general/order.service";
@@ -156,7 +163,11 @@ export class UserService {
             await this.orderService.createOrder(userEntity);
         }
 
-        plainUser.cart = await this.orderService.getOpenUserOrder(userEntity) as unknown as UserOrderDto;
+        const cart: UserOrderEntity = await this.orderService.getOpenUserOrder(userEntity);
+        plainUser.cart = {
+            ...cart,
+            patterns: cart.patterns.map((pattern: OrderPatternEntity) => ({ ...pattern, sizes: pattern.sizes.map((size: PatternSizeEntity) => size.id) })),
+        };
 
         return plainUser;
     }

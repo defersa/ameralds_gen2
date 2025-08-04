@@ -4,7 +4,6 @@ export class manualMigration1725388470749 implements MigrationInterface {
     name = 'manualMigration1725388470749'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`CREATE SCHEMA "patterns"`);
         await queryRunner.query(`CREATE TYPE "patterns"."category_entity_state_enum" AS ENUM('active', 'inactive')`);
         await queryRunner.query(`CREATE TABLE "patterns"."category_entity" ("id" SERIAL NOT NULL, "state" "patterns"."category_entity_state_enum" NOT NULL DEFAULT 'active', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "labelId" integer, CONSTRAINT "REL_5d7bdfc12192482b35397383b4" UNIQUE ("labelId"), CONSTRAINT "PK_1a38b9007ed8afab85026703a53" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "patterns"."pattern_entity_state_enum" AS ENUM('active', 'inactive')`);
@@ -48,7 +47,6 @@ export class manualMigration1725388470749 implements MigrationInterface {
         await queryRunner.query(`DROP TYPE "patterns"."pattern_entity_state_enum"`);
         await queryRunner.query(`DROP TABLE "patterns"."category_entity"`);
         await queryRunner.query(`DROP TYPE "patterns"."category_entity_state_enum"`);
-        await queryRunner.query(`DROP SCHEMA "patterns"`);
     }
 
 }
