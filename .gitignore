@@ -1,7 +1,16 @@
-# See http://help.github.com/ignore-files/ for more about ignoring files.
+# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# compiled output
+dist
+tmp
+out-tsc
+
+# dependencies
+node_modules
 
 # IDEs and editors
 /.idea
+/.vscode
 .project
 .classpath
 .c9/
@@ -15,7 +24,6 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.history/*
 
 # misc
 /.sass-cache
@@ -27,6 +35,17 @@ yarn-error.log
 testem.log
 /typings
 
+apps/am-back/uploads
+
 # System Files
 .DS_Store
 Thumbs.db
+
+.nx/cache
+.nx/workspace-data
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
+
+.angular
+*.env
+/env

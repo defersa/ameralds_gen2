@@ -1,0 +1,15 @@
+import { Component } from "@angular/core";
+import { MenuComponent } from "@am-front/shared/menu/menu.component";
+import { RouterOutlet } from "@angular/router";
+
+
+@Component({
+    templateUrl: "./account.component.html",
+    styleUrls: ["./account.component.scss"],
+    imports: [
+        MenuComponent,
+        RouterOutlet
+    ]
+})
+export class AccountComponent {
+}

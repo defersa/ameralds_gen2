@@ -1,0 +1,65 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "rootDir": ".",
+        "emitDecoratorMetadata": true,
+        "target": "ES2022",
+        "module": "esnext",
+        "lib": [
+            "es2020",
+            "dom"
+        ],
+        "isolatedModules": true,
+        "forceConsistentCasingInFileNames": true,
+        "esModuleInterop": true,
+        "strict": false,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "sourceMap": true,
+        "declaration": false,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@am-front/root/*": [
+                "apps/am-front/src/app/*"
+            ],
+            "@am-front/cdk/*": [
+                "apps/am-front/src/app/cdk/*"
+            ],
+            "@am-front/core/*": [
+                "apps/am-front/src/app/core/*"
+            ],
+            "@am-front/shared/*": [
+                "apps/am-front/src/app/shared/*"
+            ],
+            "@am-front/services/*": [
+                "apps/am-front/src/app/services/*"
+            ],
+            "@am-front/interface/*": [
+                "apps/am-front/src/app/interface/*"
+            ],
+            "@am-front/utils/*": [
+                "apps/am-front/src/app/utils/*"
+            ],
+            "@am-front/decorators/*": [
+                "apps/am-front/src/app/decorators/*"
+            ],
+            "@am-back/core/*": [
+                "apps/am-back/src/core/*"
+            ],
+            "@am-back/db/service/*": [
+                "apps/am-back/src/db/services/*"
+            ],
+            "@am-back/models/*": [
+                "apps/am-back/src/models/*"
+            ]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "tmp"
+    ]
+}

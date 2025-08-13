@@ -1,0 +1,41 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "noImplicitOverride": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "rootDir": ".",
+        "sourceMap": true,
+        "declaration": false,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "strictPropertyInitialization": false,
+        "importHelpers": true,
+        "target": "ES2022",
+        "useDefineForClassFields": false,
+        "module": "esnext",
+        "lib": [
+            "es2019",
+            "dom"
+        ]
+    },
+    "angularCompilerOptions": {
+        "typeCheckHostBindings": true,
+        "enableI18nLegacyMessageIdFormat": false,
+        "strictInjectionParameters": true,
+        "strictInputAccessModifiers": true,
+        "strictTemplates": true
+    },
+    "files": [],
+    "include": [],
+    "references": [
+        {
+            "path": "./tsconfig.app.json"
+        },
+        {
+            "path": "./tsconfig.spec.json"
+        }
+    ]
+}
