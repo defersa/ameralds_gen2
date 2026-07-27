@@ -1,0 +1,11 @@
+{
+  "name": "@ameralds/am-back-e2e",
+  "private": true,
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "jest-environment-node": "^30.0.2",
+    "ts-jest": "^29.4.1"
+  }
+}

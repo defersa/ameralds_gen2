@@ -1,8 +1,13 @@
 import fs from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 
 function getProjectEnv() {
-    const path = `.env`;
+    const path = join(repoRoot, '.env');
 
     const body = fs.readFileSync(path).toString();
 

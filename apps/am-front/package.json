@@ -1,0 +1,35 @@
+{
+  "name": "@ameralds/am-front",
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^20.1.4",
+    "@angular/cdk": "^20.1.4",
+    "@angular/common": "^20.1.4",
+    "@angular/compiler": "^20.1.4",
+    "@angular/core": "^20.1.4",
+    "@angular/forms": "^20.1.4",
+    "@angular/material": "^20.1.4",
+    "@angular/platform-browser": "^20.1.4",
+    "@angular/platform-browser-dynamic": "^20.1.4",
+    "@angular/router": "^20.1.4",
+    "bootstrap-4-grid": "^3.4.0",
+    "jwt-decode": "^4.0.0",
+    "moment": "^2.29.1",
+    "rxjs": "^7.8.0",
+    "tslib": "^2.0.0",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/core": "~20.1.0",
+    "@angular-devkit/schematics": "~20.1.0",
+    "@angular/build": "~20.1.0",
+    "@angular/cli": "~20.1.0",
+    "@angular/compiler-cli": "~20.1.0",
+    "@angular/language-service": "~20.1.0",
+    "@schematics/angular": "~20.1.0",
+    "angular-eslint": "^20.0.0",
+    "jest-environment-jsdom": "^30.0.2",
+    "jest-preset-angular": "~15.0.0",
+    "openapi-typescript-codegen": "^0.29.0"
+  }
+}
