@@ -1,6 +1,10 @@
 import env from '../tools/project-env.mjs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { DataSource } from "typeorm";
 
+
+const appRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const myDataSource = new DataSource({
     type: 'postgres',
@@ -10,13 +14,13 @@ const myDataSource = new DataSource({
     password: env.DB_PASSWORD,
     database: env.DB_DATABASE,
     entities: [
-        'src/db/entities/**/**.entity.ts',
+        join(appRoot, 'src/db/entities/**/*.entity.ts'),
     ],
     migrations: [
-        'database/migrations/**.ts',
+        join(appRoot, 'database/migrations/**/*.ts'),
     ],
     cli: {
-        migrationsDir: 'database/migrations',
+        migrationsDir: join(appRoot, 'database/migrations'),
     },
     logging: true,
 });

@@ -1,9 +1,8 @@
 import fs from 'fs';
-import process from 'process';
 
 
 function getProjectEnv() {
-    const path = `env/.${process.env.NODE_ENV ?? 'dev'}.env`;
+    const path = `.env`;
 
     const body = fs.readFileSync(path).toString();
 

@@ -1,0 +1,65 @@
+version: "3.9"
+services:
+  ambd-postgres:
+    container_name: ambd-postgres_container
+    image: postgres:18
+
+    command:
+      - "postgres"
+      - "-c"
+      - "config_file=/etc/postgresql.conf"
+
+    environment:
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    volumes:
+      - ambd-data:/var/lib/postgresql/data
+      - ./mrec_postgresql.conf:/etc/postgresql.conf:ro
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+    networks:
+      - postgres
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4:7.2
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "test@test.test"
+      PGADMIN_DEFAULT_PASSWORD: "test"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./dump/mbdump:/dump
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 2G
+    networks:
+      - postgres
+
+volumes:
+  pgadmin-data:
+  ambd-data:
+
+networks:
+  postgres:
+    driver: bridge
