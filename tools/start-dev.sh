@@ -12,7 +12,9 @@ shutdown() {
   trap - EXIT INT TERM
 
   if ((${#pids[@]} > 0)); then
-    kill "${pids[@]}" 2>/dev/null || true
+    for pid in "${pids[@]}"; do
+      kill -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true
+    done
     wait "${pids[@]}" 2>/dev/null || true
   fi
 
@@ -24,7 +26,7 @@ start() {
   shift
 
   echo "Starting $name..."
-  "$@" &
+  setsid "$@" </dev/null &
   pids+=("$!")
 }
 
@@ -36,7 +38,8 @@ if command -v sudo >/dev/null 2>&1; then
   sudo -v
 fi
 
-start "database" npm run am:bd:up
+echo "Starting database..."
+AM_BD_DETACH=1 bash apps/am-bd/_up.sh
 start "backend" npm run am:back:start:dev
 start "frontend" npm run am:front:start
 

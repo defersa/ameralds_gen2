@@ -10,10 +10,10 @@ export enum FileType {
 @Entity()
 @TableInheritance({ column: { type: "enum", name: "type", enum: FileType } })
 export class FileEntity extends BaseModel {
-    @Column({ type: "varchar", width: 400 })
+    @Column({ type: "varchar", length: 400 })
     public path: string;
 
-    @Column({ type: "varchar", width: 200 })
+    @Column({ type: "varchar", length: 200 })
     public name: string;
 
     @Column({ type: 'boolean', default: false })

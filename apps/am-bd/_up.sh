@@ -16,4 +16,10 @@ if [[ ! -f "$ENV_FILE" ]]; then
   echo "Created $ENV_FILE from $ENV_EXAMPLE_FILE"
 fi
 
-sudo docker compose --env-file "$ENV_FILE" -f "$SCRIPT_DIR/docker-compose.yml" up
+compose_args=(up)
+
+if [[ "${AM_BD_DETACH:-}" == "1" ]]; then
+  compose_args+=(--detach)
+fi
+
+sudo docker compose --env-file "$ENV_FILE" -f "$SCRIPT_DIR/docker-compose.yml" "${compose_args[@]}"

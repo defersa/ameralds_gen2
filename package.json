@@ -4,14 +4,14 @@
     "license": "MIT",
     "scripts": {
         "am:start:dev": "bash tools/start-dev.sh",
-        "am:back:start:dev": "cross-env NODE_ENV=dev npx nx run am-back:serve --watch",
+        "am:back:start:dev": "cross-env NODE_ENV=dev npx nx run am-back:serve --watch --outputStyle=stream",
         "am:back:build": "npx nx run am-back:build",
-        "am:back:start": "npx nx run am-back:serve",
+        "am:back:start": "npx nx run am-back:serve --outputStyle=stream",
         "am:back:typeorm": "npm --workspace @ameralds/am-back run typeorm --",
         "am:back:typeorm:migration:generate": "npm --workspace @ameralds/am-back run typeorm:migration:generate",
         "am:back:typeorm:migration:run": "npm --workspace @ameralds/am-back run typeorm:migration:run",
         "am:back:typeorm:migration:revert": "npm --workspace @ameralds/am-back run typeorm:migration:revert",
-        "am:front:start": "npx nx run am-front:serve --port=4400",
+        "am:front:start": "npx nx run am-front:serve --port=4400 --outputStyle=stream",
         "am:front:build": "npx nx run am-front:build",
         "am:front:test": "npx nx run am-front:test",
         "am:front:lint": "npx nx run am-front:lint",
@@ -57,6 +57,8 @@
         "prettier": "^3.6.2",
         "tslib": "^2.3.0",
         "typescript": "~5.8.2",
-        "typescript-eslint": "^8.29.0"
+        "typescript-eslint": "^8.29.0",
+        "webpack": "^5.109.2",
+        "webpack-cli": "^7.2.2"
     }
 }
