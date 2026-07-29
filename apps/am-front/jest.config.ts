@@ -2,6 +2,7 @@ export default {
   displayName: 'am-front',
   preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
+  testPathIgnorePatterns: ['<rootDir>/src/test.ts'],
   coverageDirectory: '../../coverage/apps/am-front',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
