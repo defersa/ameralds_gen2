@@ -10,10 +10,29 @@ import 'reflect-metadata';
 
 async function bootstrap() {
     const app: NestExpressApplication = await NestFactory.create(AppModule);
+    const isDev = process.env.NODE_ENV === 'dev';
+
+    app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                imgSrc: ["'self'", "data:", "blob:"],
+                connectSrc: ["'self'"],
+                scriptSrc: ["'self'", ...(isDev ? ["'unsafe-inline'"] : [])],
+                styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+                upgradeInsecureRequests: isDev ? null : [],
+            },
+        },
+        crossOriginResourcePolicy: { policy: "same-site" },
+        referrerPolicy: { policy: "no-referrer" },
+        strictTransportSecurity: isDev ? false : {
+            maxAge: 31536000,
+            includeSubDomains: true,
+        },
+    }));
 
     app.setGlobalPrefix('api');
 
-    if (process.env.NODE_ENV === 'dev') {
+    if (isDev) {
         const config = new DocumentBuilder()
             .setTitle('Ameralds api')
             .setDescription('The amerald API description')
@@ -25,7 +44,6 @@ async function bootstrap() {
     }
 
     console.log(join(__dirname, 'uploads/public'))
-    app.use(helmet());
     app.useStaticAssets(join(__dirname, '../../../apps/am-back/uploads/public'), {
         prefix: '/uploads/public/'
     });
