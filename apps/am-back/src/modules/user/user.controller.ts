@@ -13,6 +13,7 @@ import { ApiErrorCodes, ErrorsDto } from "../errors/errors.dto";
 import { Auth } from "@am-back/core/guards/auth.guard";
 import type { RequestModel } from "@am-back/models/request.model";
 import { UserEntity } from '../../db/entities/user.entity';
+import { SuccessCreateDto } from '../../common/common.dto';
 
 
 const passwordComplexCheck: RegExp = /(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{6,}/g;
@@ -27,11 +28,11 @@ export class UserController {
     }
 
     @Post('register')
-    @ApiCreatedResponse({ description: 'The user has been successfully created.', type: String })
+    @ApiCreatedResponse({ description: 'The user has been successfully created.', type: SuccessCreateDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async register(
         @Body() { email, password }: UserCredentialsDto,
-    ): Promise<string> {
+    ): Promise<SuccessCreateDto> {
         if (await this.userService.getUserByEmail(email)) {
             throw new HttpException({ code: ApiErrorCodes.ALREADY_EXIST }, HttpStatus.BAD_REQUEST);
         }
@@ -44,7 +45,9 @@ export class UserController {
             throw new HttpException({ code: ApiErrorCodes.INVALID_EMAIL }, HttpStatus.BAD_REQUEST);
         }
 
-        return (await this.userService.creatUser(email, password)).email;
+        const user = await this.userService.creatUser(email, password);
+
+        return { id: user.id };
     }
 
     @Post('sign-in')

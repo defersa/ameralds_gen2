@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 import type { LogoutCredentialsDto } from '../models/LogoutCredentialsDto';
 import type { RefreshTokenCredentialsDto } from '../models/RefreshTokenCredentialsDto';
+import type { SuccessCreateDto } from '../models/SuccessCreateDto';
 import type { UserCredentialsDto } from '../models/UserCredentialsDto';
 import type { UserProfileDto } from '../models/UserProfileDto';
 import type { UserTokensDTO } from '../models/UserTokensDTO';
@@ -19,12 +20,12 @@ export class UserProducer {
     constructor(public readonly http: HttpClient) {}
     /**
      * @param requestBody
-     * @returns string The user has been successfully created.
+     * @returns SuccessCreateDto The user has been successfully created.
      * @throws ApiError
      */
     public userControllerRegister(
         requestBody: UserCredentialsDto,
-    ): Observable<string> {
+    ): Observable<SuccessCreateDto> {
         return __request(OpenAPI, this.http, {
             method: 'POST',
             url: '/api/user/user/register',

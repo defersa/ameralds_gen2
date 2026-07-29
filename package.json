@@ -3,6 +3,7 @@
     "version": "0.0.0",
     "license": "MIT",
     "scripts": {
+        "am:start:dev": "bash tools/start-dev.sh",
         "am:back:start:dev": "cross-env NODE_ENV=dev npx nx run am-back:serve --watch",
         "am:back:build": "npx nx run am-back:build",
         "am:back:start": "npx nx run am-back:serve",

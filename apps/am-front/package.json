@@ -27,9 +27,12 @@
     "@angular/compiler-cli": "~20.1.0",
     "@angular/language-service": "~20.1.0",
     "@schematics/angular": "~20.1.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "angular-eslint": "^20.0.0",
     "jest-environment-jsdom": "^30.0.2",
     "jest-preset-angular": "~15.0.0",
-    "openapi-typescript-codegen": "^0.29.0"
+    "openapi-typescript-codegen": "^0.29.0",
+    "postcss": "^8.5.23",
+    "tailwindcss": "^4.3.3"
   }
 }

@@ -14,6 +14,7 @@ import { IResultRequest } from "@am-front/interface/request.interface";
 import { LocalStorage } from "@am-front/decorators/local.decorator";
 import {
     EnumUserRole,
+    SuccessCreateDto,
     type ShortOrderPatternDto,
     UserCredentialsDto, type UserOrderDto,
     UserProducer,
@@ -82,7 +83,7 @@ export class ProfileService {
         return this.userService.userControllerSignIn(body);
     }
 
-    public createUser(data: UserCredentialsDto): Observable<string> {
+    public createUser(data: UserCredentialsDto): Observable<SuccessCreateDto> {
         return this.userService.userControllerRegister(data);
     }
 

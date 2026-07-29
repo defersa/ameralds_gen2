@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { OperatorFunction, pipe } from "rxjs";
 import { tap } from "rxjs/operators";
-import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatSnackBar, MatSnackBarConfig } from "@angular/material/snack-bar";
 
 
 const DEFAULT_DURATION: number = 5000;
@@ -31,7 +31,10 @@ export class SnackService {
         )
     }
 
-    public open(message: string, duration: number = DEFAULT_DURATION): void {
-        this.snackBar.open(message, undefined, { duration });
+    public open(message: string, config?: MatSnackBarConfig): void {
+        this.snackBar.open(message, undefined, {
+            duration: DEFAULT_DURATION,
+            ...config,
+        });
     }
 }
