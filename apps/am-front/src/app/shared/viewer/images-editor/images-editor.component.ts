@@ -1,4 +1,12 @@
-import { Component, ElementRef, inject, OnInit, Signal, viewChild } from "@angular/core";
+import {
+    Component,
+    ElementRef,
+    inject,
+    OnInit, signal,
+    Signal,
+    viewChild,
+    WritableSignal,
+} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
@@ -27,7 +35,7 @@ export class AmstoreImagesEditorComponent implements OnInit {
     private imagesProducer: ImagesProducer = inject(ImagesProducer);
     private dialogRef: MatDialogRef<AmstoreImagesEditorComponent> = inject(MatDialogRef<AmstoreImagesEditorComponent>);
 
-    public images: ImageDto[] = this.data.images;
+    public images: WritableSignal<ImageDto[]> = signal(this.data.images);
 
     private _fileReader: FileReader = new FileReader();
     private _file: globalThis.File = null;
@@ -49,19 +57,25 @@ export class AmstoreImagesEditorComponent implements OnInit {
     public moveImage(index: number, direction: 'next' | 'prev'): void {
         let nextIndex: number = index + (direction === 'next' ? 1 : -1);
 
-        if (nextIndex > this.images.length - 1) {
-            nextIndex = this.images.length - 1;
+        if (nextIndex > this.images().length - 1) {
+            nextIndex = this.images().length - 1;
         }
 
         if (nextIndex < 0) {
             nextIndex = 0;
         }
 
-        [this.images[index], this.images[nextIndex]] = [this.images[nextIndex], this.images[index]];
+        const newImagesSet: ImageDto[] = [...this.images()];
+
+        [newImagesSet[index], newImagesSet[nextIndex]] = [newImagesSet[nextIndex], newImagesSet[index]];
+
+        this.images.set(newImagesSet);
     }
 
     public remove(index: number): void {
-        this.images = this.images.filter((item: ImageDto, i: number) => i !== index);
+        this.images.set(
+            this.images().filter((item: ImageDto, i: number) => i !== index),
+        );
     }
 
     public callInputDialog(): void {
@@ -69,13 +83,13 @@ export class AmstoreImagesEditorComponent implements OnInit {
     }
 
     public close(save?: boolean): void {
-        this.dialogRef.close(save ? this.images : null);
+        this.dialogRef.close(save ? this.images() : null);
     }
 
     private _initFileReader(): void {
         this._fileReader.onload = () => {
             this.imagesProducer.imagesControllerCreate({ file: this._file })
-                .subscribe((image: ImageDto) => this.images.push(image));
+                .subscribe((image: ImageDto) => this.images.set([...this.images(), image]));
         }
     }
 }

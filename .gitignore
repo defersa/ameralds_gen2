@@ -49,3 +49,6 @@ Thumbs.db
 .angular
 *.env
 /env
+
+#local files
+/uploads/

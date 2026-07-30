@@ -1,5 +1,5 @@
 import { HttpClient } from "@angular/common/http";
-import { inject, Injectable } from "@angular/core";
+import { computed, effect, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject, from, Observable, of } from "rxjs";
 import { getAction, HttpAuthActions, RestSuffixFragments } from "../utils/action-builder";
 import { UserEnum } from "../utils/router-builder";
@@ -39,8 +39,8 @@ export class ProfileService {
     private userService: UserProducer = inject(UserProducer);
 
     public user$: BehaviorSubject<UserProfileDto> = new BehaviorSubject<UserProfileDto>(null);
-    public userStatus$: BehaviorSubject<EnumUserRole> = new BehaviorSubject<EnumUserRole>(this.localUserStatus);
-    public isAdmin$: Observable<boolean> = this.userStatus$.pipe(map((role: EnumUserRole) => role === EnumUserRole.ADMIN));
+    public readonly userStatus: WritableSignal<EnumUserRole> = signal(this.localUserStatus);
+    public readonly isAdmin: Signal<boolean> = computed(() => this.userStatus() === EnumUserRole.ADMIN);
 
     public boughtPatterns$: BehaviorSubject<ShortOrderPatternDto[]> = new BehaviorSubject<ShortOrderPatternDto[]>([]);
     public userCart$: BehaviorSubject<UserOrderDto> = new BehaviorSubject<UserOrderDto>(null);
@@ -55,7 +55,7 @@ export class ProfileService {
                 skip(1),
             )
             .subscribe((user: UserProfileDto) => {
-                this.userStatus$.next(user?.role ?? null);
+                this.userStatus.set(user?.role ?? null);
                 this.boughtPatterns$.next(user?.ownPatterns ?? []);
                 this.userCart$.next(user?.cart ?? null);
             });
@@ -66,9 +66,10 @@ export class ProfileService {
             )
             .subscribe((profile: UserProfileDto) => this.user$.next(profile));
 
-        this.userStatus$
-            .subscribe((role: EnumUserRole) => this.localUserStatus = role);
 
+        effect(() => {
+            this.localUserStatus = this.userStatus();
+        });
     }
 
     public authWithRecaptchaToken(value: AuthRequestPayload): Observable<IAuthResponse> {

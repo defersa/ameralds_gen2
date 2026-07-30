@@ -12,11 +12,11 @@ export class AuthGuard {
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):
         Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        return Boolean(this._profileService.userStatus$.getValue());
+        return Boolean(this._profileService.userStatus());
     }
 
     canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot):
         Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        return Boolean(this._profileService.userStatus$.getValue());
+        return Boolean(this._profileService.userStatus());
     }
 }

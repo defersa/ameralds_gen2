@@ -16,7 +16,7 @@ export const appConfigModule: AppConfigInterface = {
     filesPath: [rootFolderName, "public", "files"],
     previewImagesPath: [rootFolderName, "public", "images", "preview"],
     fullImagesPath: [rootFolderName, "public", "images", "full"],
-    privateFilesPath: [rootFolderName, "private", "images", "preview"],
+    privateFilesPath: [rootFolderName, "private", "pattern"],
 }
 
 @Global()

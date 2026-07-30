@@ -1,21 +1,40 @@
-import { join } from "path";
+import { dirname, join, resolve } from "path";
 import { process } from "@am-back/core/declare/process";
 import { existsSync, mkdirSync } from "fs";
 
 
-export function getPathWithDir(...path: string[]): string {
-    [...path]
-        .filter((item: string, index: number) => index + 1 !== path.length)
-        .reduce((path: string, part: string) => {
-            const localPath: string = join(path, part);
+const uploadsFolderName: string = "uploads";
 
-            if (!existsSync(localPath)) {
-                mkdirSync(localPath);
-            }
-
-            return localPath;
-        }, process.cwd());
-
-    return join(process.cwd(), ...path);
+function getUniquePaths(paths: string[]): string[] {
+    return [...new Set(paths.map((path: string) => resolve(path)))];
 }
 
+export function getUploadsRoot(): string {
+    const paths: string[] = getUniquePaths([
+        process.env.AM_UPLOADS_ROOT || "",
+        join(process.cwd(), uploadsFolderName),
+        join(__dirname, uploadsFolderName),
+        join(__dirname, "..", "..", "..", uploadsFolderName),
+        join(__dirname, "..", "..", "..", "..", uploadsFolderName),
+    ].filter(Boolean));
+
+    return paths.find((path: string) => existsSync(path)) || paths[0];
+}
+
+export function getUploadsPath(...path: string[]): string {
+    const localPath: string[] = path.flatMap((item: string) => item.split(/[\\/]/));
+    const pathWithoutRoot: string[] = localPath[0] === uploadsFolderName ? localPath.slice(1) : localPath;
+
+    return join(getUploadsRoot(), ...pathWithoutRoot);
+}
+
+export function getPathWithDir(...path: string[]): string {
+    const filePath: string = getUploadsPath(...path);
+    const dirPath: string = dirname(filePath);
+
+    if (!existsSync(dirPath)) {
+        mkdirSync(dirPath, { recursive: true });
+    }
+
+    return filePath;
+}

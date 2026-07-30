@@ -13,11 +13,11 @@ export class AdminGuard  {
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):
         Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        return this._profileService.userStatus$.getValue() === EnumUserRole.ADMIN;
+        return this._profileService.userStatus() === EnumUserRole.ADMIN;
     }
 
     canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot):
         Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        return this._profileService.userStatus$.getValue() === EnumUserRole.ADMIN;
+        return this._profileService.userStatus() === EnumUserRole.ADMIN;
     }
 }

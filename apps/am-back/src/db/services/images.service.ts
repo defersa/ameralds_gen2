@@ -25,9 +25,12 @@ export class ImagesService {
     public async createImage(image: Express.Multer.File): Promise<ImageEntity> {
         const name: string = `${new Date().valueOf()}_${image.originalname}`;
         const full: string = join(...this.appConfig.fullImagesPath, name);
-        const fullPath: string = getPathWithDir(...this.appConfig.fullImagesPath, name)
+        const fullPath: string = getPathWithDir(...this.appConfig.fullImagesPath, name);
         const preview: string = join(...this.appConfig.previewImagesPath, name);
-        const previewPath: string = getPathWithDir(...this.appConfig.previewImagesPath, name)
+        const previewPath: string = getPathWithDir(...this.appConfig.previewImagesPath, name);
+
+
+        console.log(`1`);
 
         await sharp(image.buffer)
             .resize(1920, 1080)
@@ -45,6 +48,8 @@ export class ImagesService {
         });
 
         await this.imagesRepository.save(imageEntity);
+
+        console.log(2)
 
         return imageEntity;
     }

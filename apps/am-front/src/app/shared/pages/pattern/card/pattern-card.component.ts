@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
 import { AsyncPipe, Location } from "@angular/common";
@@ -8,6 +8,7 @@ import { Observable } from "rxjs";
 import { PatternsService } from "@am-front/services/patterns.service";
 import { FullPatternEntityDto } from "@am-front/root/api";
 import { PatternCartComponent } from "@am-front/shared/actions/pattern/pattern-cart/pattern-cart.component";
+import { ProfileService } from '@am-front/services/profile.service';
 
 
 @Component({
@@ -29,6 +30,9 @@ export class PatternCardComponent {
     private readonly location: Location = inject(Location);
     private readonly route: ActivatedRoute = inject(ActivatedRoute);
     private readonly patternsService: PatternsService = inject(PatternsService);
+    private readonly profileService: ProfileService = inject(ProfileService);
+
+    public isAdmin: Signal<boolean> = this.profileService.isAdmin;
 
     constructor() {
         const id: number = Number(this.route.snapshot.paramMap.get('id'));

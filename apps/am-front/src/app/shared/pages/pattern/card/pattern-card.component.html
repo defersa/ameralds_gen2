@@ -1,11 +1,19 @@
-<div class="amstore-pattern-card-actions">
+<div class="flex flex-row gap-4 my-6">
     <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
 
-    <amstore-button routerLink="edit"
-                    [stroked]="true"
-                    color="accent">
-        Изменить
-    </amstore-button>
+    @if (isAdmin()) {
+        <amstore-button routerLink="edit"
+                        [stroked]="true"
+                        color="accent">
+            Изменить
+        </amstore-button>
+
+        <amstore-button routerLink="edit"
+                        [stroked]="true"
+                        color="accent">
+            Копировать
+        </amstore-button>
+    }
 </div>
 
 @if (pattern$ | async; as pattern) {

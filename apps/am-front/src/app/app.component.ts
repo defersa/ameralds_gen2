@@ -19,7 +19,7 @@ export class AppComponent {
     private profileService: ProfileService = inject(ProfileService);
 
     public date: Date = new Date();
-    public isAdmin: Signal<boolean> = toSignal(this.profileService.isAdmin$);
+    public isAdmin: Signal<boolean> = this.profileService.isAdmin;
 
     constructor() {
         this.authService.tryToRefresh();

@@ -6,6 +6,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { join } from "path";
 import helmet from "helmet";
 import 'reflect-metadata';
+import { getUploadsRoot } from "./utils/path-with-dir";
 
 
 async function bootstrap() {
@@ -43,8 +44,7 @@ async function bootstrap() {
         SwaggerModule.setup('swagger', app, document, { jsonDocumentUrl: 'swagger/schema' });
     }
 
-    console.log(join(__dirname, 'uploads/public'))
-    app.useStaticAssets(join(__dirname, '../../../apps/am-back/uploads/public'), {
+    app.useStaticAssets(join(getUploadsRoot(), 'public'), {
         prefix: '/uploads/public/'
     });
 
