@@ -20,7 +20,7 @@ export class CommonEntitiesService {
         this.numberRepository = this.dataSource.getRepository<NumberLangEntity>(NumberLangEntity);
     }
 
-    public createLabel(ru: string, en: string): Promise<LabelLangEntity> {
+    public createLabel(ru: string, en?: string): Promise<LabelLangEntity> {
         const label: LabelLangEntity = this.labelRepository.create({
             en,
             ru,
@@ -37,7 +37,7 @@ export class CommonEntitiesService {
         return this.labelRepository.remove(label);
     }
 
-    public createText(ru: string, en: string): Promise<TextLangEntity> {
+    public createText(ru: string, en?: string): Promise<TextLangEntity> {
         const label: TextLangEntity = this.textRepository.create({
             en,
             ru,
@@ -54,7 +54,7 @@ export class CommonEntitiesService {
         return this.textRepository.remove(label);
     }
 
-    public createNumber(ru: number, en: number): Promise<NumberLangEntity> {
+    public createNumber(ru: number, en?: number): Promise<NumberLangEntity> {
         const numberEntity: NumberLangEntity = this.numberRepository.create({
             en,
             ru,

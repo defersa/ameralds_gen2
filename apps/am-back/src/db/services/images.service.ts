@@ -30,8 +30,6 @@ export class ImagesService {
         const previewPath: string = getPathWithDir(...this.appConfig.previewImagesPath, name);
 
 
-        console.log(`1`);
-
         await sharp(image.buffer)
             .resize(1920, 1080)
             .webp({ effort: 3 })
@@ -48,8 +46,6 @@ export class ImagesService {
         });
 
         await this.imagesRepository.save(imageEntity);
-
-        console.log(2)
 
         return imageEntity;
     }

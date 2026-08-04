@@ -15,9 +15,8 @@ export class LangTextComponent {
 
     private langService: LangService = inject(LangService);
 
-    public lang: Signal<LangType> = toSignal(this.langService.lang$);
     public template: Signal<string> = computed(() => {
-        const lang: LangType = this.lang();
+        const lang: LangType = this.langService.lang();
         const value: ILangText = this.text();
 
         return value?.[lang];

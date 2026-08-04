@@ -8,11 +8,11 @@ export type LangObject = {
 }
 
 export type ILangText = {
-    en: string;
+    en?: string;
     ru: string;
 };
 
 export type ILangNumber = {
-    en: number;
+    en?: number;
     ru: number;
 };

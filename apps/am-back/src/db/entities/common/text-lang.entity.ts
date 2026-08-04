@@ -9,6 +9,6 @@ export class TextLangEntity {
     @Column({ length: 2047 })
     public ru: string;
 
-    @Column({ length: 2047 })
-    public en: string;
+    @Column({ length: 2047, nullable: true })
+    public en?: string;
 }

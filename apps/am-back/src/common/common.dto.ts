@@ -44,7 +44,7 @@ export class LabelEntityDto {
         description: 'English label',
         type: 'string',
     })
-    public en: string;
+    public en?: string;
 }
 
 export class NumberEntityDto {
@@ -58,7 +58,7 @@ export class NumberEntityDto {
         description: 'English number',
         type: 'number',
     })
-    public en: number;
+    public en?: number;
 }
 
 export class PaginatedPageDto {

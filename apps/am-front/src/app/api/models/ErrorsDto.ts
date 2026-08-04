@@ -12,6 +12,6 @@ export type ErrorsDto = {
     /**
      * Error entity name
      */
-    entity: EnumApiEntityNames;
+    entity?: EnumApiEntityNames;
 };
 

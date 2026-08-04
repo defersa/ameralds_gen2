@@ -13,6 +13,7 @@ import {
     type CategoriesPaginatedPageDto, CategoriesProducer,
     type CategoryDto
 } from "@am-front/root/api";
+import { toObservable } from '@angular/core/rxjs-interop';
 
 
 @Injectable({
@@ -42,7 +43,7 @@ export class CategoriesService {
             );
     }
 
-    public editCategory(values: { id: number; ru: string; en: string }): Observable<CategoryDto> {
+    public editCategory(values: { id: number; ru: string; en?: string }): Observable<CategoryDto> {
         return this.categoriesService.categoriesControllerEdit(
             values.id,
             {
@@ -52,7 +53,7 @@ export class CategoriesService {
             .pipe(this.retakeAndMessage("Категория изменена"));
     }
 
-    public createCategory(value: { en: string; ru: string }): Observable<CategoryDto> {
+    public createCategory(value: { en?: string; ru: string }): Observable<CategoryDto> {
         return this.categoriesService.categoriesControllerCreate(value)
             .pipe(this.retakeAndMessage("Категория добавлена"));
     }
@@ -70,7 +71,10 @@ export class CategoriesService {
     }
 
     private getCategoriesList(): Observable<OptionType[]> {
-        return combineLatest([this.langService.lang$, this.categories$]).pipe(
+        return combineLatest([
+            toObservable(this.langService.lang),
+            this.categories$,
+        ]).pipe(
             map(([lang, values]: [LangType, CategoryDto[]]) => values.map((item: CategoryDto) => ({
                 label: item.label[lang],
                 value: item.id
@@ -79,7 +83,10 @@ export class CategoriesService {
     }
 
     private getCategoriesByIds(): Observable<Record<number, OptionType>> {
-        return combineLatest([this.langService.lang$, this.categories$]).pipe(
+        return combineLatest([
+            toObservable(this.langService.lang),
+            this.categories$,
+        ]).pipe(
             map(([lang, values]: [LangType, CategoryDto[]]) =>
                 Object.fromEntries(values.map((item: CategoryDto) => [item.id, {
                     label: item.label[lang],

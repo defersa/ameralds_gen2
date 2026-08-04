@@ -10,6 +10,6 @@ export type CreateCategoryDto = {
     /**
      * English label
      */
-    en: string;
+    en?: string;
 };
 

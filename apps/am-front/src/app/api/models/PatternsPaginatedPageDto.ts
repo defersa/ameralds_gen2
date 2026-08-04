@@ -12,9 +12,6 @@ export type PatternsPaginatedPageDto = {
      * Count of pages
      */
     count: number;
-    /**
-     * Paginated patterns
-     */
     items: Array<PatternEntityDto>;
 };
 

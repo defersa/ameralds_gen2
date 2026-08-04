@@ -9,6 +9,6 @@ export class NumberLangEntity {
     @Column({ type: "decimal" })
     public ru: number;
 
-    @Column({ type: "decimal" })
-    public en: number;
+    @Column({ type: "decimal", nullable: true })
+    public en?: number;
 }

@@ -21,7 +21,7 @@ export class CategoriesService {
         this.categoriesRepository = this.dataSource.getRepository<CategoryEntity>(CategoryEntity);
     }
 
-    public async createCategory(ru: string, en: string): Promise<CategoryEntity> {
+    public async createCategory(ru: string, en?: string): Promise<CategoryEntity> {
         const label: LabelLangEntity = await this.commonEntitiesService.createLabel(ru, en);
         const category: CategoryEntity = this.categoriesRepository.create();
 
@@ -30,7 +30,7 @@ export class CategoriesService {
         return this.categoriesRepository.save(category);
     }
 
-    public async editCategory(id: number, ru: string, en: string): Promise<CategoryEntity> {
+    public async editCategory(id: number, ru: string, en?: string): Promise<CategoryEntity> {
         const category: CategoryEntity = await this.categoriesRepository.findOne({
             where: {
                 id,

@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, computed, inject, Signal } from '@angular/core';
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 import { AsyncPipe } from "@angular/common";
@@ -28,7 +28,6 @@ const LANGS: Record<LangType, LangObject> = {
     styleUrls: ["./language.component.scss"],
     imports: [
         AmstoreButtonRoundComponent,
-        AsyncPipe,
         CdkOverlayOrigin,
         CdkConnectedOverlay
     ]
@@ -36,15 +35,14 @@ const LANGS: Record<LangType, LangObject> = {
 export class AmastoreLanguageComponent {
     private langService: LangService = inject(LangService)
 
-    public currentTypeObj$: Observable<LangObject> = this.langService.lang$.pipe(map((lang: LangType) => LANGS[lang]));
     public panelOpen: boolean = false;
-    public currentType: LangType = 'en';
     public langTypesList: LangObject[] = Object.values(LANGS);
+    public currentTypeObj: Signal<LangObject> = computed(() => LANGS[this.langService.lang()]);
 
 
     public setLang(lang: LangType): void {
         this.close();
-        this.langService.lang$.next(lang);
+        this.langService.lang.set(lang);
     }
 
     public toggle(): void {

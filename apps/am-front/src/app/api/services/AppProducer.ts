@@ -33,10 +33,10 @@ export class AppProducer {
         });
     }
     /**
-     * @returns any
+     * @returns number
      * @throws ApiError
      */
-    public appControllerImage(): Observable<any> {
+    public appControllerImage(): Observable<number> {
         return __request(OpenAPI, this.http, {
             method: 'POST',
             url: '/api/image',

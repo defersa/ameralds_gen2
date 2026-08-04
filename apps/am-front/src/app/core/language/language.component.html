@@ -1,7 +1,7 @@
-@if (currentTypeObj$ | async; as currentTypeObj) {
+@if (currentTypeObj()) {
     <button amstore-button-round
-            [badge]="currentTypeObj.type"
-            [image]="currentTypeObj.url"
+            [badge]="currentTypeObj().type"
+            [image]="currentTypeObj().url"
             cdkOverlayOrigin
             (click)="toggle()"
             #origin="cdkOverlayOrigin">

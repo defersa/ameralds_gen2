@@ -1,4 +1,4 @@
-import { computed, Injectable, Signal } from "@angular/core";
+import { computed, Injectable, signal, Signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { toSignal } from "@angular/core/rxjs-interop";
 
@@ -11,9 +11,7 @@ export type SizeUnit = 'bpc' | 'бвк';
     providedIn: 'root'
 })
 export class LangService {
-    public lang$: BehaviorSubject<LangType> = new BehaviorSubject<LangType>('ru');
-
-    public lang: Signal<LangType> = toSignal(this.lang$);
-    public currency: Signal<Currency> = computed(() => this.lang() === 'ru' ? '₽' : '$');
-    public sizeUnit: Signal<SizeUnit> = computed(() => this.lang() === 'ru' ? 'бвк' : 'bpc');
+    public readonly lang: WritableSignal<LangType> = signal('ru');
+    public readonly currency: Signal<Currency> = computed(() => this.lang() === 'ru' ? '₽' : '$');
+    public readonly sizeUnit: Signal<SizeUnit> = computed(() => this.lang() === 'ru' ? 'бвк' : 'bpc');
 }

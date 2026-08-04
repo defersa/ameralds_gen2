@@ -10,6 +10,6 @@ export type NumberEntityDto = {
     /**
      * English number
      */
-    en: number;
+    en?: number;
 };
 

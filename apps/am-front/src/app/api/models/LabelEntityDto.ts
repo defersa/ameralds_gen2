@@ -10,6 +10,6 @@ export type LabelEntityDto = {
     /**
      * English label
      */
-    en: string;
+    en?: string;
 };
 

@@ -9,6 +9,6 @@ export class LabelLangEntity {
     @Column({ length: 255 })
     public ru: string;
 
-    @Column({ length: 255 })
-    public en: string;
+    @Column({ length: 255, nullable: true })
+    public en?: string;
 }
