@@ -4,7 +4,7 @@ import { CustomValidatorFns } from "@am-front/cdk/forms/custom-validators-fn";
 import { ProfileService } from "@am-front/services/profile.service";
 import { DialogService } from "@am-front/core/dialog/dialog.service";
 import { Router } from "@angular/router";
-import { UserCredentialsDto } from "@am-front/root/api";
+import { UserCredentialsDto } from "@am-front/root/api-v2";
 import { AmstorePanelBasicComponent } from "@am-front/cdk/panel/panel-basic/amstore-panel-basic.component";
 import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
 import { AmstoreInputPasswordComponent } from "@am-front/cdk/forms/input-password/input-password.component";

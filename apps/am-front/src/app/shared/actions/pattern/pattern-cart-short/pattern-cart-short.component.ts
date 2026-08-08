@@ -1,5 +1,5 @@
 import { Component, computed, inject, input, InputSignal, output, OutputEmitterRef, Signal } from "@angular/core";
-import type { PatternEntityDto, PatternSizeDto, SizeDto } from "@am-front/root/api";
+import type { PatternEntityDto, PatternSizeDto, SizeDto } from "@am-front/root/api-v2";
 import { ICartPattern } from "@am-front/services/cart.service";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { SizesService } from "@am-front/services/sizes.service";

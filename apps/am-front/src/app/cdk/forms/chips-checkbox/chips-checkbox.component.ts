@@ -54,7 +54,7 @@ export class AmstoreChipsCheckboxComponent extends AmstoreFormsBaseDirective imp
             map(([, options]: [unknown, SelectOption[]]) => {
                 const values: (number | string)[] = this.control.value ?? [];
 
-                return options.map((item: SelectOption) => ({
+                return (options || []).map((item: SelectOption) => ({
                     item,
                     checked: values.includes(item.value as number)
                 }));

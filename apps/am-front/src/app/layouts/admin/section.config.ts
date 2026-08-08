@@ -31,6 +31,11 @@ export const adminConfig: SectionsConfig = {
                 path: ['/', 'admin', 'orders', 'list'],
                 icon: 'pattern',
             },
+            {
+                label: 'Генератор',
+                path: ['/', 'admin', 'generator'],
+                icon: 'pattern',
+            },
         ]
     }
 }

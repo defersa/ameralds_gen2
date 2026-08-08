@@ -6,12 +6,12 @@ import { BehaviorSubject, combineLatest, Observable } from "rxjs";
 import {
     InputShortOrderPatternDto,
     NumberEntityDto,
-    OrdersProducer,
+    ApiOrdersProducer,
     PatternEntityDto, type PatternWithPriceDto,
     ShortOrderPatternDto,
     type UserOrderDto,
     UserProfileDto
-} from "@am-front/root/api";
+} from "@am-front/root/api-v2";
 import { ProfileService } from "@am-front/services/profile.service";
 import { debounceTime, filter, map, shareReplay, skip, switchMap, takeUntil } from "rxjs/operators";
 import { IdRecord } from "@am-front/interface/common.interface";
@@ -40,7 +40,7 @@ export class CartService {
     private readonly profileService: ProfileService = inject(ProfileService);
     private readonly destroyRef: DestroyRef = inject(DestroyRef);
     private readonly langService: LangService = inject(LangService);
-    private readonly ordersProducer: OrdersProducer = inject(OrdersProducer);
+    private readonly ordersProducer: ApiOrdersProducer = inject(ApiOrdersProducer);
 
     public readonly ownPatterns$: Observable<IdRecord<ShortOrderPatternDto>> = this.initOwnPatternObs();
     private readonly _patternsCart$: BehaviorSubject<IdRecord<ICartPattern>> = new BehaviorSubject<IdRecord<ICartPattern>>({});
@@ -182,8 +182,6 @@ export class CartService {
                         }
                     ])
                 );
-
-                console.log(cart)
 
                 this._patternsCart$.next(cart);
                 this._cartInit$.next(true);

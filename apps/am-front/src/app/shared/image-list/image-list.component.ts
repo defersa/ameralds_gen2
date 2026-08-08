@@ -1,6 +1,6 @@
 import { Component, inject, input, InputSignal } from "@angular/core";
 import { AmstoreViewerService } from "@am-front/shared/viewer/viewer.service";
-import type { ImageDto } from "@am-front/root/api";
+import type { ImageDto } from "@am-front/root/api-v2";
 
 
 @Component({

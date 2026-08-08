@@ -5,7 +5,7 @@ import { PatternsService } from "@am-front/services/patterns.service";
 import { Observable } from "rxjs";
 import { map, switchMap, take } from "rxjs/operators";
 import { IdRecord } from "@am-front/interface/common.interface";
-import type { PatternEntityDto } from "@am-front/root/api";
+import type { PatternEntityDto } from "@am-front/root/api-v2";
 import { PatternCartShortComponent } from "@am-front/shared/actions/pattern/pattern-cart-short/pattern-cart-short.component";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { Router } from "@angular/router";

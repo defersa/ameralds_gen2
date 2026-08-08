@@ -2,7 +2,7 @@ import { Component, computed, inject, input, InputSignal, Signal } from "@angula
 import { LangType } from "@am-front/interface/lang.interface";
 import { expandAnimation } from "@am-front/cdk/animations/expand";
 import { AmstoreChipComponent } from "@am-front/cdk/chip/chip.component";
-import type { PatternEntityDto } from "@am-front/root/api";
+import type { PatternEntityDto } from "@am-front/root/api-v2";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { OptionType } from "@am-front/interface/cdk.interface";
 import { LangService } from "@am-front/services/lang.service";

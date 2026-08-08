@@ -16,7 +16,7 @@ import { OptionType } from "@am-front/interface/cdk.interface";
 import { AmstoreUploadComponent } from "@am-front/cdk/forms/upload/upload.component";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
-import type { FullPatternSizeDto } from "@am-front/root/api";
+import type { FullPatternSizeDto } from "@am-front/root/api-v2";
 import { DialogService } from "@am-front/core/dialog/dialog.service";
 import { filter } from "rxjs/operators";
 

@@ -7,7 +7,7 @@ import {
 import { AmstoreColor } from "@am-front/cdk/core/color";
 import { ImageModelSmall } from "@am-front/interface/image.interface";
 import { AmstoreViewerService } from "@am-front/shared/viewer/viewer.service";
-import { ImageDto } from "@am-front/root/api";
+import { ImageDto } from "@am-front/root/api-v2";
 
 
 @Directive({

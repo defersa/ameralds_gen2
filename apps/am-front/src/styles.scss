@@ -78,6 +78,10 @@ p {
   color: theming-var.get-amstore-color(red, deep);
 }
 
+.amstore-text-secondary {
+  color: theming-var.get-amstore-color(gray, middle);
+}
+
 .text-left {
   text-align: left !important;
 }
@@ -154,6 +158,9 @@ p {
   padding-right: spacing.get-spacing(6);
 }
 
+.amstore-text-caption {
+    @include typography.get-amstore-font("body", 14, null, null);
+}
 
 .amstore-column {
   display: flex;

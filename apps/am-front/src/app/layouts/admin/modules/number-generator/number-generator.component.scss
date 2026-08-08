@@ -1,0 +1,49 @@
+.number {
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    border-radius: 21px;
+    margin: 0 4px;
+    font-size: 24px;
+    line-height: 28px;
+    font-weight: 300;
+    text-decoration: none;
+
+    &.common {
+        background: #EDEAEA;
+
+        &:hover {
+            background: #db2100;
+            color: white;
+
+            .text {
+                display: none;
+            }
+
+            .icon {
+                display: block;
+            }
+        }
+
+        .icon {
+            display: none;
+        }
+    }
+
+    &.wined {
+        background: #dff0d0;
+    }
+
+    &.old {
+        background: #e3f5fc;
+    }
+
+    &.removed {
+        background: #fff2f0;
+    }
+}
+

@@ -6,7 +6,7 @@ import { AsyncPipe, Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { AmstorePatternAddCardComponent } from "@am-front/shared/card/pattern-add/pattern-add.component";
 import { PatternsService } from "@am-front/services/patterns.service";
-import { FullPatternEntityDto, PatternEntityDto } from "@am-front/root/api";
+import { FullPatternEntityDto, PatternEntityDto } from "@am-front/root/api-v2";
 import { AMSTORE_PATTERN_BACK_ROUTE } from "@am-front/shared/pages/pattern/pattern-route.token";
 
 

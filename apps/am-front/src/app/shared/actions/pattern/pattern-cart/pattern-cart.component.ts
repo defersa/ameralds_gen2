@@ -16,7 +16,7 @@ import {
     NumberEntityDto,
     PatternEntityDto,
     ShortOrderPatternDto,
-} from "@am-front/root/api";
+} from "@am-front/root/api-v2";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { IdRecord } from "@am-front/interface/common.interface";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";

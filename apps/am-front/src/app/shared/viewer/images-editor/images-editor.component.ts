@@ -10,7 +10,7 @@ import {
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
-import { ImageDto, ImagesProducer } from "@am-front/root/api";
+import { ImageDto, ApiImagesProducer } from "@am-front/root/api-v2";
 
 
 @Component({
@@ -32,7 +32,7 @@ export class AmstoreImagesEditorComponent implements OnInit {
     private imageInputRef: Signal<ElementRef> = viewChild('imageInput');
 
     private data: { images: ImageDto[] } = inject(MAT_DIALOG_DATA);
-    private imagesProducer: ImagesProducer = inject(ImagesProducer);
+    private imagesProducer: ApiImagesProducer = inject(ApiImagesProducer);
     private dialogRef: MatDialogRef<AmstoreImagesEditorComponent> = inject(MatDialogRef<AmstoreImagesEditorComponent>);
 
     public images: WritableSignal<ImageDto[]> = signal(this.data.images);
@@ -88,7 +88,7 @@ export class AmstoreImagesEditorComponent implements OnInit {
 
     private _initFileReader(): void {
         this._fileReader.onload = () => {
-            this.imagesProducer.imagesControllerCreate({ file: this._file })
+            this.imagesProducer.imagesControllerCreate(this._file)
                 .subscribe((image: ImageDto) => this.images.set([...this.images(), image]));
         }
     }

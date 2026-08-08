@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { MatDialog } from "@angular/material/dialog";
 import { AmstoreViewerDialogComponent } from "@am-front/shared/viewer/viewer-dialog/viewer-dialog.component";
 import { AmstoreImagesEditorComponent } from "@am-front/shared/viewer/images-editor/images-editor.component";
-import { ImageDto } from "@am-front/root/api";
+import { ImageDto } from "@am-front/root/api-v2";
 
 
 @Injectable({

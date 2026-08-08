@@ -4,7 +4,7 @@ import { Observable } from "rxjs";
 import { filter, map, switchMap } from "rxjs/operators";
 import { Params } from "@angular/router";
 import { PatternsService } from "@am-front/services/patterns.service";
-import type { PatternEntityDto, PatternsPaginatedPageDto } from "@am-front/root/api";
+import type { PatternEntityDto, PatternsPaginatedPageDto } from "@am-front/root/api-v2";
 
 
 @Directive()

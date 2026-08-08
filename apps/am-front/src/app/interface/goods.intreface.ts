@@ -1,6 +1,6 @@
 
 import { ILangNumber } from "@am-front/interface/lang.interface";
-import type { PatternEntityDto } from "@am-front/root/api";
+import type { PatternEntityDto } from "@am-front/root/api-v2";
 
 export type GoodsCard = {
     jewels: ProductLite[];

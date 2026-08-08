@@ -1,0 +1,11 @@
+@use "spacing";
+
+:host {
+    amstore-icon {
+        padding: 0 spacing.get-spacing(2);
+    }
+
+    mat-form-field {
+        width: 100%;
+    }
+}

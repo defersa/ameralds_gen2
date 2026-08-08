@@ -5,15 +5,15 @@ import {
     type CreatePatternDto, FullPatternEntityDto,
     type PatternEntityDto,
     type PatternsPaginatedPageDto,
-    PatternsProducer, SuccessCreateDto
-} from "@am-front/root/api";
+    ApiPatternsProducer, SuccessCreateDto
+} from "@am-front/root/api-v2";
 
 
 @Injectable({
     providedIn: 'root'
 })
 export class PatternsService {
-    private patternsProducer: PatternsProducer = inject(PatternsProducer);
+    private patternsProducer: ApiPatternsProducer = inject(ApiPatternsProducer);
     private snack: SnackService = inject(SnackService);
 
     public createPattern(body: CreatePatternDto): Observable<SuccessCreateDto> {

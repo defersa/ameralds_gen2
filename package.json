@@ -16,7 +16,7 @@
         "am:front:test": "npx nx run am-front:test",
         "am:front:lint": "npx nx run am-front:lint",
         "am:front:generate:icons": "node apps/am-front/tools/generate-icon-map.js",
-        "am:front:generate:api": "node apps/am-front/tools/api-generator.mjs",
+        "am:front:generate:api": "npm --workspace @ameralds/am-front run am:front:generate:api:v2",
         "am:bd:up": "sudo bash apps/am-bd/_up.sh",
         "am:bd:down": "sudo bash apps/am-bd/_down.sh"
     },

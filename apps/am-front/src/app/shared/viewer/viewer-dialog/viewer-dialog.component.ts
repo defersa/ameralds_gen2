@@ -1,7 +1,7 @@
 import { Component, HostListener, inject, ViewEncapsulation } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
-import { ImageDto } from "@am-front/root/api";
+import { ImageDto } from "@am-front/root/api-v2";
 
 @Component({
     selector: "asmtore-viewer",

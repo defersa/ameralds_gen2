@@ -14,7 +14,7 @@ import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-bu
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { AsyncPipe } from "@angular/common";
 import { ErrorsPipe } from "@am-front/cdk/forms/errors/errors.pipe";
-import { FileDto, FilesProducer } from "@am-front/root/api";
+import { FileDto, ApiFilesProducer } from "@am-front/root/api-v2";
 import { downloadBlobFile } from "@am-front/utils/file-utils";
 
 
@@ -38,7 +38,7 @@ export class AmstoreUploadComponent extends AmstoreFormsBaseDirective implements
 
     public format: InputSignal<string> = input(".png");
 
-    public filesProducer: FilesProducer = inject(FilesProducer);
+    public filesProducer: ApiFilesProducer = inject(ApiFilesProducer);
 
     public name: string = "";
 
@@ -96,7 +96,7 @@ export class AmstoreUploadComponent extends AmstoreFormsBaseDirective implements
 
     private _initFileReader(): void {
         this._fileReader.onload = () => {
-            this.filesProducer.filesControllerCreatePrivateFile({ file: this._file })
+            this.filesProducer.filesControllerCreatePrivateFile(this._file)
                 .subscribe({
                     next: (file: FileDto) => {
                         this.control.setValue(file);

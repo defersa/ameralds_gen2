@@ -1,0 +1,98 @@
+<div class="flex flex-row gap-3">
+    <amstore-button [disabled]="countControl.invalid" (click)="generate()">
+        Сгеренировать
+    </amstore-button>
+
+    <amstore-button [stroked]="true" (click)="clearAll()">
+        Очистить
+    </amstore-button>
+</div>
+
+
+<div class="flex flex-col gap-1">
+    <amstore-forms-input type="number" [formControl]="countControl" label="Количество чисел"/>
+
+    <div class="flex flex-row gap-1 flex-wrap">
+        @for (item of numbers; track item) {
+            <div class="number common" (click)="remove(item)">
+                <span class="text">{{item}}</span>
+                <span class="icon">X</span>
+            </div>
+        } @empty {
+            <ng-container *ngTemplateOutlet="empty"/>
+        }
+    </div>
+</div>
+
+<div>
+    <amstore-button (click)="take()" [disabled]="numbers.length === 0">
+        Взять
+    </amstore-button>
+</div>
+
+<amstore-forms-input type="number" [formControl]="takeControl" label="Количество взятых"/>
+
+<div class="flex flex-col gap-2">
+    <h3>Выигрышные</h3>
+
+    <div class="flex flex-row gap-1 flex-wrap">
+        @for (item of wins; track item) {
+            <div class="number wined">
+                {{item}}
+            </div>
+        } @empty {
+            <ng-container *ngTemplateOutlet="empty"/>
+        }
+    </div>
+</div>
+
+
+<div class="flex flex-col gap-2">
+    <h3>
+        Прошлые
+    </h3>
+
+    @for (row of reverseOld; track row) {
+        <div class="flex flex-col gap-3">
+            <h5>
+                {{old.length - $index}} Раунд
+            </h5>
+
+            <div class="flex flex-row gap-1 flex-wrap">
+                @for (item of row; track item) {
+                    <div class="number old">
+                        {{item}}
+                    </div>
+                } @empty {
+                    <ng-container *ngTemplateOutlet="empty"/>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<div class="flex flex-col gap-3">
+    <h3>
+        Удаленные
+    </h3>
+    <div class="flex flex-row gap-1">
+        @for (item of removed; track item) {
+            <div class="number removed">
+                {{item}}
+            </div>
+        } @empty {
+            <ng-container *ngTemplateOutlet="empty"/>
+        }
+    </div>
+</div>
+
+<div class="row">
+    <amstore-forms-textarea [formControl]="resultControl" label="Результат текстом" [rows]="10"/>
+</div>
+
+
+<ng-template #empty>
+    <span class="amstore-text-secondary amstore-text-caption">
+        Тут пока пусто!
+    </span>
+</ng-template>

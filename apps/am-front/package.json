@@ -1,6 +1,9 @@
 {
   "name": "@ameralds/am-front",
   "private": true,
+  "scripts": {
+    "am:front:generate:api": "ng-openapi -c openapi.config.ts"
+  },
   "dependencies": {
     "@angular/animations": "^22.1.0",
     "@angular/cdk": "^22.1.0",
@@ -31,7 +34,7 @@
     "angular-eslint": "^22.1.0",
     "jest-environment-jsdom": "^30.0.2",
     "jest-preset-angular": "^17.0.0",
-    "openapi-typescript-codegen": "^0.29.0",
+    "ng-openapi": "^0.3.2",
     "postcss": "^8.5.25",
     "tailwindcss": "^4.3.3"
   }

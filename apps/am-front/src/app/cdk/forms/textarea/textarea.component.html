@@ -1,0 +1,28 @@
+<mat-form-field>
+    @if (label()) {
+        <mat-label>
+            {{ label() }}
+        </mat-label>
+    }
+
+    <textarea matInput [formControl]="control"
+              [name]="name()"
+              ngDefaultControl
+              [rows]="rows()"
+              [required]="required()">
+    </textarea>
+
+    @if (suffixName()) {
+        <amstore-icon (click)="emitSuffixClick()"
+                      [iconName]="suffixName()"
+                      [size]="20"
+                      color="accent"
+                      matSuffix />
+    }
+
+    @if (errorStatusChanges$ | async) {
+        <mat-error>
+            {{ control.errors | errors }}
+        </mat-error>
+    }
+</mat-form-field>

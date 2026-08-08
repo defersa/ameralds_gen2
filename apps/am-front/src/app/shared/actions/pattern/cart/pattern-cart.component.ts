@@ -7,7 +7,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AmstoreSlideComponent } from "@am-front/cdk/slide/slide.component";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
-import type { PatternEntityDto } from "@am-front/root/api";
+import type { PatternEntityDto } from "@am-front/root/api-v2";
 
 
 @Component({

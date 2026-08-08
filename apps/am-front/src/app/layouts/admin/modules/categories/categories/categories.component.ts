@@ -9,7 +9,7 @@ import { AmstoreButtonRoundComponent } from "@am-front/cdk/buttons/round/round.c
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { AsyncPipe, DatePipe } from "@angular/common";
 import { AmstorePaginatorComponent } from "@am-front/cdk/paginator/paginator.component";
-import type { CategoriesPaginatedPageDto, CategoryDto } from "@am-front/root/api";
+import type { CategoriesPaginatedPageDto, CategoryDto } from "@am-front/root/api-v2";
 
 
 @Component({

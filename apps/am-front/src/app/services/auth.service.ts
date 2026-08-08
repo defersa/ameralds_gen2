@@ -6,7 +6,7 @@ import { UBehaviorSubject } from "@am-front/utils/u-behavior.subject";
 import { LocalStorage } from "@am-front/decorators/local.decorator";
 import { Router } from "@angular/router";
 import { jwtDecode } from "jwt-decode";
-import { UserProducer } from "@am-front/root/api";
+import { ApiUserProducer } from "@am-front/root/api-v2";
 
 
 const ACCESS_TOKEN_NAME: string = 'accessToken';
@@ -34,7 +34,7 @@ export class AuthService {
         return expiredAt ? new Date(expiredAt) : null;
     }
 
-    private userProducer: UserProducer = inject(UserProducer);
+    private userProducer: ApiUserProducer = inject(ApiUserProducer);
     private router: Router = inject(Router);
 
     public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(Boolean(this.localAccessToken));

@@ -6,7 +6,7 @@ import { map } from "rxjs/operators";
 import { Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
-import type { CategoryDto } from "@am-front/root/api";
+import type { CategoryDto } from "@am-front/root/api-v2";
 
 
 @Component({

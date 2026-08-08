@@ -7,8 +7,8 @@ import { OptionType } from "@am-front/interface/cdk.interface";
 import { BehaviorObservable, GetDataAction, GetOptionsObservable } from "@am-front/utils/data-action.subject";
 import { SnackService } from "@am-front/services/snackbar.service";
 import {
-    type SizesPaginatedPageDto, type SizeDto, type SizesDto, SizesProducer, type CategoryDto,
-} from "@am-front/root/api";
+    type SizesPaginatedPageDto, type SizeDto, type SizesDto, ApiSizesProducer, type CategoryDto,
+} from "@am-front/root/api-v2";
 import { LangType } from "@am-front/services/lang.service";
 
 
@@ -17,7 +17,7 @@ import { LangType } from "@am-front/services/lang.service";
 })
 export class SizesService {
     private snack: SnackService = inject(SnackService)
-    private sizesService: SizesProducer = inject(SizesProducer);
+    private sizesService: ApiSizesProducer = inject(ApiSizesProducer);
 
     public sizes$: BehaviorObservable<SizeDto[]> = GetDataAction([], () => this.getAllSizes());
     public list$: Observable<OptionType[]> = GetOptionsObservable(this.sizes$);

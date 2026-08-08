@@ -15,6 +15,7 @@ import { CartSnapComponent } from '@am-front/core/cart-snap/cart-snap.component'
 import { ProfileComponent } from '@am-front/core/profile/profile.component';
 import { AuthInterceptor } from '@am-front/root/auth.interceptor';
 import { DownloadInterceptor } from '@am-front/root/download.interceptor';
+import { provideDefaultClient } from '@am-front/root/api-v2';
 
 
 registerLocaleData(localeRu, 'ru-RU', localeRuExtra);
@@ -33,6 +34,7 @@ registerLocaleData(localeRu, 'ru-RU', localeRuExtra);
         CartSnapComponent,
         ProfileComponent
     ], providers: [
+        provideDefaultClient({ basePath: '' }),
         provideHttpClient(withInterceptors([AuthInterceptor, DownloadInterceptor])),
         {
             provide: LOCALE_ID,

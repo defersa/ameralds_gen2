@@ -35,7 +35,7 @@ import {
     FullPatternEntityDto,
     ImageDto,
     type PatternSizeDto
-} from "@am-front/root/api";
+} from "@am-front/root/api-v2";
 import { PatternsService } from "@am-front/services/patterns.service";
 import { ImageListComponent } from "@am-front/shared/image-list/image-list.component";
 import { AmstoreUploadComponent } from "@am-front/cdk/forms/upload/upload.component";

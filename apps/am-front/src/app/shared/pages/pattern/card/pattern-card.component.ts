@@ -6,7 +6,7 @@ import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-bu
 import { AmstorePatternCardComponent } from "@am-front/shared/card/pattern/pattern.component";
 import { Observable } from "rxjs";
 import { PatternsService } from "@am-front/services/patterns.service";
-import { FullPatternEntityDto } from "@am-front/root/api";
+import { FullPatternEntityDto } from "@am-front/root/api-v2";
 import { PatternCartComponent } from "@am-front/shared/actions/pattern/pattern-cart/pattern-cart.component";
 import { ProfileService } from '@am-front/services/profile.service';
 

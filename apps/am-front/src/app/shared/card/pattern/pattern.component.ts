@@ -17,7 +17,7 @@ import { ImageListComponent } from "@am-front/shared/image-list/image-list.compo
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { AmstoreChipComponent } from "@am-front/cdk/chip/chip.component";
 import { toSignal } from "@angular/core/rxjs-interop";
-import { FullPatternEntityDto, ImageDto, PatternEntityDto } from "@am-front/root/api";
+import { FullPatternEntityDto, ImageDto, PatternEntityDto } from "@am-front/root/api-v2";
 import { CategoriesService } from "@am-front/services/categories.service";
 import { OptionType } from "@am-front/interface/cdk.interface";
 

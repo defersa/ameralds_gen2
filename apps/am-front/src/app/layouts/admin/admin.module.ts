@@ -4,6 +4,9 @@ import { AmstoreAdminComponent } from './admin.component';
 import { RouterModule, Routes } from "@angular/router";
 import { AMSTORE_SECTION_CONFIG } from "@am-front/shared/menu/menu.component";
 import { adminConfig } from "@am-front/root/layouts/admin/section.config";
+import {
+    NumberGeneratorComponent
+} from '@am-front/root/layouts/admin/modules/number-generator/number-generator.component';
 
 
 export const routes: Routes = [{
@@ -31,6 +34,11 @@ export const routes: Routes = [{
             path: 'orders',
             loadChildren: () => import('./modules/orders/orders.module').then(m => m.OrdersModule),
         },
+        {
+            path: 'generator',
+            loadComponent: () => import('./modules/number-generator/number-generator.component').then(m => m.NumberGeneratorComponent),
+        },
+
     ]
 }];
 

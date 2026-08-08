@@ -17,10 +17,10 @@ import {
     SuccessCreateDto,
     type ShortOrderPatternDto,
     UserCredentialsDto, type UserOrderDto,
-    UserProducer,
+    ApiUserProducer,
     UserProfileDto,
     UserTokensDTO
-} from "@am-front/root/api";
+} from "@am-front/root/api-v2";
 
 
 declare var grecaptcha: ReCAPTCHA;
@@ -36,11 +36,11 @@ export class ProfileService {
 
     private authService: AuthService = inject(AuthService);
     private httpClient: HttpClient = inject(HttpClient);
-    private userService: UserProducer = inject(UserProducer);
+    private userService: ApiUserProducer = inject(ApiUserProducer);
 
     public user$: BehaviorSubject<UserProfileDto> = new BehaviorSubject<UserProfileDto>(null);
     public readonly userStatus: WritableSignal<EnumUserRole> = signal(this.localUserStatus);
-    public readonly isAdmin: Signal<boolean> = computed(() => this.userStatus() === EnumUserRole.ADMIN);
+    public readonly isAdmin: Signal<boolean> = computed(() => this.userStatus() === EnumUserRole.Admin);
 
     public boughtPatterns$: BehaviorSubject<ShortOrderPatternDto[]> = new BehaviorSubject<ShortOrderPatternDto[]>([]);
     public userCart$: BehaviorSubject<UserOrderDto> = new BehaviorSubject<UserOrderDto>(null);
@@ -101,7 +101,7 @@ export class ProfileService {
             return UserEnum.Unauthorized;
         }
 
-        return value.role === EnumUserRole.ADMIN ?
+        return value.role === EnumUserRole.Admin ?
             UserEnum.Moder :
             UserEnum.Authorized;
     }

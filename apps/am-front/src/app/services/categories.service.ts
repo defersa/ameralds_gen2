@@ -10,9 +10,9 @@ import { BehaviorObservable, GetDataAction } from "@am-front/utils/data-action.s
 import { LangService, LangType } from "@am-front/services/lang.service";
 import {
     type CategoriesDto,
-    type CategoriesPaginatedPageDto, CategoriesProducer,
+    type CategoriesPaginatedPageDto, ApiCategoriesProducer,
     type CategoryDto
-} from "@am-front/root/api";
+} from "@am-front/root/api-v2";
 import { toObservable } from '@angular/core/rxjs-interop';
 
 
@@ -20,7 +20,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
     providedIn: "root"
 })
 export class CategoriesService {
-    private categoriesService: CategoriesProducer = inject(CategoriesProducer);
+    private categoriesService: ApiCategoriesProducer = inject(ApiCategoriesProducer);
     private snack: SnackService = inject(SnackService);
     private langService: LangService = inject(LangService);
 

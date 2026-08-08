@@ -12,7 +12,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
-import { SizeDto } from "@am-front/root/api";
+import { SizeDto } from "@am-front/root/api-v2";
 
 
 @Component({
