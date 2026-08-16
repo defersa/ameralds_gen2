@@ -62,7 +62,6 @@ export class AuthService {
     }
 
     public setAuthToken(token: string): void {
-        console.log(token)
         this.token$.next(token);
         this.localAccessToken = token;
         this.authStatus$.next(true);

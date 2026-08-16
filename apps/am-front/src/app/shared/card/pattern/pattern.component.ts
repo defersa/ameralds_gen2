@@ -49,6 +49,10 @@ export class AmstorePatternCardComponent extends AmstoreCardDirective {
         const categoriesById: Record<number, OptionType> = this.categoriesById();
         const pattern: FullPatternEntityDto = this.pattern();
 
+        if (!categoriesById) {
+            return [];
+        }
+
         return pattern.categories
             .map((category: number) => categoriesById[category])
             .filter(Boolean);

@@ -5,6 +5,7 @@ import { MatSnackBar, MatSnackBarConfig } from "@angular/material/snack-bar";
 
 
 const DEFAULT_DURATION: number = 5000;
+const WARN_PANEL_CLASS: string = 'amstore-snack-warn';
 
 @Injectable({
     providedIn: 'root'
@@ -36,5 +37,19 @@ export class SnackService {
             duration: DEFAULT_DURATION,
             ...config,
         });
+    }
+
+    public warn(message: string, config?: MatSnackBarConfig): void {
+        this.open(message, {
+            ...config,
+            panelClass: this.mergePanelClass(config?.panelClass, WARN_PANEL_CLASS),
+        });
+    }
+
+    private mergePanelClass(panelClass: string | string[] | undefined, value: string): string[] {
+        return [
+            ...(Array.isArray(panelClass) ? panelClass : [panelClass].filter(Boolean) as string[]),
+            value,
+        ];
     }
 }

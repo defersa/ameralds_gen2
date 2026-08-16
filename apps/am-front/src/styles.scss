@@ -78,6 +78,12 @@ p {
   color: theming-var.get-amstore-color(red, deep);
 }
 
+.amstore-snack-warn {
+  --mdc-snackbar-container-color: #{theming-var.get-amstore-color(red, slight)};
+  --mdc-snackbar-supporting-text-color: #{theming-var.get-amstore-color(red, deep)};
+  --mat-snack-bar-button-color: #{theming-var.get-amstore-color(red, deep)};
+}
+
 .amstore-text-secondary {
   color: theming-var.get-amstore-color(gray, middle);
 }

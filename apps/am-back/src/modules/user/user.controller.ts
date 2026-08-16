@@ -71,6 +71,7 @@ export class UserController {
     }
 
     @Post('refresh')
+    @Auth()
     @ApiOkResponse({ description: 'The auth token has been successfully refreshed.', type: UserTokensDTO })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto })
     public async refresh(
@@ -87,6 +88,7 @@ export class UserController {
 
 
     @Post('logout')
+    @Auth()
     @ApiOkResponse({ description: 'User has been logout.', type: null })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto })
     public async logout(

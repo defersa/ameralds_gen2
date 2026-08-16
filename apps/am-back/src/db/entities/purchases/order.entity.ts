@@ -11,7 +11,10 @@ export class AdminOrderEntity extends BaseModel {
     public patterns: OrderPatternEntity[];
 
     @Column()
-    public email: string;
+    public email?: string;
+
+    @Column()
+    public isComplete: boolean;
 }
 
 export enum OrderStatus {

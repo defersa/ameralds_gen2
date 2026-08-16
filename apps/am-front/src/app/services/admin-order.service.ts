@@ -1,13 +1,17 @@
-import { Injectable } from "@angular/core";
-import { LocalStorage } from "@am-front/decorators/local.decorator";
-import { BehaviorSubject, Observable } from "rxjs";
-import { IAdminCart, IAdminOrder, IAdminOrderShort, IPatternPurchase } from "@am-front/interface/order.interface";
-import { HttpClient } from "@angular/common/http";
-import { UB } from "@am-front/utils/action-builder";
-import { Params } from "@angular/router";
-import { IItemResponse, IPaginatedResponse, IResultRequest } from "@am-front/interface/request.interface";
-import { parseJsonWithDefault } from "@am-front/utils/common.utils";
-import { map } from "rxjs/operators";
+import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { filter } from 'rxjs/operators';
+import { ProfileService } from '@am-front/services/profile.service';
+import {
+    AdminOrderDto,
+    AdminOrderPatternDto,
+    AdminOrderPatternSizeDto,
+    ApiAdminProducer,
+    InputShortOrderPatternDto,
+    type PatternWithPriceDto
+} from '@am-front/root/api-v2';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { IdRecord } from '@am-front/interface/common.interface';
+import { ICartPattern } from '@am-front/services/cart.service';
 
 
 const ADMIN_ORDER_NAME: string = 'adminOrder';
@@ -16,66 +20,62 @@ const ADMIN_ORDER_NAME: string = 'adminOrder';
     providedIn: 'root'
 })
 export class AdminOrderService {
-    @LocalStorage(ADMIN_ORDER_NAME)
-    private order!: string;
+    private profileService: ProfileService = inject(ProfileService);
+    private adminProducer: ApiAdminProducer = inject(ApiAdminProducer);
+    private destroyRef: DestroyRef = inject(DestroyRef);
 
-    public get order$(): Observable<IAdminCart> {
-        return this._order$.asObservable();
+    public readonly order: WritableSignal<AdminOrderDto> = signal(null);
+
+    constructor() {
+        toObservable(this.profileService.isAdmin)
+            .pipe(
+                filter(Boolean),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(() => this.getActualAdminCart());
     }
 
-    private _order$: BehaviorSubject<IAdminCart> = new BehaviorSubject(parseJsonWithDefault(this.order, {purchases: []}));
+    public getActualAdminCart(): void {
+        this.adminProducer.adminControllerLastOrder()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((order: AdminOrderDto) => this.order.set(order));
 
-    constructor(
-        private httpClient: HttpClient,
-    ) {
-        this._order$.subscribe((order: IAdminCart) => {
-            this.order = JSON.stringify(order)
+    }
 
-            if (!this.isNotValidOrder(order)) {
-                this.clearOrder();
+    public addPattern(pattern: ICartPattern, origin: PatternWithPriceDto): void {
+        const order: AdminOrderDto = this.order();
+        const previousPatterns: InputShortOrderPatternDto[] = order.patterns.map(this.convertOrderPatternEntityToPatternPurchase);
+
+        this.adminProducer.adminControllerUpdateLastOrder([
+            ...previousPatterns,
+            {
+                requiresPatternPurchase: true,
+                pattern: pattern.id,
+                color: pattern.color,
+                sizes: pattern.sizes,
             }
-        });
+        ])
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.getActualAdminCart());
     }
 
-    public addPattern(purchase: IPatternPurchase): void {
-        const order: IAdminCart = this._order$.getValue();
+    public removePattern(id: number): void {
+        const order: AdminOrderDto = this.order();
+        const previousPatterns: InputShortOrderPatternDto[] = order.patterns.map(this.convertOrderPatternEntityToPatternPurchase);
 
-        order.purchases = [
-            ...order.purchases.filter((item: IPatternPurchase) => item.pattern !== purchase.pattern),
-            purchase,
-        ];
-
-        this._order$.next(order);
+        this.adminProducer.adminControllerUpdateLastOrder(
+            previousPatterns.filter((pattern: InputShortOrderPatternDto) => pattern.pattern !== id),
+        )
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.getActualAdminCart());
     }
 
-    public removePattern(pattern: number): void {
-        const order: IAdminCart = this._order$.getValue();
-
-        order.purchases = order.purchases.filter((item: IPatternPurchase) => item.pattern !== pattern);
-
-        this._order$.next(order);
-    }
-
-    public clearOrder(): void {
-        this._order$.next({
-            purchases: [],
-        });
-    }
-
-    public getOrders(params: Params): Observable<IPaginatedResponse<IAdminOrderShort>> {
-        return this.httpClient.get<IPaginatedResponse<IAdminOrderShort>>(UB(['api', 'admin-order', 'paginated']), {params});
-    }
-
-    public getOrder(params: Params): Observable<IAdminOrder> {
-        return this.httpClient.get<IItemResponse<IAdminOrder>>(UB(['api', 'admin-order']), {params})
-            .pipe(map((result: IItemResponse<IAdminOrder>) => result.item));
-    }
-
-    public sendOrder(data: Params): Observable<IResultRequest> {
-        return this.httpClient.post<IResultRequest>(UB(['api', 'admin-order']), data);
-    }
-
-    private isNotValidOrder(cart: IAdminCart): boolean {
-        return cart && Array.isArray(cart.purchases);
+    private convertOrderPatternEntityToPatternPurchase(pattern: AdminOrderPatternDto): InputShortOrderPatternDto {
+        return {
+            pattern: pattern.id,
+            color: pattern.color,
+            sizes: pattern.sizes.map((size: AdminOrderPatternSizeDto) => size.id),
+            requiresPatternPurchase: true,
+        };
     }
 }

@@ -21,12 +21,6 @@
         <amstore-snapshot-pattern [pattern]="item.pattern"
                                   [routerLink]="['pattern', item.pattern.id]"
                                   [style.order]="item.index">
-            <amstore-pattern-cart-short [pattern]="item.pattern"
-                                        [cart]="item.cart"
-                                        [inCart]="!item.removed"
-                                        (removeFromCart)="removeFromCart(item)"
-                                        (returnToCart)="returnToCart(item)"
-                                        (goToCard)="goToCart(item.pattern.id)" />
         </amstore-snapshot-pattern>
     } @empty {
         <h4>Список пуст</h4>

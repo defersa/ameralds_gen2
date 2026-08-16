@@ -1,9 +1,9 @@
 <amstore-orders-filter (onSetFilters)="setFilterWithPage($event)" [filters]="filters" color="special"/>
 
-@for (order of items$ | async; track order) {
-    <div style="padding: 16px">
-        <amstore-snapshot-admin-order [order]="order" [routerLink]="['/', 'admin', 'orders', 'card', order.id]"/>
-    </div>
-}
+<!--@for (order of items$ | async; track order) {-->
+<!--    <div style="padding: 16px">-->
+<!--        <amstore-snapshot-admin-order [order]="order" [routerLink]="['/', 'admin', 'orders', 'card', order.id]"/>-->
+<!--    </div>-->
+<!--}-->
 
 <amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page" color="special"/>

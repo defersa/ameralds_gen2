@@ -1,10 +1,9 @@
 import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiTags } from "@nestjs/swagger";
-import { Body, Controller, Post, Req } from "@nestjs/common";
-import { SuccessCreateDto } from "../../common/common.dto";
+import { Body, Controller, Get, Patch, Req } from '@nestjs/common';
 import { ErrorsDto } from "../errors/errors.dto";
 import { OrderService } from "@am-back/db/service/general/order.service";
 import type { RequestModel } from "@am-back/models/request.model";
-import { InputShortOrderPatternDto } from "./orders.dto";
+import { CartDto, InputShortOrderPatternDto } from './orders.dto';
 
 
 @Controller('orders')
@@ -15,14 +14,23 @@ export class OrdersController {
     ) {
     }
 
-    @Post('update')
+    @Get('cart')
+    @ApiCreatedResponse({ description: 'Cart returned.', type: CartDto })
+    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
+    public async cart(
+        @Req() request: RequestModel,
+    ): Promise<CartDto> {
+        return this.orderService.getUserCart(request.user);
+    }
+
+    @Patch('cart')
     @ApiBody({ type: [InputShortOrderPatternDto] })
-    @ApiCreatedResponse({ description: 'The pattern successfully created.', type: SuccessCreateDto })
+    @ApiCreatedResponse({ description: 'Cart updated.', type: CartDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async update(
         @Body() patterns: InputShortOrderPatternDto[],
         @Req() request: RequestModel,
-    ): Promise<SuccessCreateDto> {
+    ): Promise<CartDto> {
         return await this.orderService.updateOpenUserOrder(request.user, patterns);
     }
 }

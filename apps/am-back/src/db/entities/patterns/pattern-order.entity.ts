@@ -31,7 +31,7 @@ export class OrderPatternEntity extends SelectedPatternEntity {
     public adminOrder: AdminOrderEntity;
 
     @Column({ type: 'boolean', default: false })
-    public bought: boolean;
+    public requiresPatternPurchase: boolean;
 }
 
 @Entity({ schema: 'patterns' })

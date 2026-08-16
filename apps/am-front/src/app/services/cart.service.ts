@@ -85,7 +85,7 @@ export class CartService {
                     const orders: InputShortOrderPatternDto[] = Object.entries(this._patternsCart$.getValue())
                         .map(([key, order]: [string, ICartPattern]) => ({
                             ...order,
-                            bought: order.pattern,
+                            requiresPatternPurchase: order.pattern,
                             sizes: order.sizes,
                             pattern: Number(key),
                         }));
@@ -127,7 +127,7 @@ export class CartService {
                     const previousItem: ICartPattern = cart[userPatternOrder.pattern.id];
                     const item: ICartPattern = {
                         id: userPatternOrder.pattern.id,
-                        pattern: userPatternOrder.bought || previousItem?.pattern,
+                        pattern: userPatternOrder.requiresPatternPurchase || previousItem?.pattern,
                         color: userPatternOrder.color || previousItem?.color,
                         sizes: [...userPatternOrder.sizes, ...(previousItem?.sizes || [])],
                     };

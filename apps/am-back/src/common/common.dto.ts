@@ -28,7 +28,7 @@ export class BaseEntityDto {
         type: Date,
         required: false,
     })
-    public updatedAt: Date;
+    public updatedAt?: Date;
 }
 
 export class SuccessCreateDto extends EntityDto {}

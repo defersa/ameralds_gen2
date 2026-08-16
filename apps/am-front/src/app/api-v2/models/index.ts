@@ -107,8 +107,8 @@ export interface ShortOrderPatternDto {
     sizes: Array<number>;
     /** Status of colors able */
     color: boolean;
-    /** Status of colors able */
-    bought: boolean;
+    /** Whether base pattern purchase should be included */
+    requiresPatternPurchase: boolean;
     /** Pattern with prices */
     pattern: PatternWithPriceDto;
 }
@@ -350,20 +350,70 @@ export interface FullPatternEntityDto {
 }
 
 export interface InputShortOrderPatternDto {
+    /** Sizes ids */
+    sizes: Array<number>;
+    /** Status of colors able */
+    color: boolean;
+    /** Pattern id */
+    pattern: number;
+    /** Whether base pattern purchase should be included */
+    requiresPatternPurchase: boolean;
+}
+
+export interface AdminOrderPatternSizeDto {
     /** Id of entity */
     id: number;
     /** Id of entity */
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
-    /** Sizes ids */
-    sizes: Array<number>;
+}
+
+export interface AdminOrderPatternEntityDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Base price of pattern */
+    basePrice: NumberEntityDto;
+    /** Additional price of pattern */
+    additionalPrice: NumberEntityDto;
+    /** Color price of pattern */
+    colorPrice: NumberEntityDto;
+}
+
+export interface AdminOrderPatternDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Sizes of order pattern */
+    sizes: Array<AdminOrderPatternSizeDto>;
+    /** Pattern with prices */
+    pattern: AdminOrderPatternEntityDto;
     /** Status of colors able */
     color: boolean;
-    /** Status of colors able */
-    bought: boolean;
-    /** Pattern id */
-    pattern: number;
+    /** Whether base pattern purchase should be included */
+    requiresPatternPurchase: boolean;
+}
+
+export interface AdminOrderDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Admin order email */
+    email?: string;
+    /** Admin order complete status */
+    isComplete: boolean;
+    /** Admin order patterns */
+    patterns: Array<AdminOrderPatternDto>;
 }
 
 /** Request Options for Angular HttpClient requests */

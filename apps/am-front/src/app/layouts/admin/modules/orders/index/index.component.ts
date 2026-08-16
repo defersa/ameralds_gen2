@@ -26,28 +26,6 @@ import { AmstorePaginatorComponent } from "@am-front/cdk/paginator/paginator.com
     ]
 })
 export class IndexComponent extends FilteredPage {
-    public items$: Observable<IAdminOrderShort[]> = this.filterSet$.pipe(
-        filter((result: FiltersSet) => !!result),
-        map((result: FiltersSet) => {
-            this.page = Number(result['page']) || 1;
-
-            const startDate: string = result['startDate'] ? (result['startDate'] as Date).toISOString() : null;
-            const endDate: string = result['endDate'] ? (result['endDate'] as Date).toISOString() : null;
-
-            return {
-                ...result,
-                startDate,
-                endDate,
-                page: this.page,
-            };
-        }),
-        switchMap((variables: Params) => this.adminOrder.getOrders(variables)),
-        map((result: IPaginatedResponse<IAdminOrderShort>) => {
-                this.pageCount = result.count;
-                return result.items;
-            }
-        ));
-
 
     public pageCount: number = 1;
     public page: number;
@@ -63,7 +41,6 @@ export class IndexComponent extends FilteredPage {
     }
 
     protected initFilters(query: Params): FiltersSet {
-        console.log(query['startDate'])
         const startDate: Date = query['startDate'] ? new Date(query['startDate']) : null;
         const endDate: Date = query['endDate'] ? new Date(query['endDate']) : null;
 

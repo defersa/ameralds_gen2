@@ -39,10 +39,10 @@ export class BaseShortOrderPatternDto extends BaseEntityDto {
     public color: boolean;
 
     @ApiProperty({
-        description: 'Status of colors able',
+        description: 'Whether base pattern purchase should be included',
         type: 'boolean',
     })
-    public bought: boolean;
+    public requiresPatternPurchase: boolean;
 }
 
 export class ShortOrderPatternDto extends BaseShortOrderPatternDto {
@@ -53,12 +53,31 @@ export class ShortOrderPatternDto extends BaseShortOrderPatternDto {
     public pattern: PatternWithPriceDto;
 }
 
-export class InputShortOrderPatternDto extends BaseShortOrderPatternDto {
+export class InputShortOrderPatternDto {
+    @ApiProperty({
+        description: 'Sizes ids',
+        type: 'number',
+        isArray: true,
+    })
+    public sizes: number[];
+
+    @ApiProperty({
+        description: 'Status of colors able',
+        type: 'boolean',
+    })
+    public color: boolean;
+
     @ApiProperty({
         description: 'Pattern id',
         type: 'number',
     })
     public pattern: number;
+
+    @ApiProperty({
+        description: 'Whether base pattern purchase should be included',
+        type: 'boolean',
+    })
+    public requiresPatternPurchase: boolean;
 }
 
 export class OrderPatternDto extends BaseEntityDto {
@@ -96,4 +115,65 @@ export class UserOrderDto extends BaseEntityDto {
         isArray: true,
     })
     public patterns: ShortOrderPatternDto[];
+}
+
+export class CartOrderPatternSizeDto extends BaseEntityDto {}
+
+export class CartOrderPatternEntityDto extends PatternWithPriceDto {}
+
+export class CartOrderPatternDto extends BaseEntityDto {
+    @ApiProperty({
+        description: 'Sizes selected in cart',
+        type: CartOrderPatternSizeDto,
+        isArray: true,
+    })
+    public sizes: CartOrderPatternSizeDto[];
+
+    @ApiProperty({
+        description: 'Pattern with prices',
+        type: CartOrderPatternEntityDto,
+    })
+    public pattern: CartOrderPatternEntityDto;
+
+    @ApiProperty({
+        description: 'Status of colors able',
+        type: 'boolean',
+    })
+    public color: boolean;
+
+    @ApiProperty({
+        description: 'Whether base pattern purchase should be included',
+        type: 'boolean',
+    })
+    public requiresPatternPurchase: boolean;
+}
+
+export class CartOrderDto extends BaseEntityDto {
+    @ApiProperty({
+        description: 'Order status',
+        enum: OrderStatus,
+        enumName: 'EnumOrderStatus',
+    })
+    public status: OrderStatus;
+
+    @ApiProperty({
+        description: 'Patterns in cart',
+        type: CartOrderPatternDto,
+        isArray: true,
+    })
+    public patterns: CartOrderPatternDto[];
+}
+
+export class CartDto {
+    @ApiProperty({
+        description: 'Cart total price',
+        type: NumberEntityDto,
+    })
+    public price: NumberEntityDto;
+
+    @ApiProperty({
+        description: 'Current user order',
+        type: CartOrderDto,
+    })
+    public order: CartOrderDto;
 }

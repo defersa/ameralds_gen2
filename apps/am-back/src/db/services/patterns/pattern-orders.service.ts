@@ -32,7 +32,7 @@ export class PatternOrdersService {
         const orderEntity: OrderPatternEntity = this.orderPatternRepository.create({
             pattern,
             sizes,
-            bought: order.bought,
+            requiresPatternPurchase: order.requiresPatternPurchase,
             color: order.color,
         });
 

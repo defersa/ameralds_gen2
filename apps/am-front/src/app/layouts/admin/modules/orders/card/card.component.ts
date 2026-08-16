@@ -43,25 +43,6 @@ export class CardComponent implements OnInit {
 
     public ngOnInit(): void {
         this.id = Number(this.route.snapshot.paramMap.get('id')) ?? null;
-
-        if (this.id && typeof this.id === 'number') {
-            this.order$ = this.adminOrder
-                .getOrder({ id: this.id })
-                .pipe(
-                    map((order: IAdminOrder) => {
-                        return {
-                            ...order,
-                            purchases: order.purchases.map((purchase: IPurchaseSaved) => ({
-                                ...purchase,
-                                sizesWithStatus: purchase.pattern.sizes.map((size: PattenSizeFiles) => ({
-                                    value: size.size.value,
-                                    status: !!purchase.sizes.find((patternSize: PattenSizeFiles) => size.id === patternSize.id)
-                                }))
-                            }))
-                        }
-                    }),
-                );
-        }
     }
 
     public getBack(): void {

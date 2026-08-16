@@ -11,6 +11,7 @@ import { PatternsService } from "@am-back/db/service/patterns/patterns.service";
 import { FilesService } from "@am-back/db/service/files.service";
 import { OrderService } from "@am-back/db/service/general/order.service";
 import { PatternOrdersService } from "@am-back/db/service/patterns/pattern-orders.service";
+import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
 
 
 const services: any[] = [
@@ -25,6 +26,7 @@ const services: any[] = [
     PatternsService,
     FilesService,
     PatternOrdersService,
+    UserPatternService,
     OrderService,
 ];
 

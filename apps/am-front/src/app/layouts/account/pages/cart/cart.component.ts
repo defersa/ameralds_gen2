@@ -6,7 +6,6 @@ import { Observable } from "rxjs";
 import { map, switchMap, take } from "rxjs/operators";
 import { IdRecord } from "@am-front/interface/common.interface";
 import type { PatternEntityDto } from "@am-front/root/api-v2";
-import { PatternCartShortComponent } from "@am-front/shared/actions/pattern/pattern-cart-short/pattern-cart-short.component";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { Router } from "@angular/router";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
@@ -28,7 +27,6 @@ interface CartItem {
     standalone: true,
     imports: [
         AmstoreSnapshotPatternComponent,
-        PatternCartShortComponent,
         AmstoreButtonComponent,
         AmstoreInfoComponent
     ]
