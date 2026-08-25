@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { AdminOrderService } from "@am-front/services/admin-order.service";
+import { AdminOrderService } from "@am-front/services/cart/admin-order.service";
 import { FilteredPage, FiltersSet } from "@am-front/shared/abstract/filtered-page";
 import { Observable } from "rxjs";
 import { filter, map, switchMap } from "rxjs/operators";

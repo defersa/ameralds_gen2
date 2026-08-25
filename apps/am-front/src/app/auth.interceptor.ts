@@ -10,7 +10,7 @@ const UNAUTHORIZED_STATUS = 401;
 export function AuthInterceptor(request: HttpRequest<Record<string, never>>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
     const authService: AuthService = inject(AuthService);
 
-    const token: string = authService.token$.getValue();
+    const token: string = authService.token();
     const getResponseTap: () => (response: HttpEvent<unknown>) => void = () => {
         return (response: HttpEvent<unknown>) => {
             if (response instanceof HttpResponse) {

@@ -10,7 +10,7 @@ import {
     Signal,
     WritableSignal,
 } from "@angular/core";
-import { CartService, ICartPattern } from "@am-front/services/cart.service";
+import { CartService, ICartPattern } from "@am-front/services/cart/cart.service";
 import {
     FullPatternEntityDto,
     NumberEntityDto,

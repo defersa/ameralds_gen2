@@ -1,5 +1,5 @@
 import { Component, inject, Signal } from "@angular/core";
-import { CartService } from "@am-front/services/cart.service";
+import { CartService } from "@am-front/services/cart/cart.service";
 import { AmstoreButtonRoundComponent } from "@am-front/cdk/buttons/round/round.component";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { Currency, LangService } from "@am-front/services/lang.service";

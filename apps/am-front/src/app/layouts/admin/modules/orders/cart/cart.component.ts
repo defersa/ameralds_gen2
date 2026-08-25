@@ -1,5 +1,5 @@
 import { Component, inject } from "@angular/core";
-import { AdminOrderService } from "@am-front/services/admin-order.service";
+import { AdminOrderService } from "@am-front/services/cart/admin-order.service";
 import { FormControl, ReactiveFormsModule, Validators } from "@angular/forms";
 import { SnackService } from "@am-front/services/snackbar.service";
 import { Router } from "@angular/router";

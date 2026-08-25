@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal, Signal, WritableSignal } from "@angular/core";
 import { AmstoreSnapshotPatternComponent } from "@am-front/shared/snapshot/pattern/pattern.component";
-import { CartService, ICartPattern } from "@am-front/services/cart.service";
+import { CartService, ICartPattern } from "@am-front/services/cart/cart.service";
 import { PatternsService } from "@am-front/services/patterns.service";
 import { Observable } from "rxjs";
 import { map, switchMap, take } from "rxjs/operators";

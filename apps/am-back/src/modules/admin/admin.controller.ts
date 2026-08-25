@@ -4,7 +4,7 @@ import { Roles } from "@am-back/core/guards/role.guard";
 import { OrderService } from "@am-back/db/service/general/order.service";
 import { UserRole } from "../../db/entities/user.entity";
 import { ErrorsDto } from "../errors/errors.dto";
-import { InputShortOrderPatternDto } from '../orders/orders.dto';
+import { InputShortOrderPatternDto } from '../orders/dto/orders.dto';
 import { AdminOrderResponseDto } from "./admin.dto";
 
 

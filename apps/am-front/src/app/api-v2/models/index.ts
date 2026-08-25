@@ -349,6 +349,67 @@ export interface FullPatternEntityDto {
     sizes: Array<FullPatternSizeDto>;
 }
 
+export interface CartOrderPatternSizeDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+}
+
+export interface CartOrderPatternEntityDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Base price of pattern */
+    basePrice: NumberEntityDto;
+    /** Additional price of pattern */
+    additionalPrice: NumberEntityDto;
+    /** Color price of pattern */
+    colorPrice: NumberEntityDto;
+}
+
+export interface CartOrderPatternDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Sizes selected in cart */
+    sizes: Array<CartOrderPatternSizeDto>;
+    /** Pattern with prices */
+    pattern: CartOrderPatternEntityDto;
+    /** Status of colors able */
+    color: boolean;
+    /** Whether base pattern purchase should be included */
+    requiresPatternPurchase: boolean;
+}
+
+export interface CartOrderDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Order status */
+    status: EnumOrderStatus;
+    /** Patterns in cart */
+    patterns: Array<CartOrderPatternDto>;
+}
+
+export interface CartDto {
+    /** Cart total price */
+    price: NumberEntityDto;
+    /** Current user order */
+    order: CartOrderDto;
+}
+
 export interface InputShortOrderPatternDto {
     /** Sizes ids */
     sizes: Array<number>;
@@ -358,6 +419,17 @@ export interface InputShortOrderPatternDto {
     pattern: number;
     /** Whether base pattern purchase should be included */
     requiresPatternPurchase: boolean;
+}
+
+export interface PatternPriceDto {
+    patternId: number;
+    price: NumberEntityDto;
+}
+
+export interface LocalCartDto {
+    /** Price by pattern */
+    patterns: Array<PatternPriceDto>;
+    totalPrice: NumberEntityDto;
 }
 
 export interface AdminOrderPatternSizeDto {
@@ -414,6 +486,13 @@ export interface AdminOrderDto {
     isComplete: boolean;
     /** Admin order patterns */
     patterns: Array<AdminOrderPatternDto>;
+}
+
+export interface AdminOrderResponseDto {
+    /** Admin order total price */
+    price: NumberEntityDto;
+    /** Current admin order */
+    order: AdminOrderDto;
 }
 
 /** Request Options for Angular HttpClient requests */

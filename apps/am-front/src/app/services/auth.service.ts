@@ -1,8 +1,6 @@
-import { inject, Injectable } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { IAuthResponse, IRefreshToken } from "@am-front/interface/profile.interface";
 import { HttpErrorResponse } from "@angular/common/http";
-import { UBehaviorSubject } from "@am-front/utils/u-behavior.subject";
 import { LocalStorage } from "@am-front/decorators/local.decorator";
 import { Router } from "@angular/router";
 import { jwtDecode } from "jwt-decode";
@@ -37,8 +35,8 @@ export class AuthService {
     private userProducer: ApiUserProducer = inject(ApiUserProducer);
     private router: Router = inject(Router);
 
-    public readonly authStatus$: UBehaviorSubject<boolean> = new UBehaviorSubject<boolean>(Boolean(this.localAccessToken));
-    public readonly token$: BehaviorSubject<string> = new BehaviorSubject<string>(this.localAccessToken);
+    public readonly auth: WritableSignal<boolean> = signal(Boolean(this.localAccessToken));
+    public readonly token: WritableSignal<string> = signal(this.localAccessToken);
 
     public setToken(tokens: IAuthResponse): void {
         this.setAuthToken(tokens.access);
@@ -46,8 +44,8 @@ export class AuthService {
     }
 
     public logout(): void {
-        this.token$.next(null);
-        this.authStatus$.next(false);
+        this.token.set(null);
+        this.auth.set(false);
 
         this.localAccessToken = null;
         this.localRefreshToken = null;
@@ -62,13 +60,13 @@ export class AuthService {
     }
 
     public setAuthToken(token: string): void {
-        this.token$.next(token);
         this.localAccessToken = token;
-        this.authStatus$.next(true);
+        this.token.set(token);
+        this.auth.set(true);
     }
 
     public tryToRefresh(): void {
-        if (!this.authStatus$.getValue()) {
+        if (!this.auth()) {
             return;
         }
 

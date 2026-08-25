@@ -1,11 +1,9 @@
 import { Component, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 
 import { IUser } from "@am-front/interface/profile.interface";
 
 import { AmstoreLoginComponent } from './login/login.component';
 import { DialogService } from "../dialog/dialog.service";
-import { AsyncPipe } from "@angular/common";
 import { AmstoreButtonRoundComponent } from "@am-front/cdk/buttons/round/round.component";
 import { RouterLink } from "@angular/router";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
@@ -17,7 +15,6 @@ import { AuthService } from '@am-front/services/auth.service';
     templateUrl: "./profile.component.html",
     styleUrls: ["./profile.component.scss"],
     imports: [
-        AsyncPipe,
         AmstoreButtonRoundComponent,
         RouterLink,
         IconsComponent
@@ -27,12 +24,8 @@ import { AuthService } from '@am-front/services/auth.service';
     }
 })
 export class ProfileComponent {
-    private authService: AuthService = inject(AuthService);
+    public authService: AuthService = inject(AuthService);
     private _dialog: DialogService = inject(DialogService);
-
-    public get authStatus(): BehaviorSubject<boolean> {
-        return this.authService.authStatus$;
-    }
 
     public get profile(): IUser | null {
         return this._profile;

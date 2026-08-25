@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BaseEntityDto, NumberEntityDto } from "../../common/common.dto";
-import { PatternEntityDto, PatternSizeDto } from "../patterns/patterns.dto";
-import { OrderStatus } from '../../db/entities/purchases/order.entity';
+import { BaseEntityDto, NumberEntityDto } from "../../../common/common.dto";
+import { PatternEntityDto, PatternSizeDto } from "../../patterns/patterns.dto";
+import { OrderStatus } from '../../../db/entities/purchases/order.entity';
 
 
 export class PatternWithPriceDto extends BaseEntityDto {

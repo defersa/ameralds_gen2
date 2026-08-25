@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ShortOrderPatternDto, UserOrderDto } from "../orders/orders.dto";
+import { ShortOrderPatternDto, UserOrderDto } from "../orders/dto/orders.dto";
 import { BaseEntityDto } from "../../common/common.dto";
 import { UserRole } from '../../db/entities/user.entity';
 

@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from "@angular/router";
 import { AsyncPipe, DatePipe, Location } from "@angular/common";
-import { AdminOrderService } from "@am-front/services/admin-order.service";
+import { AdminOrderService } from "@am-front/services/cart/admin-order.service";
 import { Observable } from "rxjs";
 import { IAdminOrder, IPurchaseSaved } from "@am-front/interface/order.interface";
 import { map } from "rxjs/operators";

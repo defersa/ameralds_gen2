@@ -6,6 +6,17 @@ cd "$ROOT_DIR"
 
 pids=()
 
+kill_tree() {
+  local pid="$1"
+  local child
+
+  while read -r child; do
+    [[ -n "$child" ]] && kill_tree "$child"
+  done < <(pgrep -P "$pid" 2>/dev/null || true)
+
+  kill "$pid" 2>/dev/null || true
+}
+
 shutdown() {
   local status="${1:-$?}"
 
@@ -13,7 +24,7 @@ shutdown() {
 
   if ((${#pids[@]} > 0)); then
     for pid in "${pids[@]}"; do
-      kill -- "-$pid" 2>/dev/null || kill "$pid" 2>/dev/null || true
+      kill_tree "$pid"
     done
     wait "${pids[@]}" 2>/dev/null || true
   fi
@@ -26,8 +37,22 @@ start() {
   shift
 
   echo "Starting $name..."
-  setsid "$@" </dev/null &
+  "$@" </dev/null &
   pids+=("$!")
+}
+
+wait_for_first_exit() {
+  local pid
+
+  while :; do
+    for pid in "${pids[@]}"; do
+      if ! kill -0 "$pid" 2>/dev/null; then
+        wait "$pid"
+        return "$?"
+      fi
+    done
+    sleep 1
+  done
 }
 
 trap 'shutdown $?' EXIT
@@ -44,7 +69,7 @@ start "backend" npm run am:back:start:dev
 start "frontend" npm run am:front:start
 
 set +e
-wait -n "${pids[@]}"
+wait_for_first_exit
 status=$?
 set -e
 

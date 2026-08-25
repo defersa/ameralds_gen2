@@ -1,5 +1,5 @@
 import { Component, inject } from "@angular/core";
-import { CartService } from "@am-front/services/cart.service";
+import { CartService } from "@am-front/services/cart/cart.service";
 import { AmstoreButtonRoundComponent } from "@am-front/cdk/buttons/round/round.component";
 import { RouterLink } from "@angular/router";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";

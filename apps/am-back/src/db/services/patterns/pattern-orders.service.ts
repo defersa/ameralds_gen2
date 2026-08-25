@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { DataSourceService } from "../../data-source.service";
 import { CommonEntitiesService } from "@am-back/db/service/common-entities.service";
-import { InputShortOrderPatternDto } from "../../../modules/orders/orders.dto";
+import { InputShortOrderPatternDto } from "../../../modules/orders/dto/orders.dto";
 import { PatternsService } from "@am-back/db/service/patterns/patterns.service";
 import { PatternsSizeService } from "@am-back/db/service/patterns/pattern-sizes.service";
 import { OrderPatternEntity, UserPatternEntity } from '../../entities/patterns/pattern-order.entity';

@@ -1,4 +1,4 @@
-@if (authStatus | async) {
+@if (authService.auth()) {
     <a amstore-button-round roundSide="left" [routerLink]="['/', 'account']">
         <amstore-icon iconName="profile" [size]="20" [contrast]="true"/>
 

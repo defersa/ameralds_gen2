@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { RequestOptions, AdminOrderDto, InputShortOrderPatternDto } from "../models";
+import { RequestOptions, AdminOrderResponseDto, InputShortOrderPatternDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiAdminProducer {
@@ -25,11 +25,11 @@ export class ApiAdminProducer {
         return context.set(this.clientContextToken, 'default');
     }
 
-    adminControllerLastOrder(observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderDto>;
-    adminControllerLastOrder(observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderDto>>;
-    adminControllerLastOrder(observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderDto>>;
+    adminControllerLastOrder(observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
+    adminControllerLastOrder(observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
+    adminControllerLastOrder(observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
     adminControllerLastOrder(observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
-        const url = `${this.basePath}/api/admin/order/last`;
+        const url = `${this.basePath}/api/admin/cart`;
 
         let headers: HttpHeaders;
         if (options?.headers instanceof HttpHeaders) {
@@ -51,11 +51,11 @@ export class ApiAdminProducer {
         });
     }
 
-    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderDto>;
-    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderDto>>;
-    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderDto>>;
+    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
+    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
+    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
     adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
-        const url = `${this.basePath}/api/admin/order/update`;
+        const url = `${this.basePath}/api/admin/cart`;
 
         let headers: HttpHeaders;
         if (options?.headers instanceof HttpHeaders) {
@@ -72,7 +72,8 @@ export class ApiAdminProducer {
             headers = headers.set('Content-Type', 'application/json');
         }
 
-        return this.httpClient.request('get', url, {
+        return this.httpClient.request('patch', url, {
+            body: requestBody,
             observe,
             headers,
             reportProgress: options?.reportProgress,

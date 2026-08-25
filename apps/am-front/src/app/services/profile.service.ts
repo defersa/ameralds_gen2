@@ -4,7 +4,7 @@ import { BehaviorSubject, from, Observable, of } from "rxjs";
 import { getAction, HttpAuthActions, RestSuffixFragments } from "../utils/action-builder";
 import { UserEnum } from "../utils/router-builder";
 import { AuthService } from "./auth.service";
-import { CartService } from "./cart.service";
+import { CartService } from "./cart/cart.service";
 import { ReCAPTCHA } from "@am-front/interface/recapcha";
 import { environment } from "../../environments/environment";
 import { map, skip, switchMap } from "rxjs/operators";
@@ -21,6 +21,7 @@ import {
     UserProfileDto,
     UserTokensDTO
 } from "@am-front/root/api-v2";
+import { toObservable } from '@angular/core/rxjs-interop';
 
 
 declare var grecaptcha: ReCAPTCHA;
@@ -60,9 +61,10 @@ export class ProfileService {
                 this.userCart$.next(user?.cart ?? null);
             });
 
-        this.authService.authStatus$
+        toObservable(this.authService.auth)
             .pipe(
-                switchMap((status: boolean) => status ? this.userService.userControllerProfile() : of(null))
+                switchMap((status: boolean) =>
+                    status ? this.userService.userControllerProfile() : of(null))
             )
             .subscribe((profile: UserProfileDto) => this.user$.next(profile));
 

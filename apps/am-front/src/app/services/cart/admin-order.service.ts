@@ -11,7 +11,7 @@ import {
 } from '@am-front/root/api-v2';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { IdRecord } from '@am-front/interface/common.interface';
-import { ICartPattern } from '@am-front/services/cart.service';
+import { ICartPattern } from '@am-front/services/cart/cart.service';
 
 
 const ADMIN_ORDER_NAME: string = 'adminOrder';
@@ -36,9 +36,9 @@ export class AdminOrderService {
     }
 
     public getActualAdminCart(): void {
-        this.adminProducer.adminControllerLastOrder()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((order: AdminOrderDto) => this.order.set(order));
+        // this.adminProducer.adminControllerLastOrder()
+        //     .pipe(takeUntilDestroyed(this.destroyRef))
+        //     .subscribe((order: AdminOrderDto) => this.order.set(order));
 
     }
 
