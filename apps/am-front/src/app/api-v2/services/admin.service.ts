@@ -25,10 +25,10 @@ export class ApiAdminProducer {
         return context.set(this.clientContextToken, 'default');
     }
 
-    adminControllerLastOrder(observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
-    adminControllerLastOrder(observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
-    adminControllerLastOrder(observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
-    adminControllerLastOrder(observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+    adminCartControllerLastOrder(observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
+    adminCartControllerLastOrder(observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
+    adminCartControllerLastOrder(observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
+    adminCartControllerLastOrder(observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
         const url = `${this.basePath}/api/admin/cart`;
 
         let headers: HttpHeaders;
@@ -51,11 +51,33 @@ export class ApiAdminProducer {
         });
     }
 
-    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
-    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
-    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
-    adminControllerUpdateLastOrder(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+    adminCartControllerClearAll(observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
+    adminCartControllerClearAll(observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
+    adminCartControllerClearAll(observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
+    adminCartControllerClearAll(observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
         const url = `${this.basePath}/api/admin/cart`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+
+        return this.httpClient.request('delete', url, {
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
+    adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
+    adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
+    adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/admin/cart/add`;
 
         let headers: HttpHeaders;
         if (options?.headers instanceof HttpHeaders) {
@@ -73,7 +95,33 @@ export class ApiAdminProducer {
         }
 
         return this.httpClient.request('patch', url, {
-            body: requestBody,
+            body: inputShortOrderPatternDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    adminCartControllerRemoveItemFromCart(id: number, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
+    adminCartControllerRemoveItemFromCart(id: number, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
+    adminCartControllerRemoveItemFromCart(id: number, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
+    adminCartControllerRemoveItemFromCart(id: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/admin/cart/${id}`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('delete', url, {
             observe,
             headers,
             reportProgress: options?.reportProgress,

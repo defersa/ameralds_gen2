@@ -1,22 +1,21 @@
-import { ApiBadRequestResponse, ApiBody, ApiCreatedResponse, ApiTags } from "@nestjs/swagger";
-import { Body, Controller, Get, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { ErrorsDto } from "../errors/errors.dto";
-import { OrderService } from "@am-back/db/service/general/order.service";
+import { OrderService } from "@am-back/db/service/order/order.service";
 import type { RequestModel } from "@am-back/models/request.model";
 import { CartDto, InputShortOrderPatternDto } from './dto/orders.dto';
 import { NumberEntityDto } from '../../common/common.dto';
-import { LocalCartDto } from './dto/local-cart.dto';
 import { Auth } from '@am-back/core/guards/auth.guard';
 
 
-@Controller('orders')
+@Controller('orders/cart')
 @ApiTags('orders')
+@Auth()
 export class OrdersController {
     constructor(private readonly orderService: OrderService) {}
 
-    @Get('cart')
-    @Auth()
-    @ApiCreatedResponse({ description: 'Cart returned.', type: CartDto })
+    @Get()
+    @ApiOkResponse({ description: 'User cart returned.', type: CartDto })
     @ApiBadRequestResponse({
         description: 'Something went wrong.',
         type: ErrorsDto,
@@ -25,29 +24,68 @@ export class OrdersController {
         return this.orderService.getUserCart(request.user);
     }
 
-    @Patch('cart')
-    @Auth()
-    @ApiBody({ type: [InputShortOrderPatternDto] })
-    @ApiCreatedResponse({ description: 'Cart updated.', type: CartDto })
+    @Patch('add')
+    @ApiBody({ type: InputShortOrderPatternDto })
+    @ApiOkResponse({ description: 'Item added to user cart.', type: CartDto })
     @ApiBadRequestResponse({
         description: 'Something went wrong.',
         type: ErrorsDto,
     })
-    public async update(
+    public async addItemToCart(
+        @Body() pattern: InputShortOrderPatternDto,
+        @Req() request: RequestModel,
+    ): Promise<CartDto> {
+        return this.orderService.addToUserCart(request.user, pattern);
+    }
+
+    @Patch('merge')
+    @ApiBody({ type: [InputShortOrderPatternDto] })
+    @ApiOkResponse({ description: 'Local cart merged with user cart.', type: CartDto })
+    @ApiBadRequestResponse({
+        description: 'Something went wrong.',
+        type: ErrorsDto,
+    })
+    public async mergeLocalCart(
         @Body() patterns: InputShortOrderPatternDto[],
         @Req() request: RequestModel,
     ): Promise<CartDto> {
-        return await this.orderService.updateOpenUserOrder(
-            request.user,
-            patterns,
-        );
+        return this.orderService.mergeLocalCartWithUserCart(request.user, patterns);
     }
 
-    @Post('cart/local/price')
+    @Delete()
+    @ApiOkResponse({ description: 'User cart cleared.', type: CartDto })
+    @ApiBadRequestResponse({
+        description: 'Something went wrong.',
+        type: ErrorsDto,
+    })
+    public async clearAll(@Req() request: RequestModel): Promise<CartDto> {
+        return this.orderService.clearUserCart(request.user);
+    }
+
+    @Delete(':id')
+    @ApiOkResponse({ description: 'Item removed from user cart.', type: CartDto })
+    @ApiBadRequestResponse({
+        description: 'Something went wrong.',
+        type: ErrorsDto,
+    })
+    public async removeItemFromCart(
+        @Param('id', ParseIntPipe) id: number,
+        @Req() request: RequestModel,
+    ): Promise<CartDto> {
+        return this.orderService.removeFromUserCart(request.user, id);
+    }
+}
+
+@Controller('orders/cart/local')
+@ApiTags('orders')
+export class LocalCartController {
+    constructor(private readonly orderService: OrderService) {}
+
+    @Post('price')
     @ApiBody({ type: [InputShortOrderPatternDto] })
-    @ApiCreatedResponse({
-        description: 'Cart price returned.',
-        type: LocalCartDto,
+    @ApiOkResponse({
+        description: 'Local cart price returned.',
+        type: NumberEntityDto,
     })
     @ApiBadRequestResponse({
         description: 'Something went wrong.',
@@ -55,7 +93,7 @@ export class OrdersController {
     })
     public async localCartPrice(
         @Body() patterns: InputShortOrderPatternDto[],
-    ): Promise<LocalCartDto> {
+    ): Promise<NumberEntityDto> {
         return this.orderService.getLocalPrice(patterns);
     }
 }

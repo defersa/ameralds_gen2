@@ -11,6 +11,7 @@ export enum ApiErrorCodes {
     EXPIRED = 'EXPIRED',
 
     NOT_UNIQUE = 'NOT_UNIQUE',
+    INVALID = 'INVALID',
 }
 
 
@@ -20,6 +21,7 @@ export enum ApiEntityNames {
     PATTERN = 'pattern',
     PATTERN_SIZE = 'patternSize',
     FILE = 'file',
+    CART = 'cart',
 }
 
 export class ErrorsDto {

@@ -56,6 +56,9 @@
             ],
             "@am-back/models/*": [
                 "apps/am-back/src/models/*"
+            ],
+            "@ameralds/utils": [
+                "./libs/utils/src/index.ts"
             ]
         }
     },

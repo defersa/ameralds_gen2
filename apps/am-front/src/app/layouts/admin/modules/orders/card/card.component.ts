@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from "@angular/router";
 import { AsyncPipe, DatePipe, Location } from "@angular/common";
-import { AdminOrderService } from "@am-front/services/cart/admin-order.service";
+import { AdminCartService } from "@am-front/services/cart/admin-cart.service";
 import { Observable } from "rxjs";
 import { IAdminOrder, IPurchaseSaved } from "@am-front/interface/order.interface";
 import { map } from "rxjs/operators";
@@ -34,7 +34,7 @@ type IAdminOrderWithStatus = IAdminOrder & {
 })
 export class CardComponent implements OnInit {
     public readonly location: Location = inject(Location);
-    public readonly adminOrder: AdminOrderService = inject(AdminOrderService);
+    public readonly adminOrder: AdminCartService = inject(AdminCartService);
     public readonly route: ActivatedRoute = inject(ActivatedRoute);
 
     public id: number;

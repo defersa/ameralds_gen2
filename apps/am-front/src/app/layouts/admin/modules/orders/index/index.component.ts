@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { AdminOrderService } from "@am-front/services/cart/admin-order.service";
+import { AdminCartService } from "@am-front/services/cart/admin-cart.service";
 import { FilteredPage, FiltersSet } from "@am-front/shared/abstract/filtered-page";
 import { Observable } from "rxjs";
 import { filter, map, switchMap } from "rxjs/operators";
@@ -31,7 +31,7 @@ export class IndexComponent extends FilteredPage {
     public page: number;
     public filters: Record<string, unknown> = {};
 
-    protected adminOrder: AdminOrderService = inject(AdminOrderService);
+    protected adminOrder: AdminCartService = inject(AdminCartService);
 
     public setFilterWithPage(filters: Record<string, unknown>): void {
         this.setFilter({

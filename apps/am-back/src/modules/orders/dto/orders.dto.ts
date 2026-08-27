@@ -175,5 +175,5 @@ export class CartDto {
         description: 'Current user order',
         type: CartOrderDto,
     })
-    public order: CartOrderDto;
+    public cart: CartOrderDto;
 }

@@ -28,7 +28,8 @@ export enum EnumApiErrorCodes {
     NOT_EXIST = "NOT_EXIST",
     INCORRECT_PASSWORD = "INCORRECT_PASSWORD",
     EXPIRED = "EXPIRED",
-    NOT_UNIQUE = "NOT_UNIQUE"
+    NOT_UNIQUE = "NOT_UNIQUE",
+    INVALID = "INVALID"
 }
 
 /** Error entity name */
@@ -37,7 +38,8 @@ export enum EnumApiEntityNames {
     Size = "size",
     Pattern = "pattern",
     PatternSize = "patternSize",
-    File = "file"
+    File = "file",
+    Cart = "cart"
 }
 
 export interface ErrorsDto {
@@ -407,7 +409,7 @@ export interface CartDto {
     /** Cart total price */
     price: NumberEntityDto;
     /** Current user order */
-    order: CartOrderDto;
+    cart: CartOrderDto;
 }
 
 export interface InputShortOrderPatternDto {
@@ -419,17 +421,6 @@ export interface InputShortOrderPatternDto {
     pattern: number;
     /** Whether base pattern purchase should be included */
     requiresPatternPurchase: boolean;
-}
-
-export interface PatternPriceDto {
-    patternId: number;
-    price: NumberEntityDto;
-}
-
-export interface LocalCartDto {
-    /** Price by pattern */
-    patterns: Array<PatternPriceDto>;
-    totalPrice: NumberEntityDto;
 }
 
 export interface AdminOrderPatternSizeDto {

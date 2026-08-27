@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { RequestOptions, CartDto, InputShortOrderPatternDto, LocalCartDto } from "../models";
+import { RequestOptions, CartDto, InputShortOrderPatternDto, NumberEntityDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiOrdersProducer {
@@ -51,11 +51,68 @@ export class ApiOrdersProducer {
         });
     }
 
-    ordersControllerUpdate(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body', options?: RequestOptions<'json'>): Observable<CartDto>;
-    ordersControllerUpdate(requestBody: Array<InputShortOrderPatternDto>, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<CartDto>>;
-    ordersControllerUpdate(requestBody: Array<InputShortOrderPatternDto>, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<CartDto>>;
-    ordersControllerUpdate(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+    ordersControllerClearAll(observe?: 'body', options?: RequestOptions<'json'>): Observable<CartDto>;
+    ordersControllerClearAll(observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<CartDto>>;
+    ordersControllerClearAll(observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<CartDto>>;
+    ordersControllerClearAll(observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
         const url = `${this.basePath}/api/orders/cart`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('delete', url, {
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    ordersControllerAddItemToCart(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<CartDto>;
+    ordersControllerAddItemToCart(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<CartDto>>;
+    ordersControllerAddItemToCart(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<CartDto>>;
+    ordersControllerAddItemToCart(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders/cart/add`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('patch', url, {
+            body: inputShortOrderPatternDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    ordersControllerMergeLocalCart(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body', options?: RequestOptions<'json'>): Observable<CartDto>;
+    ordersControllerMergeLocalCart(requestBody: Array<InputShortOrderPatternDto>, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<CartDto>>;
+    ordersControllerMergeLocalCart(requestBody: Array<InputShortOrderPatternDto>, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<CartDto>>;
+    ordersControllerMergeLocalCart(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders/cart/merge`;
 
         let headers: HttpHeaders;
         if (options?.headers instanceof HttpHeaders) {
@@ -82,10 +139,36 @@ export class ApiOrdersProducer {
         });
     }
 
-    ordersControllerLocalCartPrice(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body', options?: RequestOptions<'json'>): Observable<LocalCartDto>;
-    ordersControllerLocalCartPrice(requestBody: Array<InputShortOrderPatternDto>, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<LocalCartDto>>;
-    ordersControllerLocalCartPrice(requestBody: Array<InputShortOrderPatternDto>, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<LocalCartDto>>;
-    ordersControllerLocalCartPrice(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+    ordersControllerRemoveItemFromCart(id: number, observe?: 'body', options?: RequestOptions<'json'>): Observable<CartDto>;
+    ordersControllerRemoveItemFromCart(id: number, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<CartDto>>;
+    ordersControllerRemoveItemFromCart(id: number, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<CartDto>>;
+    ordersControllerRemoveItemFromCart(id: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders/cart/${id}`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('delete', url, {
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    localCartControllerLocalCartPrice(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body', options?: RequestOptions<'json'>): Observable<NumberEntityDto>;
+    localCartControllerLocalCartPrice(requestBody: Array<InputShortOrderPatternDto>, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<NumberEntityDto>>;
+    localCartControllerLocalCartPrice(requestBody: Array<InputShortOrderPatternDto>, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<NumberEntityDto>>;
+    localCartControllerLocalCartPrice(requestBody: Array<InputShortOrderPatternDto>, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
         const url = `${this.basePath}/api/orders/cart/local/price`;
 
         let headers: HttpHeaders;

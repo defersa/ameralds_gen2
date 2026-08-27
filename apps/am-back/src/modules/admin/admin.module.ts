@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { DbSharedModule } from "../../db/db-shared.module";
-import { AdminController } from "./admin.controller";
+import { AdminCartController } from "./admin-cart.controller";
 
 
 @Module({
@@ -8,7 +8,7 @@ import { AdminController } from "./admin.controller";
         DbSharedModule,
     ],
     controllers: [
-        AdminController,
+        AdminCartController,
     ],
 })
 export class AdminModule {}

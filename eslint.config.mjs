@@ -10,7 +10,7 @@ export default [
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     rules: {
-      '@nx/enforce-module-boundaries': null,
+      '@nx/enforce-module-boundaries': 'off',
     },
   },
   {

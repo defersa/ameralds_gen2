@@ -1,4 +1,4 @@
-import { DestroyRef, inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { DestroyRef, effect, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { filter } from 'rxjs/operators';
 import { ProfileService } from '@am-front/services/profile.service';
 import {
@@ -6,39 +6,45 @@ import {
     AdminOrderPatternDto,
     AdminOrderPatternSizeDto,
     ApiAdminProducer,
-    InputShortOrderPatternDto,
+    InputShortOrderPatternDto, NumberEntityDto,
     type PatternWithPriceDto
 } from '@am-front/root/api-v2';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { IdRecord } from '@am-front/interface/common.interface';
 import { ICartPattern } from '@am-front/services/cart/cart.service';
+import { DEFAULT_CART_PRICE } from '@am-front/services/cart/default.data';
 
-
-const ADMIN_ORDER_NAME: string = 'adminOrder';
 
 @Injectable({
     providedIn: 'root'
 })
-export class AdminOrderService {
+export class AdminCartService {
     private profileService: ProfileService = inject(ProfileService);
     private adminProducer: ApiAdminProducer = inject(ApiAdminProducer);
     private destroyRef: DestroyRef = inject(DestroyRef);
 
-    public readonly order: WritableSignal<AdminOrderDto> = signal(null);
+    public readonly cart: WritableSignal<AdminOrderDto> = signal(null);
+    public readonly price: WritableSignal<NumberEntityDto> = signal(null);
 
     constructor() {
-        toObservable(this.profileService.isAdmin)
-            .pipe(
-                filter(Boolean),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe(() => this.getActualAdminCart());
+        effect(() => {
+            if (!this.profileService.isAdmin()) {
+                this.cart.set(null);
+                this.price.set(DEFAULT_CART_PRICE);
+
+                return;
+            }
+
+            this.getActualAdminCart()
+        });
     }
 
     public getActualAdminCart(): void {
-        // this.adminProducer.adminControllerLastOrder()
-        //     .pipe(takeUntilDestroyed(this.destroyRef))
-        //     .subscribe((order: AdminOrderDto) => this.order.set(order));
+        this.price.set(null);
+
+        this.adminProducer.adminControllerLastOrder()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((order: AdminOrderDto) => this.order.set(order));
 
     }
 

@@ -9,9 +9,10 @@ import { CategoriesService } from "@am-back/db/service/patterns/categories.servi
 import { PatternsSizeService } from "@am-back/db/service/patterns/pattern-sizes.service";
 import { PatternsService } from "@am-back/db/service/patterns/patterns.service";
 import { FilesService } from "@am-back/db/service/files.service";
-import { OrderService } from "@am-back/db/service/general/order.service";
+import { OrderService } from "@am-back/db/service/order/order.service";
 import { PatternOrdersService } from "@am-back/db/service/patterns/pattern-orders.service";
 import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
+import { AdminOrderService } from '@am-back/db/service/order/admin-order.service';
 
 
 const services: any[] = [
@@ -28,6 +29,7 @@ const services: any[] = [
     PatternOrdersService,
     UserPatternService,
     OrderService,
+    AdminOrderService,
 ];
 
 @Module({

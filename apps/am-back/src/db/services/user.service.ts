@@ -3,7 +3,7 @@ import { DataSourceService } from "../data-source.service";
 import { FindOneOptions, Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
 import { TokenService } from "@am-back/db/service/token.service";
-import { OrderService } from "@am-back/db/service/general/order.service";
+import { OrderService } from "@am-back/db/service/order/order.service";
 import { addDays } from "date-fns";
 import { UserProfileDto, UserTokensDTO } from "../../modules/user/user.dto";
 import { instanceToPlain } from "class-transformer";

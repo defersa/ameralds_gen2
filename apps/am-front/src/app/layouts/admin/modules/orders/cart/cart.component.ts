@@ -1,5 +1,5 @@
 import { Component, inject } from "@angular/core";
-import { AdminOrderService } from "@am-front/services/cart/admin-order.service";
+import { AdminCartService } from "@am-front/services/cart/admin-cart.service";
 import { FormControl, ReactiveFormsModule, Validators } from "@angular/forms";
 import { SnackService } from "@am-front/services/snackbar.service";
 import { Router } from "@angular/router";
@@ -20,7 +20,7 @@ import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-bu
     ]
 })
 export class CartComponent {
-    private adminOrder: AdminOrderService = inject(AdminOrderService);
+    private adminOrder: AdminCartService = inject(AdminCartService);
     private snackService: SnackService = inject(SnackService);
     private router: Router = inject(Router);
 
