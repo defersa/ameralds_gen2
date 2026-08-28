@@ -1,5 +1,5 @@
 import { Component, inject, Signal } from "@angular/core";
-import { CartService } from "@am-front/services/cart/cart.service";
+import { UserCartService } from "@am-front/services/cart/sources/user-cart.service";
 import { AmstoreButtonRoundComponent } from "@am-front/cdk/buttons/round/round.component";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { Currency, LangService } from "@am-front/services/lang.service";
@@ -19,7 +19,7 @@ import { RouterLink } from "@angular/router";
     ],
 })
 export class CartSnapComponent {
-    private cartService: CartService = inject(CartService);
+    private cartService: UserCartService = inject(UserCartService);
     private langService: LangService = inject(LangService);
 
     public currency: Signal<Currency> = this.langService.currency;

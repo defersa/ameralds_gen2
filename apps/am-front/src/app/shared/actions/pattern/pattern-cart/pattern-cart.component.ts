@@ -10,7 +10,7 @@ import {
     Signal,
     WritableSignal,
 } from "@angular/core";
-import { CartService, ICartPattern } from "@am-front/services/cart/cart.service";
+import { UserCartService, ICartPattern } from "@am-front/services/cart/sources/user-cart.service";
 import {
     FullPatternEntityDto,
     NumberEntityDto,
@@ -55,7 +55,7 @@ export enum PatternButtonState {
 export class PatternCartComponent implements OnInit {
     public readonly pattern: InputSignal<FullPatternEntityDto> = input.required();
 
-    private readonly cartService: CartService = inject(CartService);
+    private readonly cartService: UserCartService = inject(UserCartService);
     private readonly langService: LangService = inject(LangService);
     private readonly injector: Injector = inject(Injector);
     private readonly patternCartService: PatternCartService = inject(PatternCartService);

@@ -6,42 +6,37 @@ import {
     ApiOrdersProducer,
 } from '@am-front/root/api-v2';
 import { SnackService } from '@am-front/services/snackbar.service';
-import { DEFAULT_CART_PRICE } from '@am-front/services/cart/default.data';
+import { CartItemModel, DEFAULT_CART_PRICE } from '@am-front/services/cart/order.misc';
+import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
 
 
 const LOCAL_PATTERN_CART_NAME = 'LOCAL_CART';
 
-export interface CartItem {
-    pattern: number;
-    sizes: number[];
-    requiresPatternPurchase: boolean;
-    color: boolean;
-}
-
 @Injectable({
     providedIn: 'root'
 })
-export class LocalCartService {
+export class LocalCartService extends AbstractCartService {
     @LocalStorage(LOCAL_PATTERN_CART_NAME)
     private storagePatternCart!: string;
 
     private readonly snack: SnackService = inject(SnackService);
     private readonly ordersProducer: ApiOrdersProducer = inject(ApiOrdersProducer);
 
-    public cart: WritableSignal<Record<number, CartItem>> = signal(parseJsonWithDefault(this.storagePatternCart, {}));
-    public prices: WritableSignal<null | NumberEntityDto> = signal(null);
+    public cart: WritableSignal<CartItemModel[]> = signal(parseJsonWithDefault(this.storagePatternCart, []));
+    public price: WritableSignal<null | NumberEntityDto> = signal(null);
 
     constructor() {
+        super();
         effect(() => {
-            const cart: Record<number, CartItem> = this.cart();
+            const cart: CartItemModel[] = this.cart();
 
             this.storagePatternCart = JSON.stringify(cart);
-            this.updatePrice();
+            this.updatePrice(cart);
         });
     }
 
-    public addProduct(item: CartItem): void {
-        const preparedItem: CartItem = {
+    public addProduct(item: CartItemModel): void {
+        const preparedItem: CartItemModel = {
             ...item,
             requiresPatternPurchase: true
         };
@@ -52,43 +47,39 @@ export class LocalCartService {
             return;
         }
 
-        this.cart.set({
-            ...this.cart(),
-            [item.pattern]: preparedItem
-        });
+        this.cart.set([
+            ...this.cart().filter((product: CartItemModel) => product.pattern !== preparedItem.pattern),
+            preparedItem
+        ]);
     }
 
-    public removeProduct(item: CartItem): void {
-        const cart: Record<number, CartItem> = { ...this.cart() };
-
-        delete cart[item.pattern];
-
-        this.cart.set(cart);
+    public removeProduct(id: number): void {
+        this.cart.set(this.cart().filter((product: CartItemModel) => product.pattern !== id));
     }
 
     public clearCart(): void {
-        this.cart.set({});
+        this.cart.set([]);
     }
 
-    public updatePrice(cart: Record<number, CartItem> = {}): void {
-        if (Object.keys(cart).length === 0) {
-            this.prices.set(DEFAULT_CART_PRICE);
+    public updatePrice(cart: CartItemModel[]): void {
+        if (cart.length === 0) {
+            this.price.set(DEFAULT_CART_PRICE);
 
             return;
         }
 
-        this.prices.set(null);
+        this.price.set(null);
 
         this.ordersProducer
-            .ordersControllerLocalCartPrice(Object.values(cart))
+            .localCartControllerLocalCartPrice(cart)
             .subscribe({
                 next: (price: NumberEntityDto) => {
-                    this.prices.set(price);
+                    this.price.set(price);
                 },
                 error: () => {
                     this.snack.warn('Часть товаров не доступна');
-                    this.prices.set(DEFAULT_CART_PRICE);
-                    this.cart.set({});
+                    this.price.set(DEFAULT_CART_PRICE);
+                    this.cart.set([]);
                 },
             });
     }

@@ -4,7 +4,7 @@ import { BehaviorSubject, from, Observable, of } from "rxjs";
 import { getAction, HttpAuthActions, RestSuffixFragments } from "../utils/action-builder";
 import { UserEnum } from "../utils/router-builder";
 import { AuthService } from "./auth.service";
-import { CartService } from "./cart/cart.service";
+import { UserCartService } from "./cart/sources/user-cart.service";
 import { ReCAPTCHA } from "@am-front/interface/recapcha";
 import { environment } from "../../environments/environment";
 import { map, skip, switchMap } from "rxjs/operators";

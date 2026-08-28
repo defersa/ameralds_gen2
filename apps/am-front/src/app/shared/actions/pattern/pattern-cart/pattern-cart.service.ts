@@ -1,7 +1,7 @@
 import { DestroyRef, effect, inject, Injectable, Injector, Signal } from "@angular/core";
 import { FormControl, FormGroup, FormRecord } from "@angular/forms";
 import { FullPatternEntityDto, type FullPatternSizeDto, PatternEntityDto, ShortOrderPatternDto } from "@am-front/root/api-v2";
-import { ICartPattern } from "@am-front/services/cart/cart.service";
+import { ICartPattern } from "@am-front/services/cart/sources/user-cart.service";
 import { map, startWith } from "rxjs/operators";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Observable } from "rxjs";

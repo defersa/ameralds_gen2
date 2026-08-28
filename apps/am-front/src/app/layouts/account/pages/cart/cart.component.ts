@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal, Signal, WritableSignal } from "@angular/core";
 import { AmstoreSnapshotPatternComponent } from "@am-front/shared/snapshot/pattern/pattern.component";
-import { CartService, ICartPattern } from "@am-front/services/cart/cart.service";
+import { UserCartService, ICartPattern } from "@am-front/services/cart/sources/user-cart.service";
 import { PatternsService } from "@am-front/services/patterns.service";
 import { Observable } from "rxjs";
 import { map, switchMap, take } from "rxjs/operators";
@@ -32,7 +32,7 @@ interface CartItem {
     ]
 })
 export class CartComponent {
-    private readonly cartService: CartService = inject(CartService);
+    private readonly cartService: UserCartService = inject(UserCartService);
     private readonly langService: LangService = inject(LangService);
     private readonly patternService: PatternsService = inject(PatternsService);
     private readonly router: Router = inject(Router);

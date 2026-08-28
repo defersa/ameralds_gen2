@@ -1,5 +1,5 @@
 import { Component, inject } from "@angular/core";
-import { CartService } from "@am-front/services/cart/cart.service";
+import { UserCartService } from "@am-front/services/cart/sources/user-cart.service";
 import { AmstoreButtonRoundComponent } from "@am-front/cdk/buttons/round/round.component";
 import { RouterLink } from "@angular/router";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
@@ -16,5 +16,5 @@ import { IconsComponent } from "@am-front/cdk/icons/icons.component";
     ]
 })
 export class AmstoreHeaderAdminComponent {
-    private goodsService: CartService = inject(CartService);
+    private goodsService: UserCartService = inject(UserCartService);
 }
