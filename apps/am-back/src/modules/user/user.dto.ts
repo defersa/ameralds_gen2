@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ShortOrderPatternDto, UserOrderDto } from "../orders/dto/orders.dto";
+import { CartOrderPatternSizeDto, UserOrderDto } from "../orders/dto/orders.dto";
 import { BaseEntityDto } from "../../common/common.dto";
 import { UserRole } from '../../db/entities/user.entity';
 
@@ -48,6 +48,29 @@ export class RefreshTokenCredentialsDto {
 
 export class LogoutCredentialsDto extends RefreshTokenCredentialsDto {}
 
+export class UserProfilePatternEntityDto extends BaseEntityDto {}
+
+export class UserProfilePatternDto extends BaseEntityDto {
+    @ApiProperty({
+        description: 'Sizes of bought pattern',
+        type: CartOrderPatternSizeDto,
+        isArray: true,
+    })
+    public sizes: CartOrderPatternSizeDto[];
+
+    @ApiProperty({
+        description: 'Pattern',
+        type: UserProfilePatternEntityDto,
+    })
+    public pattern: UserProfilePatternEntityDto;
+
+    @ApiProperty({
+        description: 'Status of colors able',
+        type: 'boolean',
+    })
+    public color: boolean;
+}
+
 export class UserProfileDto extends BaseEntityDto {
     @ApiProperty({
         description: 'Email of user',
@@ -70,14 +93,8 @@ export class UserProfileDto extends BaseEntityDto {
 
     @ApiProperty({
         description: 'Bought patterns',
-        type: ShortOrderPatternDto,
+        type: UserProfilePatternDto,
         isArray: true
     })
-    public ownPatterns: ShortOrderPatternDto[];
-
-    @ApiProperty({
-        description: 'Current cart',
-        type: UserOrderDto,
-    })
-    public cart: UserOrderDto;
+    public ownPatterns: UserProfilePatternDto[];
 }

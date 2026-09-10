@@ -1,38 +1,43 @@
-<h3>Размер паттерна</h3>
+@if (form; as form) {
+    <h3>Размеры паттерна</h3>
 
-<div class="amstore-line g2">
-    @for (size of form.controls.sizes.controls | keyvalue; track size.key) {
-        @if (size.value.controls.bought.value) {
-            <amstore-chip [style.order]="1">{{size.value.controls.label.value}}</amstore-chip>
+    <div class="amstore-line gap-3">
+        @for (size of form.sizes; track $index) {
+            @let label = size.label().value();
+
+            @if (size.own().value()) {
+                <amstore-chip [style.order]="1">{{ label }}</amstore-chip>
+            } @else {
+                <amstore-checkbox-signal [style.order]="label" [label]="label" [formField]="size.value" color="primary"/>
+            }
+        }
+    </div>
+
+    @if (form.color.exists().value()) {
+        <h3>Подбор цвета</h3>
+
+        @if (!form.color.exists().value()) {
+            <span>Для этой схемы нет подбора цвета</span>
+        } @else if (form.color.own().value()) {
+            <h4>Куплен</h4>
         } @else {
-            @let label = size.value.controls.label.value;
-            <amstore-checkbox [style.order]="label" [label]="label" [formControl]="size.value.controls.value" color="primary"/>
+            <amstore-slide-signal [formField]="form.color.value"/>
         }
     }
-</div>
 
-@if (form.controls.color.controls.exist.value) {
-    <h3>Подбор цвета</h3>
+    <div class="amstore-column right p2">
+        <h3>Цена</h3>
 
-    @if (form.controls.color.controls.bought.value) {
-        <h4>Куплен</h4>
-    } @else {
-        <amstore-slide [formControl]="form.controls.color.controls.value"/>
-    }
+        <h2>
+            <amstore-lang-number [value]="price()"/> {{ currency() }}
+        </h2>
+    </div>
 }
-
-<div class="amstore-column right p2">
-    <h3>Цена</h3>
-
-    <h2>
-        <amstore-lang-number [value]="price()"/> {{ currency() }}
-    </h2>
-</div>
 
 <div class="amstore-actions-line right">
     @switch (patternCartButton()) {
         @case (patternCartStateType.ToCart) {
-            <amstore-button color="primary" (click)="toCart()">
+            <amstore-button color="primary" (click)="toCart()" [disabled]="!currentCart()">
                 В корзину
             </amstore-button>
         }
@@ -41,13 +46,13 @@
                 Куплено
             </amstore-button>
         }
-        @case (patternCartStateType.Edit) {
+        @case (patternCartStateType.ToEdit) {
             <amstore-button color="warn" (click)="removeFromCart()">
                 Удалить
             </amstore-button>
 
             <amstore-button color="accent" (click)="change()">
-                Изменить
+                Изменить выбор
             </amstore-button>
         }
         @case (patternCartStateType.Editing) {
@@ -59,8 +64,8 @@
                 Отменить
             </amstore-button>
 
-            <amstore-button color="primary" (click)="toCart()">
-                Сохранить
+            <amstore-button color="primary" (click)="toCart()" [disabled]="!currentCart()">
+                Обновить
             </amstore-button>
         }
     }

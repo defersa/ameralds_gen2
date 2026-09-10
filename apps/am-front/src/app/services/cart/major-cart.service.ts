@@ -4,9 +4,9 @@ import { ProfileService } from '@am-front/services/profile.service';
 import { LocalCartService } from '@am-front/services/cart/sources/local-cart.service';
 import { UserCartService } from '@am-front/services/cart/sources/user-cart.service';
 import { AdminCartService } from '@am-front/services/cart/sources/admin-cart.service';
-import { CartItemModel } from '@am-front/services/cart/order.misc';
+import { CartItemModel, convertOrderPatternEntityToCartItem } from '@am-front/services/cart/order.misc';
 import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
-import { NumberEntityDto } from '@am-front/root/api-v2';
+import { NumberEntityDto, UserProfilePatternDto } from '@am-front/root/api-v2';
 
 
 export type CartType = 'local' | 'user' | 'admin';
@@ -45,6 +45,22 @@ export class MajorCartService {
         }
     });
 
+    public boughtPatterns: Signal<Record<number, CartItemModel>> = computed(() => {
+        if (this.currentCartName() === 'user') {
+            const boughtPatterns: CartItemModel[] = this.profileService
+                .boughtPatterns()
+                // Pattern already bought
+                .map((item: UserProfilePatternDto) => ({...item, requiresPatternPurchase: true }))
+                .map(convertOrderPatternEntityToCartItem);
+
+            return Object.fromEntries(
+                boughtPatterns.map((item: CartItemModel) => [item.pattern, item]),
+            );
+        }
+
+        return [];
+    });
+
     constructor() {
         this.initLocalCartListener();
     }
@@ -55,6 +71,12 @@ export class MajorCartService {
 
     public cart: Signal<CartItemModel[]> = computed(() => {
         return this.currentCartService().cart();
+    });
+
+    public cartById: Signal<Record<number, CartItemModel>> = computed(() => {
+        return Object.fromEntries(
+            this.cart().map((item: CartItemModel) => [item.pattern, item]),
+        );
     });
 
     public addProduct(product: CartItemModel): void {

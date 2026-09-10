@@ -1,23 +1,20 @@
-import { Component, computed, inject, signal, Signal, WritableSignal } from "@angular/core";
-import { AmstoreSnapshotPatternComponent } from "@am-front/shared/snapshot/pattern/pattern.component";
-import { UserCartService, ICartPattern } from "@am-front/services/cart/sources/user-cart.service";
+import { Component, computed, DestroyRef, effect, inject, signal, Signal, WritableSignal } from '@angular/core';
 import { PatternsService } from "@am-front/services/patterns.service";
-import { Observable } from "rxjs";
-import { map, switchMap, take } from "rxjs/operators";
 import { IdRecord } from "@am-front/interface/common.interface";
-import type { PatternEntityDto } from "@am-front/root/api-v2";
-import { toSignal } from "@angular/core/rxjs-interop";
+import { NumberEntityDto, PatternEntityDto } from '@am-front/root/api-v2';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from "@angular/router";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { Currency, LangService } from "@am-front/services/lang.service";
 import { AmstoreInfoComponent } from "@am-front/cdk/info/info.component";
+import { MajorCartService } from '@am-front/services/cart/major-cart.service';
+import { CartItemModel } from '@am-front/services/cart/order.misc';
+import { AmstoreSnapshotPatternComponent } from '@am-front/shared/snapshot/pattern/pattern.component';
 
 
 interface CartItem {
     pattern: PatternEntityDto;
-    cart: ICartPattern;
-    index: number;
-    removed?: boolean;
+    cart: CartItemModel;
 }
 
 @Component({
@@ -26,75 +23,77 @@ interface CartItem {
     styleUrls: ["./cart.component.scss"],
     standalone: true,
     imports: [
-        AmstoreSnapshotPatternComponent,
         AmstoreButtonComponent,
-        AmstoreInfoComponent
+        AmstoreInfoComponent,
+        AmstoreSnapshotPatternComponent
     ]
 })
 export class CartComponent {
-    private readonly cartService: UserCartService = inject(UserCartService);
+    private readonly cartService: MajorCartService = inject(MajorCartService);
     private readonly langService: LangService = inject(LangService);
     private readonly patternService: PatternsService = inject(PatternsService);
     private readonly router: Router = inject(Router);
+    private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
-    public readonly price: Signal<number> = this.cartService.cartPrice;
-    public readonly count: Signal<number> = this.cartService.cartCount;
+    public readonly price: Signal<null | NumberEntityDto> = this.cartService.price;
     public readonly currency: Signal<Currency> = this.langService.currency;
+    public readonly count: Signal<number> = computed(() => this.cartService.cart()?.length || 0);
 
-    public removedList: WritableSignal<CartItem[]> = signal([]);
-    public patterns: Signal<IdRecord<[number, PatternEntityDto]>> = toSignal(this.getInitPatterns());
+    public removed: WritableSignal<CartItem[]> = signal([]);
     public items: Signal<CartItem[]> = computed(() => {
-        const patterns: IdRecord<[number, PatternEntityDto]> = this.patterns();
-        const fullCart: IdRecord<ICartPattern> = this.cartService.cart();
-        const removed: CartItem[] = this.removedList();
+        const patterns: IdRecord<PatternEntityDto> = this.initPatterns();
+        const cart: CartItemModel[] = this.cartService.cart();
 
-        if (!patterns || Object.keys(patterns).length === 0) {
-            return [];
+        if (!patterns) {
+            return null;
         }
 
-        const actualCart: CartItem[] = Object.entries(fullCart)
-            .map(([key, cart]: [string, ICartPattern]) =>  ({
+        return cart
+            .map((cart: CartItemModel) =>  ({
                 cart,
-                pattern: patterns[key][1],
-                index: patterns[key][0],
+                pattern: patterns[cart.pattern],
             }));
-
-        const removedCart: CartItem[] = removed.map((item: CartItem) => ({ ...item, removed: true }));
-
-        return [...actualCart, ...removedCart];
     });
 
-    public removeFromCart({ cart, pattern, index }: CartItem): void {
-        this.removedList.set(
-            [...this.removedList(), { cart, pattern, index }],
+    private initPatterns: WritableSignal<IdRecord<PatternEntityDto>> = signal(null);
+
+    constructor() {
+        effect(() => {
+            const cart: CartItemModel[] = this.cartService.cart();
+
+            if (!cart) {
+                return;
+            }
+
+            this.getInitPatterns(cart);
+        });
+    }
+
+    public removeFromCart({ cart, pattern }: CartItem): void {
+        this.removed.set(
+            [...this.removed(), { cart, pattern }],
         );
 
-        this.cartService.removePattern(pattern.id);
+        this.cartService.removeProduct(pattern.id);
     }
 
     public returnToCart({ cart, pattern }: CartItem): void {
-        this.removedList.set(
-            this.removedList().filter((item: CartItem) => item.pattern.id !== pattern.id),
+        this.removed.set(
+            this.removed().filter((item: CartItem) => item.pattern.id !== pattern.id),
         );
 
-        this.cartService.addPattern(cart, pattern);
+        this.cartService.addProduct(cart);
     }
 
     public goToCart(id: number): void {
         this.router.navigate(["/", 'account', 'cart', 'pattern', id]);
     }
 
-    private getInitPatterns(): Observable<IdRecord<[number, PatternEntityDto]>> {
-        return this.cartService.patternsCart$
+    private getInitPatterns(cart: CartItemModel[]): void {
+        this.patternService.getPatternsByIds(cart.map((pattern: CartItemModel) => pattern.pattern))
             .pipe(
-                take(1),
-                switchMap((cart: IdRecord<ICartPattern>) => this.patternService.getPatternsByIds(Object.keys(cart))),
-                map((items: IdRecord<PatternEntityDto>) =>
-                    Object.fromEntries(
-                        Object.entries(items)
-                            .map(([key, pattern]: [string, PatternEntityDto], index: number) => [key, [index, pattern]]),
-                    ),
-                )
-            );
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe((patterns: Record<string, PatternEntityDto>) => this.initPatterns.set(patterns));
     }
 }

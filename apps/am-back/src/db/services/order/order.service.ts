@@ -44,7 +44,9 @@ export class OrderService {
             },
             relations: {
                 patterns: {
-                    sizes: true,
+                    sizes: {
+                        size: true,
+                    },
                     pattern: {
                         basePrice: true,
                         additionalPrice: true,

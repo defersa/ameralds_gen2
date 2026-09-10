@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntityDto, NumberEntityDto } from "../../../common/common.dto";
 import { PatternEntityDto, PatternSizeDto } from "../../patterns/patterns.dto";
+import { SizeDto } from "../../sizes/sizes.dto";
 import { OrderStatus } from '../../../db/entities/purchases/order.entity';
 
 
@@ -117,7 +118,13 @@ export class UserOrderDto extends BaseEntityDto {
     public patterns: ShortOrderPatternDto[];
 }
 
-export class CartOrderPatternSizeDto extends BaseEntityDto {}
+export class CartOrderPatternSizeDto extends BaseEntityDto {
+    @ApiProperty({
+        description: 'Selected size',
+        type: SizeDto,
+    })
+    public size: SizeDto;
+}
 
 export class CartOrderPatternEntityDto extends PatternWithPriceDto {}
 

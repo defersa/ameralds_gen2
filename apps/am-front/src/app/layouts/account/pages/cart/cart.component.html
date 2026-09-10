@@ -8,7 +8,7 @@
 
     <div class="amstore-column right">
         <h3>Цена</h3>
-        <h2><strong>{{ price() }} {{ currency() }}</strong></h2>
+        <h2><strong>{{ price().ru }} {{ currency() }}</strong></h2>
     </div>
 
     <amstore-button size="large">Оформить</amstore-button>
@@ -17,12 +17,23 @@
 <h2 class="p-bottom4">Список паттернов</h2>
 
 <div class="amstore-column">
-    @for (item of items(); track item.index + item.pattern.id) {
-        <amstore-snapshot-pattern [pattern]="item.pattern"
-                                  [routerLink]="['pattern', item.pattern.id]"
-                                  [style.order]="item.index">
-        </amstore-snapshot-pattern>
-    } @empty {
-        <h4>Список пуст</h4>
+    @if (items()) {
+        @for (item of items(); track item.pattern.id) {
+            <amstore-snapshot-pattern [pattern]="item.pattern"
+                                      [routerLink]="['pattern', item.pattern.id]"/>
+        } @empty {
+            <h4>Список пуст</h4>
+        }
+    } @else {
+
+    }
+
+    @if (removed().length) {
+        <h2 class="p-bottom4">Удаленные</h2>
+
+        @for (item of removed(); track item.pattern.id) {
+            <amstore-snapshot-pattern [pattern]="item.pattern"
+                                      [routerLink]="['pattern', item.pattern.id]"/>
+        }
     }
 </div>

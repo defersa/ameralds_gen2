@@ -76,63 +76,48 @@ export enum EnumUserRole {
     Admin = "admin"
 }
 
-export interface NumberEntityDto {
-    /** Russian number */
-    ru: number;
-    /** English number */
-    en?: number;
+export interface SizeDto {
+    /** Value of size */
+    value: number;
+    /** Entity id */
+    id: number;
+    /** Date of creating at */
+    createdAt: Date;
 }
 
-export interface PatternWithPriceDto {
+export interface CartOrderPatternSizeDto {
     /** Id of entity */
     id: number;
     /** Id of entity */
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
-    /** Base price of pattern */
-    basePrice: NumberEntityDto;
-    /** Additional price of pattern */
-    additionalPrice: NumberEntityDto;
-    /** Color price of pattern */
-    colorPrice: NumberEntityDto;
+    /** Selected size */
+    size: SizeDto;
 }
 
-export interface ShortOrderPatternDto {
+export interface UserProfilePatternEntityDto {
     /** Id of entity */
     id: number;
     /** Id of entity */
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
-    /** Sizes ids */
-    sizes: Array<number>;
+}
+
+export interface UserProfilePatternDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Sizes of bought pattern */
+    sizes: Array<CartOrderPatternSizeDto>;
+    /** Pattern */
+    pattern: UserProfilePatternEntityDto;
     /** Status of colors able */
     color: boolean;
-    /** Whether base pattern purchase should be included */
-    requiresPatternPurchase: boolean;
-    /** Pattern with prices */
-    pattern: PatternWithPriceDto;
-}
-
-/** Order status */
-export enum EnumOrderStatus {
-    Cancel = "cancel",
-    Open = "open",
-    Success = "success"
-}
-
-export interface UserOrderDto {
-    /** Id of entity */
-    id: number;
-    /** Id of entity */
-    createdAt?: Date;
-    /** Id of entity */
-    updatedAt?: Date;
-    /** Order status */
-    status: EnumOrderStatus;
-    /** Patterns */
-    patterns: Array<ShortOrderPatternDto>;
 }
 
 export interface UserProfileDto {
@@ -149,9 +134,7 @@ export interface UserProfileDto {
     /** Users role */
     role: EnumUserRole;
     /** Bought patterns */
-    ownPatterns: Array<ShortOrderPatternDto>;
-    /** Current cart */
-    cart: UserOrderDto;
+    ownPatterns: Array<UserProfilePatternDto>;
 }
 
 export interface LabelEntityDto {
@@ -191,15 +174,6 @@ export interface CategoriesPaginatedPageDto {
     items: Array<CategoryDto>;
 }
 
-export interface SizeDto {
-    /** Value of size */
-    value: number;
-    /** Entity id */
-    id: number;
-    /** Date of creating at */
-    createdAt: Date;
-}
-
 export interface SizesDto {
     /** List of sizes */
     items: Array<SizeDto>;
@@ -217,6 +191,13 @@ export interface SizesPaginatedPageDto {
     count: number;
     /** Paginated sizes */
     items: Array<SizeDto>;
+}
+
+export interface NumberEntityDto {
+    /** Russian number */
+    ru: number;
+    /** English number */
+    en?: number;
 }
 
 export interface PatternSizeDto {
@@ -351,13 +332,11 @@ export interface FullPatternEntityDto {
     sizes: Array<FullPatternSizeDto>;
 }
 
-export interface CartOrderPatternSizeDto {
-    /** Id of entity */
-    id: number;
-    /** Id of entity */
-    createdAt?: Date;
-    /** Id of entity */
-    updatedAt?: Date;
+/** Order status */
+export enum EnumOrderStatus {
+    Cancel = "cancel",
+    Open = "open",
+    Success = "success"
 }
 
 export interface CartOrderPatternEntityDto {
@@ -430,6 +409,8 @@ export interface AdminOrderPatternSizeDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Selected size */
+    size: SizeDto;
 }
 
 export interface AdminOrderPatternEntityDto {

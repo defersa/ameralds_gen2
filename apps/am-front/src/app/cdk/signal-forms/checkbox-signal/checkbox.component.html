@@ -1,0 +1,16 @@
+<mat-checkbox
+    [checked]="checked()"
+    [disabled]="disabled() || readonly()"
+    [required]="required()"
+    [name]="name() ?? null"
+    [color]="color()"
+    (change)="changeChecked($event)"
+    (blur)="markAsTouched()"
+>
+    @if (label()) {
+        <span>
+            {{ label() }}
+        </span>
+    }
+    <ng-content/>
+</mat-checkbox>

@@ -6,7 +6,11 @@ import {
     CartOrderPatternDto
 } from '@am-front/root/api-v2';
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { CartItemModel, DEFAULT_CART_PRICE } from '@am-front/services/cart/order.misc';
+import {
+    CartItemModel,
+    convertOrderPatternEntityToCartItem,
+    DEFAULT_CART_PRICE
+} from '@am-front/services/cart/order.misc';
 import { AuthService } from '@am-front/services/auth.service';
 import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
 
@@ -72,11 +76,7 @@ export class UserCartService extends AbstractCartService {
     private updateCartAndPrice(cart: CartDto): void {
         this.price.set(cart.price);
         this.cart.set(
-            cart.cart.patterns.map((pattern: CartOrderPatternDto) => ({
-                ...pattern,
-                pattern: pattern.pattern.id,
-                sizes: pattern.sizes.map((size: CartOrderPatternDto) => size.id),
-            })),
+            cart.cart.patterns.map(convertOrderPatternEntityToCartItem),
         );
     }
 }

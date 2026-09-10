@@ -1,10 +1,12 @@
-import { Component, inject, Signal } from "@angular/core";
+import { Component, computed, inject, Signal } from '@angular/core';
 import { UserCartService } from "@am-front/services/cart/sources/user-cart.service";
 import { AmstoreButtonRoundComponent } from "@am-front/cdk/buttons/round/round.component";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { Currency, LangService } from "@am-front/services/lang.service";
 import { DecimalPipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
+import { MajorCartService } from '@am-front/services/cart/major-cart.service';
+import { NumberEntityDto } from '@am-front/root/api-v2';
 
 
 @Component({
@@ -19,10 +21,10 @@ import { RouterLink } from "@angular/router";
     ],
 })
 export class CartSnapComponent {
-    private cartService: UserCartService = inject(UserCartService);
+    private cartService: MajorCartService = inject(MajorCartService);
     private langService: LangService = inject(LangService);
 
     public currency: Signal<Currency> = this.langService.currency;
-    public cartCount: Signal<number> = this.cartService.cartCount;
-    public cartPrice: Signal<number> = this.cartService.cartPrice;
+    public cartCount: Signal<number> = computed(() => this.cartService.cart()?.length || 0);
+    public cartPrice: Signal<NumberEntityDto> = this.cartService.price;
 }

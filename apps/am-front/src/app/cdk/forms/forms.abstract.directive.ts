@@ -1,18 +1,14 @@
 import {
-    ChangeDetectorRef,
-    Component,
     DestroyRef,
     Directive,
-    HostBinding,
     inject, input,
-    Input,
     InputSignal,
     OnInit
 } from "@angular/core";
-import { AbstractControl, ControlValueAccessor, FormControl, NgControl, Validators } from "@angular/forms";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
-import { map, startWith, takeUntil } from "rxjs/operators";
-import { AmstoreColor, ThemePalette } from '../core/color';
+import { ControlValueAccessor, FormControl, NgControl } from "@angular/forms";
+import { Observable } from "rxjs";
+import { map, startWith } from "rxjs/operators";
+import { AmstoreColor } from '../core/color';
 
 
 export type SelectOption = {

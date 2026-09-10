@@ -6,34 +6,62 @@ import {
     inject,
     model,
     ModelSignal,
-    Signal
+    Renderer2,
+    Signal,
 } from "@angular/core";
 
 
 export type ThemePalette = 'primary' | 'accent' | 'warn' | 'special' | 'contrast' | undefined;
 
+const COLOR_CLASS_PREFIX = 'amstore-';
+
 @Directive({
     standalone: true,
 })
-export class AmstoreColor {
-    public color: ModelSignal<ThemePalette> = model('primary');
-    public colorClass: Signal<string> = computed(() => `amstore-${this.color()}`);
+export abstract class AmstoreColor {
+    public readonly color: ModelSignal<ThemePalette> = model<ThemePalette>('primary');
+    public readonly colorClass: Signal<string> = computed(() => {
+        const color: ThemePalette = this.color();
 
-    private previousColorClass: string = '';
+        return color ? `${COLOR_CLASS_PREFIX}${color}` : '';
+    });
 
-    protected elementRef: ElementRef = inject(ElementRef);
+    private previousColorClass = '';
+
+    protected readonly elementRef: ElementRef<HTMLElement> = inject(ElementRef);
+
+    private readonly renderer: Renderer2 = inject(Renderer2);
 
     constructor() {
         effect(() => {
-            if (this.previousColorClass) {
-                this.elementRef.nativeElement.classList.remove(this.previousColorClass);
-            }
-
-            if (this.colorClass()) {
-                this.elementRef.nativeElement.classList.add(this.colorClass());
-            }
-
-            this.previousColorClass = this.colorClass();
+            this.setColorClass(this.colorClass());
         });
+    }
+
+    private setColorClass(colorClass: string): void {
+        if (this.previousColorClass === colorClass) {
+            return;
+        }
+
+        this.removePreviousColorClass();
+        this.addColorClass(colorClass);
+
+        this.previousColorClass = colorClass;
+    }
+
+    private addColorClass(colorClass: string): void {
+        if (!colorClass) {
+            return;
+        }
+
+        this.renderer.addClass(this.elementRef.nativeElement, colorClass);
+    }
+
+    private removePreviousColorClass(): void {
+        if (!this.previousColorClass) {
+            return;
+        }
+
+        this.renderer.removeClass(this.elementRef.nativeElement, this.previousColorClass);
     }
 }

@@ -1,5 +1,10 @@
 <button amstore-button-round [badge]="cartCount()" [routerLink]="['/', 'account', 'cart']">
     <amstore-icon iconName="order" [size]="20" [contrast]="true"/>
 
-    <span class="header-button-label">Корзина:</span> {{ cartPrice() | number }} {{currency()}}
+    <span class="header-button-label">Корзина:</span>
+    @if (cartPrice()) {
+        {{ cartPrice().ru | number }} {{currency()}}
+    } @else {
+
+    }
 </button>

@@ -1,39 +1,36 @@
 import {
     Component,
     computed,
+    effect,
     inject,
-    Injector,
     input,
     InputSignal,
-    OnInit,
     signal,
     Signal,
-    WritableSignal,
-} from "@angular/core";
-import { UserCartService, ICartPattern } from "@am-front/services/cart/sources/user-cart.service";
+    WritableSignal
+} from '@angular/core';
 import {
-    FullPatternEntityDto,
-    NumberEntityDto,
-    PatternEntityDto,
-    ShortOrderPatternDto,
-} from "@am-front/root/api-v2";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { IdRecord } from "@am-front/interface/common.interface";
+    FullPatternEntityDto, FullPatternSizeDto,
+    NumberEntityDto
+} from '@am-front/root/api-v2';
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
-import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { AmstoreCheckboxComponent } from "@am-front/cdk/forms/checkbox/checkbox.component";
-import { AmstoreSlideComponent } from "@am-front/cdk/slide/slide.component";
+import { FormField } from "@angular/forms/signals";
 import { AmstoreChipComponent } from "@am-front/cdk/chip/chip.component";
 import { LangNumberComponent } from "@am-front/shared/lang-text/lang-number.component";
 import { Currency, LangService } from "@am-front/services/lang.service";
-import { PatternCartGroup, PatternCartService } from "@am-front/shared/actions/pattern/pattern-cart/pattern-cart.service";
-import { KeyValuePipe } from "@angular/common";
+import {
+    PatternCartFormField,
+    PatternCartService
+} from "@am-front/shared/actions/pattern/pattern-cart/pattern-cart.service";
+import { MajorCartService } from '@am-front/services/cart/major-cart.service';
+import { CartItemModel } from '@am-front/services/cart/order.misc';
+import { AmstoreCheckboxSignalComponent, AmstoreSlideSignalComponent } from '@am-front/cdk/signal-forms';
 
 
 export enum PatternButtonState {
     Bought = 1,
     Editing,
-    Edit,
+    ToEdit,
     ToCart,
 }
 
@@ -41,88 +38,81 @@ export enum PatternButtonState {
     selector: "amstore-pattern-cart",
     imports: [
         AmstoreButtonComponent,
-        AmstoreCheckboxComponent,
-        AmstoreSlideComponent,
-        ReactiveFormsModule,
+        AmstoreCheckboxSignalComponent,
+        FormField,
         AmstoreChipComponent,
         LangNumberComponent,
-        KeyValuePipe,
+        AmstoreSlideSignalComponent
     ],
     providers: [PatternCartService],
     templateUrl: "./pattern-cart.component.html",
     styleUrl: "./pattern-cart.component.scss",
 })
-export class PatternCartComponent implements OnInit {
+export class PatternCartComponent {
     public readonly pattern: InputSignal<FullPatternEntityDto> = input.required();
 
-    private readonly cartService: UserCartService = inject(UserCartService);
+    private readonly cartService: MajorCartService = inject(MajorCartService);
     private readonly langService: LangService = inject(LangService);
-    private readonly injector: Injector = inject(Injector);
     private readonly patternCartService: PatternCartService = inject(PatternCartService);
 
-    public readonly ownPatterns: Signal<IdRecord<ShortOrderPatternDto>> = toSignal(this.cartService.ownPatterns$);
-    public readonly cartPatterns: Signal<IdRecord<ICartPattern>> = toSignal(this.cartService.patternsCart$);
     public readonly patternCartStateType: typeof PatternButtonState = PatternButtonState;
-    public readonly own: Signal<ShortOrderPatternDto> = computed(() => {
-        const pattern: FullPatternEntityDto = this.pattern();
-        const ownPatterns: IdRecord<ShortOrderPatternDto> = this.ownPatterns();
-
-        return ownPatterns[pattern?.id];
-    });
-
-
-    public readonly cart: Signal<ICartPattern> = computed(() => {
-        const pattern: FullPatternEntityDto = this.pattern();
-        const cartPatterns: IdRecord<ICartPattern> = this.cartPatterns();
-
-        return cartPatterns[pattern?.id];
-    });
-
     public readonly editing: WritableSignal<boolean> = signal(false);
-    public form: FormGroup<PatternCartGroup>;
-    public formCart: Signal<[ICartPattern, PatternEntityDto]>;
-    public price: Signal<NumberEntityDto>;
-
+    public readonly price: Signal<NumberEntityDto> = this.patternCartService.price;
     public readonly currency: Signal<Currency> = this.langService.currency;
+    public readonly form: PatternCartFormField = this.patternCartService.form;
+    public readonly currentCart: Signal<CartItemModel | null> = this.patternCartService.currentCart;
+
     public readonly patternCartButton: Signal<PatternButtonState> = computed(() => {
         const pattern: FullPatternEntityDto = this.pattern();
-        const own: ShortOrderPatternDto = this.own();
-        const cart: ICartPattern = this.cart();
 
-        const bought: boolean = own?.sizes.length === pattern.sizes.length && (pattern.color ? own?.color : true);
+        if (!pattern) {
+            return null;
+        }
+
+        const cart: CartItemModel = this.cartService.cartById()[pattern.id];
+        const own: CartItemModel = this.cartService.boughtPatterns()[pattern.id];
+        const boughtSizes: number[] = own?.sizes || [];
+        const boughtColor: boolean = pattern.color ? own?.color : true;
+        const bought: boolean = pattern.sizes
+            .every((size: FullPatternSizeDto) => boughtSizes.includes(size.size.id)) && boughtColor;
 
         if (cart && this.editing()) {
             return PatternButtonState.Editing;
         } else if (bought) {
             return PatternButtonState.Bought;
         } else if (cart) {
-            return PatternButtonState.Edit;
+            return PatternButtonState.ToEdit;
         }
 
         return PatternButtonState.ToCart;
     });
 
-    public ngOnInit(): void {
-        this.editing.set(!this.cart());
-        this.form = this.patternCartService.initForm(this.pattern(), this.own, this.cart, this.editing);
-        this.formCart = toSignal(this.patternCartService.getFormCartObservable(), { injector: this.injector });
-        this.price = computed(() => this.cartService.getPrice(...this.formCart()));
+    constructor() {
+        effect(() => {
+            const pattern: FullPatternEntityDto = this.pattern();
+            const cart: CartItemModel = this.cartService.cartById()[pattern.id];
+            const bought: CartItemModel = this.cartService.boughtPatterns()[pattern.id];
+            const enabled: boolean = [PatternButtonState.ToCart, PatternButtonState.Editing].includes(this.patternCartButton());
+
+            this.editing();
+
+            this.patternCartService.updateFormValue(pattern, cart, bought, enabled);
+        });
     }
 
     public toCart(): void {
-        const [cart, pattern]: [ICartPattern, PatternEntityDto] = this.formCart();
-        if (cart.sizes.length === 0 && !cart.color) {
-            this.form.setErrors({ incorrect: true });
+        const cart: CartItemModel = this.patternCartService.currentCart();
 
+        if (!cart) {
             return;
         }
 
-        this.cartService.addPattern(cart, pattern);
+        this.cartService.addProduct(cart);
         this.editing.set(false);
     }
 
     public removeFromCart(): void {
-        this.cartService.removePattern(this.pattern().id);
+        this.cartService.removeProduct(this.pattern().id);
         this.editing.set(true);
     }
 

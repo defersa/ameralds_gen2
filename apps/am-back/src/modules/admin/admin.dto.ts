@@ -1,8 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntityDto, NumberEntityDto } from "../../common/common.dto";
+import { SizeDto } from '../sizes/sizes.dto';
 
 
-export class AdminOrderPatternSizeDto extends BaseEntityDto {}
+export class AdminOrderPatternSizeDto extends BaseEntityDto {
+    @ApiProperty({
+        description: 'Selected size',
+        type: SizeDto,
+    })
+    public size: SizeDto;
+}
 
 export class AdminOrderPatternEntityDto extends BaseEntityDto {
     @ApiProperty({

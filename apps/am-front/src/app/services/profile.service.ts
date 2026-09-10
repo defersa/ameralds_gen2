@@ -4,10 +4,9 @@ import { BehaviorSubject, from, Observable, of } from "rxjs";
 import { getAction, HttpAuthActions, RestSuffixFragments } from "../utils/action-builder";
 import { UserEnum } from "../utils/router-builder";
 import { AuthService } from "./auth.service";
-import { UserCartService } from "./cart/sources/user-cart.service";
 import { ReCAPTCHA } from "@am-front/interface/recapcha";
 import { environment } from "../../environments/environment";
-import { map, skip, switchMap } from "rxjs/operators";
+import { skip, switchMap } from "rxjs/operators";
 
 import { AuthRequestPayload, IAuthResponse } from "@am-front/interface/profile.interface";
 import { IResultRequest } from "@am-front/interface/request.interface";
@@ -15,12 +14,11 @@ import { LocalStorage } from "@am-front/decorators/local.decorator";
 import {
     EnumUserRole,
     SuccessCreateDto,
-    type ShortOrderPatternDto,
-    UserCredentialsDto, type UserOrderDto,
+    UserCredentialsDto,
     ApiUserProducer,
     UserProfileDto,
-    UserTokensDTO
-} from "@am-front/root/api-v2";
+    UserTokensDTO, UserProfilePatternDto
+} from '@am-front/root/api-v2';
 import { toObservable } from '@angular/core/rxjs-interop';
 
 
@@ -42,9 +40,7 @@ export class ProfileService {
     public user$: BehaviorSubject<UserProfileDto> = new BehaviorSubject<UserProfileDto>(null);
     public readonly userStatus: WritableSignal<EnumUserRole> = signal(this.localUserStatus);
     public readonly isAdmin: Signal<boolean> = computed(() => this.userStatus() === EnumUserRole.Admin);
-
-    public boughtPatterns$: BehaviorSubject<ShortOrderPatternDto[]> = new BehaviorSubject<ShortOrderPatternDto[]>([]);
-    public userCart$: BehaviorSubject<UserOrderDto> = new BehaviorSubject<UserOrderDto>(null);
+    public readonly boughtPatterns: WritableSignal<UserProfilePatternDto[]> = signal([]);
 
     constructor() {
         this.initProfile();
@@ -57,8 +53,7 @@ export class ProfileService {
             )
             .subscribe((user: UserProfileDto) => {
                 this.userStatus.set(user?.role ?? null);
-                this.boughtPatterns$.next(user?.ownPatterns ?? []);
-                this.userCart$.next(user?.cart ?? null);
+                this.boughtPatterns.set(user?.ownPatterns ?? []);
             });
 
         toObservable(this.authService.auth)

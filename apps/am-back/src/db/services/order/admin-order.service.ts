@@ -142,7 +142,9 @@ export class AdminOrderService {
             },
             relations: {
                 patterns: {
-                    sizes: true,
+                    sizes: {
+                        size: true
+                    },
                     pattern: {
                         basePrice: true,
                         additionalPrice: true,

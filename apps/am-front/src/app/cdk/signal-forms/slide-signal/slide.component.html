@@ -1,0 +1,12 @@
+<mat-slide-toggle
+    [checked]="checked()"
+    [disabled]="disabled() || readonly()"
+    [required]="required()"
+    [name]="name() ?? null"
+    (change)="changeChecked($event)"
+    (blur)="markAsTouched()"
+>
+    <span>
+        <ng-content/>
+    </span>
+</mat-slide-toggle>

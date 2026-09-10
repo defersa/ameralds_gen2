@@ -3,16 +3,11 @@ import { DataSourceService } from "../data-source.service";
 import { FindOneOptions, Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
 import { TokenService } from "@am-back/db/service/token.service";
-import { OrderService } from "@am-back/db/service/order/order.service";
 import { addDays } from "date-fns";
 import { UserProfileDto, UserTokensDTO } from "../../modules/user/user.dto";
-import { instanceToPlain } from "class-transformer";
 import { UserEntity } from "../entities/user.entity";
 import { TokenRefreshEntity } from '../entities/tokens/token-refresh.entity';
 import { TokenAccessEntity } from '../entities/tokens/token-access.entity';
-import { OrderStatus, UserOrderEntity } from '../entities/purchases/order.entity';
-import { OrderPatternEntity } from '../entities/patterns/pattern-order.entity';
-import { PatternSizeEntity } from '../entities/patterns/pattern-size.entity';
 
 
 @Injectable({
@@ -24,7 +19,6 @@ export class UserService {
     constructor(
         private dataSource: DataSourceService,
         private tokenService: TokenService,
-        private orderService: OrderService,
     ) {
         this.userRepository = this.dataSource.getRepository<UserEntity>(UserEntity);
     }
@@ -136,7 +130,7 @@ export class UserService {
     }
 
     public async getUser(id: number): Promise<UserProfileDto> {
-        const userEntity: UserEntity = await this.userRepository.findOne({
+        return await this.userRepository.findOne({
             where: {
                 id,
             },
@@ -144,7 +138,7 @@ export class UserService {
                 orders: true,
                 ownPatterns: {
                     pattern: true,
-                    sizes: true,
+                    sizes: { size: true },
                 },
             },
             select: {
@@ -153,19 +147,5 @@ export class UserService {
                 }
             }
         });
-
-        const plainUser: UserProfileDto = instanceToPlain(userEntity) as UserProfileDto;
-
-        if (userEntity.orders.every((order: UserOrderEntity) => order.status !== OrderStatus.OPEN)) {
-            await this.orderService.createOrder(userEntity);
-        }
-
-        const cart: UserOrderEntity = await this.orderService.getOpenUserOrder(userEntity);
-        plainUser.cart = {
-            ...cart,
-            patterns: cart.patterns.map((pattern: OrderPatternEntity) => ({ ...pattern, sizes: pattern.sizes.map((size: PatternSizeEntity) => size.id) })),
-        };
-
-        return plainUser;
     }
 }

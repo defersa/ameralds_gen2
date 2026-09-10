@@ -27,6 +27,7 @@ export class LocalCartService extends AbstractCartService {
 
     constructor() {
         super();
+
         effect(() => {
             const cart: CartItemModel[] = this.cart();
 
