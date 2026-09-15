@@ -37,7 +37,11 @@ start() {
   shift
 
   echo "Starting $name..."
-  "$@" </dev/null &
+  (
+    set +e
+    "$@" </dev/null 2>&1 | sed -u "s/^/[$name] /"
+    exit "${PIPESTATUS[0]}"
+  ) &
   pids+=("$!")
 }
 

@@ -8,6 +8,6 @@ export class SizeEntity extends BaseModel {
     @Column({ type: 'int' })
     public value: number;
 
-    @OneToMany(() => PatternSizeEntity, (size: PatternSizeEntity) => size.pattern)
+    @OneToMany(() => PatternSizeEntity, (size: PatternSizeEntity) => size.size)
     public sizes: PatternSizeEntity[];
 }

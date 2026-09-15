@@ -1,44 +1,73 @@
 {
-  "name": "am-back",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/am-back/src",
-  "projectType": "application",
-  "tags": [],
-  "targets": {
-    "build": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "webpack-cli build",
-        "args": ["--config-node-env=production"]
-      },
-      "configurations": {
-        "development": {
-          "args": ["--config-node-env=development"]
-        }
-      }
-    },
-    "serve": {
-      "continuous": true,
-      "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
-      "dependsOn": ["build"],
-      "options": {
-        "buildTarget": "am-back:build",
-        "runBuildTargetDependencies": false
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "am-back:build:development"
+    "name": "am-back",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/am-back/src",
+    "projectType": "application",
+    "tags": [],
+    "targets": {
+        "build": {
+            "executor": "@nx/webpack:webpack",
+            "outputs": ["{options.outputPath}"],
+            "options": {
+                "target": "node",
+                "compiler": "tsc",
+                "main": "apps/am-back/src/main.ts",
+                "tsConfig": "apps/am-back/tsconfig.app.json",
+                "outputPath": "dist/apps/am-back",
+                "outputFileName": "server.js",
+                "webpackConfig": "apps/am-back/webpack.config.js",
+                "generatePackageJson": true,
+                "optimization": false,
+                "outputHashing": "none"
+            },
+            "configurations": {
+                "development": {
+                    "sourceMap": true
+                },
+                "production": {
+                    "optimization": true
+                }
+            }
         },
-        "production": {
-          "buildTarget": "am-back:build:production"
+        "serve-hmr": {
+            "continuous": true,
+            "executor": "@nx/webpack:webpack",
+            "options": {
+                "target": "node",
+                "compiler": "tsc",
+                "main": "apps/am-back/src/main.hmr.ts",
+                "tsConfig": "apps/am-back/tsconfig.app.json",
+                "outputPath": "dist/apps/am-back",
+                "outputFileName": "server.js",
+                "webpackConfig": "apps/am-back/webpack.config.js",
+                "generatePackageJson": true,
+                "optimization": false,
+                "outputHashing": "none",
+                "sourceMap": true,
+                "watch": true
+            }
+        },
+        "serve": {
+            "continuous": true,
+            "executor": "@nx/js:node",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "am-back:build",
+                "runBuildTargetDependencies": false
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "am-back:build:development"
+                },
+                "production": {
+                    "buildTarget": "am-back:build:production"
+                }
+            }
+        },
+        "test": {
+            "options": {
+                "passWithNoTests": true
+            }
         }
-      }
-    },
-    "test": {
-      "options": {
-        "passWithNoTests": true
-      }
     }
-  }
 }

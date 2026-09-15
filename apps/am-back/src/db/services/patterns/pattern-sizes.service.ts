@@ -92,10 +92,15 @@ export class PatternsSizeService {
         return patternSize;
     }
 
-    public async getPatternSizes(ids: number[]): Promise<PatternSizeEntity[]> {
+    public async getPatternSizes(patternId: number, sizeIds: number[]): Promise<PatternSizeEntity[]> {
         return await this.patternsSizeRepository.find({
             where: {
-                id: In(ids),
+                pattern: {
+                    id: patternId,
+                },
+                size: {
+                    id: In(sizeIds),
+                },
             },
         });
     }

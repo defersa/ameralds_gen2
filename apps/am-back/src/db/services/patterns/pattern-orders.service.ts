@@ -27,7 +27,7 @@ export class PatternOrdersService {
 
     public async createOrderPattern(order: InputShortOrderPatternDto): Promise<OrderPatternEntity> {
         const pattern: PatternEntity = await this.patternsService.getPattern(order.pattern);
-        const sizes: PatternSizeEntity[] = await this.patternSizeService.getPatternSizes(order.sizes);
+        const sizes: PatternSizeEntity[] = await this.patternSizeService.getPatternSizes(order.pattern, order.sizes);
 
         const orderEntity: OrderPatternEntity = this.orderPatternRepository.create({
             pattern,
