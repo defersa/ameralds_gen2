@@ -11,11 +11,12 @@ import { AmstoreButtonBaseDirective } from '../base.abstract.directive';
         class: 'amstore-button-default',
         '[class.amstore-button-default-stroked]': 'stroked()',
         '[class.amstore-button-default-disabled]': 'disabled()',
+        '[class.amstore-button-default-small]': 'size() === "small"',
         '[class.amstore-button-default-medium]': 'size() === "medium"',
         '[class.amstore-button-default-large]': 'size() === "large"',
     }
 })
 export class AmstoreButtonComponent extends AmstoreButtonBaseDirective {
-    public size: InputSignal<'medium' | 'large'> = input('medium');
+    public size: InputSignal<'small' | 'medium' | 'large'> = input('medium');
     public stroked: InputSignal<boolean> = input(false);
 }

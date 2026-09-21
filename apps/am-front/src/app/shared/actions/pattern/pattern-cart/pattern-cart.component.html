@@ -1,7 +1,7 @@
 @if (form; as form) {
     <h3>Размеры паттерна</h3>
 
-    <div class="amstore-line gap-3">
+    <div class="flex flex-row flex-wrap gap-1">
         @for (size of form.sizes; track $index) {
             @let label = size.label().value();
 

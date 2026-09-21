@@ -168,6 +168,15 @@ p {
     @include typography.get-amstore-font("body", 14, null, null);
 }
 
+.amstore-text-regular {
+    @include typography.get-amstore-font("body", 16, null, null);
+}
+
+.amstore-multiline-tooltip .mat-mdc-tooltip-surface {
+    white-space: pre-line;
+    text-align: left;
+}
+
 .amstore-column {
   display: flex;
   flex-direction: column;

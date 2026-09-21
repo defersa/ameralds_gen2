@@ -1,4 +1,8 @@
-<div class="amstore-snapshot-container-line">
+<div class="amstore-short-line flex flex-row gap-1 p-1" matTooltip="Категории схемы. При клике на конкретную категорю включится фильтр по этой категории">
+    <mat-icon fontIcon="style" class="amstore-text-primary"/>:
+
+    <div class="pl-1"></div>
+
     @for (category of categories(); track category) {
         <amstore-chip [isDark]="true">
             {{category.label}}
@@ -6,37 +10,63 @@
     }
 </div>
 
-<!--<div class="amstore-snapshot-container-line">-->
-<!--    @for (size of pattern().sizes; track size) {-->
-<!--        <amstore-chip [stroked]="true" color="warn" [isDark]="true">-->
-<!--            {{ size.size.value }} см-->
-<!--        </amstore-chip>-->
-<!--    }-->
-<!--</div>-->
 
-<!--<div class="amstore-snapshot-container-line">-->
-<!--    <h2>-->
-<!--        <amstore-lang-number [value]="pattern().price"/>-->
-<!--        <amstore-lang-text [text]="moneyUnit"/>-->
-<!--    </h2>-->
-<!--</div>-->
+@if (cartStatus(); as cart) {
+    <div class="amstore-short-line flex flex-row gap-1 p-1" [matTooltip]="sizesTooltip()" matTooltipClass="amstore-multiline-tooltip">
+        <mat-icon fontIcon="straighten" class="amstore-text-primary"/>:
 
+        <div class="pl-1"></div>
 
-<!--<div class="amstore-snapshot-container-info" [@expand]="showSale ? 'expanded' : 'collapsed'">-->
-<!--    <amstore-info status="alert">-->
-<!--        Aкция:<br>-->
-<!--        На данный товар применяется акция - при покупке схем из списка цена на каждый товар уменьшается. Ознакомится с-->
-<!--        условиями акции можно по Ссылке. При удовлетворении условий цена автоматически просчитается.-->
-<!--    </amstore-info>-->
-<!--</div>-->
+        @for (size of cart.sizes.own; track size.id) {
+            <amstore-chip [isDark]="true">
+                {{size.value}}
+            </amstore-chip>
+        }
 
-<!--<div class="amstore-snapshot-container-line amstore-snapshot-container-buttons">-->
-<!--    @if (false) {-->
-<!--        <amstore-button color="warn" class="amstore-snapshot-container-sale" (click)="showSale = !showSale">-->
-<!--            <amstore-icon iconName="sale" [contrast]="true" [size]="24"/>-->
-<!--        </amstore-button>-->
-<!--    }-->
+        @for (size of cart.sizes.cart; track size.id) {
+            <amstore-chip>
+                {{size.value}}
+            </amstore-chip>
+        }
 
-<!--    &lt;!&ndash;  TODO: Тож наверное перенести  &ndash;&gt;-->
-<!--    <amstore-button [routerLink]="routerLink()" color="primary">Подробнее</amstore-button>-->
-<!--</div>-->
+        @for (size of cart.sizes.available; track size.id) {
+            <amstore-chip [stroked]="true">
+                {{size.value}}
+            </amstore-chip>
+        }
+    </div>
+
+    @if (cart.color; as color) {
+        <div class="p-1 amstore-text-caption flex flex-row gap-1 items-center">
+            <mat-icon fontIcon="invert_colors" class="amstore-text-primary"/>:
+
+            <div class="pl-1"></div>
+
+            @if (color === 'own') {
+                Подбор куплен
+            } @else if(color === 'cart') {
+                Подбор в корзине
+            } @else {
+                Подбор доступен
+            }
+        </div>
+    }
+}
+
+<div class="p-2 text-right flex flex-row gap-2 justify-end">
+    @if (price().ru; as price) {
+        <h4>
+            {{ price }} {{ currency() }}
+        </h4>
+    }
+
+    @if (inCart()) {
+        <amstore-button color="accent" size="small">
+            Изменить
+        </amstore-button>
+    } @else {
+        <amstore-button color="primary"  size="small">
+            Добавить
+        </amstore-button>
+    }
+</div>
