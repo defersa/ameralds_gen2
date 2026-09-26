@@ -30,8 +30,8 @@ export class PatternsService {
             );
     }
 
-    public getPatterns(page: number): Observable<PatternsPaginatedPageDto> {
-        return this.patternsProducer.patternsControllerPage(page);
+    public getPatterns(page: number, sizes?: Array<number>, categories?: Array<number>, query?: string): Observable<PatternsPaginatedPageDto> {
+        return this.patternsProducer.patternsControllerPage(page, sizes, categories, query);
     }
 
     public getPattern(id: number): Observable<FullPatternEntityDto> {

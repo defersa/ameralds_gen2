@@ -1,0 +1,22 @@
+<amstore-panel color="primary">
+    <amstore-panel-header class="amstore-filter-header">
+        Фильтры
+
+        @if (hasFilters()) {
+            <amstore-button (click)="clearFilters($event)">
+                Очистить
+
+                <amstore-icon [contrast]="true" [iconName]="'cross'" [size]="20"/>
+            </amstore-button>
+        }
+    </amstore-panel-header>
+
+    <amstore-input-signal label="Поиск по названиям" [formField]="filterForm.query"/>
+
+    <amstore-checkbox-list-signal [items]="categoriesList()" [formField]="filterForm.categories" label="Категории"/>
+    <amstore-checkbox-list-signal [items]="sizesList()" [formField]="filterForm.sizes" label="Размеры"/>
+</amstore-panel>
+
+<ng-content/>
+
+<amstore-paginator (goToPageEvent)="handlePagination($event)" [pageCount]="pagesCount()" [page]="filterSet().page || 1"/>

@@ -1,4 +1,5 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
+import { Signal } from '@angular/core';
 
 export class CustomValidatorFns {
     public static getMinValue: (value: number) => ValidatorFn = function (value: number): ValidatorFn {
@@ -29,6 +30,21 @@ export class CustomValidatorFns {
         ValidatorFn = function <T>(subject: { getValue: () => T[] }, fieldName: string): ValidatorFn {
         return (control: AbstractControl) => {
             const values: unknown[] = subject.getValue()?.map((item: T) => Number(item[fieldName])) || [];
+
+            if (!control) {
+                return null;
+            }
+            if (values.includes(Number(control.value))) {
+                return { notUniq: { value: control.value } };
+            }
+            return null;
+        }
+    }
+
+    public static getNotUniqSignalValue: <T>(subject: Signal<T[]>, fieldName: string) =>
+        ValidatorFn = function <T>(subject: Signal<T[]>, fieldName: string): ValidatorFn {
+        return (control: AbstractControl) => {
+            const values: unknown[] = subject()?.map((item: T) => Number(item[fieldName])) || [];
 
             if (!control) {
                 return null;

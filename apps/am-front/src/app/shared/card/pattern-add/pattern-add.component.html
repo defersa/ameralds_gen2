@@ -66,7 +66,7 @@
     <div class="amstore-card-container-line">
         <h3>Категории:</h3>
 
-        <amstore-form-select [items]="categoriesList$ | async"
+        <amstore-form-select [items]="categoriesList()"
                              label="Категории"
                              [multiple]="true"
                              formControlName="categories"/>

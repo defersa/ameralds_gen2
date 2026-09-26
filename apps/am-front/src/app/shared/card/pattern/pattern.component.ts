@@ -44,7 +44,7 @@ export class AmstorePatternCardComponent extends AmstoreCardDirective {
     public pattern: InputSignal<FullPatternEntityDto> = input();
 
     public lang: Signal<LangType> = this.langService.lang;
-    public categoriesById: Signal<Record<number, OptionType>> = toSignal(this.categoriesService.categoriesById$);
+    public categoriesById: Signal<Record<number, OptionType>> = this.categoriesService.categoriesById;
     public categories: Signal<OptionType[]> = computed(() => {
         const categoriesById: Record<number, OptionType> = this.categoriesById();
         const pattern: FullPatternEntityDto = this.pattern();

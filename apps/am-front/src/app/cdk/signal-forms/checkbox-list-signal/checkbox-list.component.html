@@ -1,0 +1,22 @@
+@if (label()) {
+    <span class="amstore-checkbox-list-signal-label">
+        {{ label() }}
+    </span>
+}
+
+<div class="flex flex-row gap-1 flex-wrap">
+    @for (item of items(); track item.value) {
+        <mat-checkbox
+            [checked]="isChecked(item)"
+            [disabled]="disabled() || readonly()"
+            [name]="name() ?? null"
+            [color]="color()"
+            (change)="changeChecked(item, $event)"
+            (blur)="markAsTouched()"
+        >
+            <span>
+                {{ item.label }}
+            </span>
+        </mat-checkbox>
+    }
+</div>

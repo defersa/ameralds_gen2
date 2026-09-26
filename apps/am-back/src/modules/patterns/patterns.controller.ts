@@ -2,10 +2,17 @@ import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags, getS
 import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { Roles } from "@am-back/core/guards/role.guard";
 import { ErrorsDto } from "../errors/errors.dto";
-import { CreatePatternDto, FullPatternEntityDto, PatternEntityDto, PatternsPaginatedPageDto } from "./patterns.dto";
+import {
+    CreatePatternDto,
+    FullPatternEntityDto,
+    PatternEntityDto,
+    PatternsPaginatedFilterDto,
+    PatternsPaginatedPageDto
+} from "./patterns.dto";
 import { ParamsEntityDto, ParamsPaginatedDto, SuccessCreateDto } from "../../common/common.dto";
 import { PatternsService } from "@am-back/db/service/patterns/patterns.service";
 import { UserRole } from '../../db/entities/user.entity';
+import { toArray, toNumberArray, toString } from '@ameralds/utils';
 
 
 
@@ -32,8 +39,13 @@ export class PatternsController {
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async page(
         @Param() params: ParamsPaginatedDto,
+        @Query() filters: PatternsPaginatedFilterDto,
     ): Promise<PatternsPaginatedPageDto> {
-        return this.patternsService.paginatedPatterns(Number(params.page));
+        return this.patternsService.paginatedPatterns(Number(params.page), {
+            sizes: toNumberArray(filters.sizes),
+            categories: toNumberArray(filters.categories),
+            query: toString(filters.query),
+        });
     }
 
     @Get('ids')
@@ -74,8 +86,4 @@ export class PatternsController {
     ): Promise<FullPatternEntityDto> {
         return await this.patternsService.getPattern(params.id) as unknown as FullPatternEntityDto;
     }
-}
-
-function toArray<T>(values: T | T[]): T[] {
-    return Array.isArray(values) ? values : [values];
 }

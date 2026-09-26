@@ -2,7 +2,7 @@
     <div [formGroup]="group | asFormGroup" class="amstore-pattern-size">
         <div class="amstore-pattern-size-meta">
             <amstore-forms-input formControlName="id" label="Id" class="amstore-pattern-size-id"/>
-            <amstore-form-select [items]="sizesList$ | async"
+            <amstore-form-select [items]="sizesList()"
                                  label="Размер"
                                  formControlName="size"/>
         </div>

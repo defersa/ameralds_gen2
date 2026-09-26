@@ -4,16 +4,6 @@
 .amstore-menu {
     padding: spacing.get-spacing(default) 0 spacing.get-spacing(default) spacing.get-spacing(6);
 
-    &-list {
-        display: flex;
-        flex-direction: column;
-        padding: spacing.get-spacing(default);
-    }
-
-    amstore-button-menu {
-        margin-bottom: spacing.get-spacing(2);
-    }
-
     amstore-icon {
         margin-right: spacing.get-spacing(1);
     }

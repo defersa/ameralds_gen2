@@ -1,0 +1,16 @@
+<div class="amstore-actions-line">
+    <amstore-button [stroked]="true" color="primary" [routerLink]="['create']">
+        <amstore-icon iconName="setting" [size]="20"/>
+        Добавить новую схему
+    </amstore-button>
+</div>
+
+<amstore-filters (onSetFilters)="setFilterWithPage($event)" [filters]="filters" color="special"/>
+
+@for (item of items$ | async; track item) {
+    <amstore-snapshot-pattern [pattern]="item" [routerLink]="[item.id]">
+        <amstore-pattern-preview [pattern]="item" [routerLink]="[item.id]"/>
+    </amstore-snapshot-pattern>
+}
+
+<amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page" color="special"/>

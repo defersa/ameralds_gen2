@@ -1,0 +1,14 @@
+.amstore-pattern-skeleton-content {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+}
+
+.amstore-pattern-skeleton-line {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    min-width: 0;
+}

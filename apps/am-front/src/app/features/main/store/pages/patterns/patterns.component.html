@@ -1,0 +1,11 @@
+<amstore-pattern-filters (filtersUpdate)="filtersUpdate$.next($event)" [pagesCount]="pagesCount()">
+    @if (loading()) {
+        <amstore-patterns-skeleton/>
+    } @else {
+        @for (pattern of patterns(); track pattern.id) {
+            <amstore-snapshot-pattern [pattern]="pattern" [routerLink]="[pattern.id]">
+                <amstore-pattern-preview [pattern]="pattern" [routerLink]="[pattern.id]"/>
+            </amstore-snapshot-pattern>
+        }
+    }
+</amstore-pattern-filters>

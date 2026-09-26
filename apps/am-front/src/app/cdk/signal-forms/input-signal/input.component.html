@@ -1,0 +1,42 @@
+<mat-form-field>
+    @if (label()) {
+        <mat-label>
+            {{ label() }}
+        </mat-label>
+    }
+
+    <input
+        matInput
+        [type]="type()"
+        [value]="value() ?? ''"
+        [disabled]="disabled()"
+        [readonly]="readonly()"
+        [required]="required()"
+        [name]="name() ?? null"
+        [autocomplete]="autocomplete() ?? null"
+        (input)="changeValue($event)"
+        (blur)="markAsTouched()"
+    >
+
+    @if (suffixName()) {
+        <amstore-icon
+            (click)="emitSuffixClick()"
+            [iconName]="suffixName()"
+            [size]="20"
+            color="accent"
+            matSuffix
+        />
+    }
+
+    @if (hint()) {
+        <mat-hint>
+            {{ hint() }}
+        </mat-hint>
+    }
+
+    @if (showErrors()) {
+        <mat-error>
+            {{ errorMessage() }}
+        </mat-error>
+    }
+</mat-form-field>

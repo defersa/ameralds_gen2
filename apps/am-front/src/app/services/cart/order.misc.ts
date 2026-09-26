@@ -18,7 +18,6 @@ type OrderPatternEntityLike = {
 }
 
 export function convertOrderPatternEntityToCartItem(product: OrderPatternEntityLike): CartItemModel {
-    console.log(product)
     return {
         ...product,
         pattern: product.pattern.id,

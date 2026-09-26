@@ -1,6 +1,6 @@
 import { DestroyRef, Directive, inject } from "@angular/core";
-import { ActivatedRoute, Event, Navigation, NavigationEnd, Params, Router } from "@angular/router";
-import { filter, map, tap } from "rxjs/operators";
+import { ActivatedRoute, Params, Router } from "@angular/router";
+import { filter } from "rxjs/operators";
 import { BehaviorSubject } from "rxjs";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
@@ -8,28 +8,32 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 export type FiltersSet = Record<string, unknown>;
 
 @Directive()
-export abstract class FilteredPage {
+export abstract class FilteredPage<T extends FiltersSet = FiltersSet> {
     protected activateRoute: ActivatedRoute = inject(ActivatedRoute);
     protected destroyRef: DestroyRef = inject(DestroyRef);
     protected router: Router = inject(Router);
 
-    protected filterSet$: BehaviorSubject<FiltersSet> = new BehaviorSubject(null);
+    protected filterSet$: BehaviorSubject<T> = new BehaviorSubject(null);
+    private isSyncingFiltersFromQueryParams: boolean = false;
 
     constructor() {
-        this.initFiltersWithParams();
         this.initQueryUpdateHandler();
+        this.initFiltersWithParams();
     }
 
-    protected abstract initFilters(params: Params): FiltersSet;
+    protected abstract initFilters(params: Params): T;
 
-    public setFilter(filters: FiltersSet): void {
-        const filtersSet: FiltersSet = this.filterSet$.getValue() || {};
+    public setFilter(filters: T): void {
+        const filtersSet: T = this.filterSet$.getValue() || {} as T;
 
-        Object.entries(filters).forEach(([key, value]: [string, unknown]) => {
+        (Object.keys(filters) as Array<keyof T>).forEach((key: keyof T) => {
+            const value: T[keyof T] = filters[key];
+
             if (!(Array.isArray(value) ? value.length : value)) {
                 delete filtersSet[key];
                 return;
             }
+
             filtersSet[key] = value;
         });
 
@@ -42,20 +46,25 @@ export abstract class FilteredPage {
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
             )
-            .subscribe((params: Params) => this.setFilter(this.initFilters(params)))
+            .subscribe((params: Params) => {
+                this.isSyncingFiltersFromQueryParams = true;
+                this.setFilter(this.initFilters(params));
+                this.isSyncingFiltersFromQueryParams = false;
+            })
     }
 
     private initQueryUpdateHandler(): void {
         this.filterSet$
             .pipe(
                 filter(Boolean),
+                filter(() => !this.isSyncingFiltersFromQueryParams),
                 takeUntilDestroyed(this.destroyRef),
             )
-            .subscribe((params: FiltersSet) =>
+            .subscribe((params: T) =>
                 this.router.navigate([], {
                     relativeTo: this.activateRoute,
                     queryParams: params,
-                    queryParamsHandling: "",
+                    queryParamsHandling: "replace",
                     state: { "skip": true }
                 })
             );

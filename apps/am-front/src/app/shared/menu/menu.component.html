@@ -1,13 +1,19 @@
-<div class="amstore-menu">
-    <h2>{{label}}</h2>
-
-    <div class="amstore-menu-list">
-        @for (item of list; track item) {
-            <amstore-button-menu [routerLink]="item.path" [color]='color'
-                                 [active]="(currentRoute$ | async)?.startsWith(item.path.join('/'))">
-                <amstore-icon [iconName]="item.icon || 'profile'" [size]="20" color="accent"/>
+<div class="amstore-menu flex flex-col gap-2">
+    @for (section of sections(); track section.color) {
+        @for (item of section.list; track item.label) {
+            <amstore-button-menu [routerLink]="item.path"
+                                 routerLinkActive
+                                 #route="routerLinkActive"
+                                 [color]='section.color'
+                                 [active]="route.isActive"
+                                 [routerLinkActiveOptions]="routerLinkActiveOptions">
+                <amstore-icon [iconName]="item.icon || 'profile'" [size]="20" [color]="section.color"/>
                 {{item.label}}
             </amstore-button-menu>
         }
-    </div>
+
+        @if (!$last) {
+            <mat-divider/>
+        }
+    }
 </div>

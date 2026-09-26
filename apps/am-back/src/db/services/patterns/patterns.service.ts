@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { In, Repository } from "typeorm";
+import { Brackets, In, Repository, SelectQueryBuilder } from "typeorm";
 import { CommonEntitiesService } from "@am-back/db/service/common-entities.service";
 import { ImagesService } from "@am-back/db/service/images.service";
 import { FilesService } from "@am-back/db/service/files.service";
@@ -26,6 +26,16 @@ import { PatternSizeEntity } from '../../entities/patterns/pattern-size.entity';
 
 
 
+export interface PatternsPaginatedFilters {
+    sizes: number[];
+    categories: number[];
+    query: string;
+}
+
+type PatternIdRow = {
+    id: number | string;
+}
+
 @Injectable()
 export class PatternsService {
     private patternsRepository: Repository<PatternEntity>;
@@ -49,7 +59,7 @@ export class PatternsService {
         const colorPrice: NumberLangEntity = await this.commonEntitiesService.createNumber(data.colorPrice.ru, data.colorPrice.en);
         const categories: CategoryEntity[] = await this.categoriesService.getCategoriesByIds(data.categories);
         const images: ImageEntity[] = await this.imagesService.getImagesByIds(data.images);
-        const color: FileEntity = await this.filesService.getPrivateFile(data.color);
+        const color: FileEntity = data.color ? await this.filesService.getPrivateFile(data.color) : null;
         const sizes: PatternSizeEntity[] = await Promise.all(data.sizes
             .map(async (size: PatternSizeDto) => await this.patternSizeService.createPatternSize(size)));
 
@@ -108,7 +118,7 @@ export class PatternsService {
         pattern.colorPrice = await this.commonEntitiesService.createNumber(data.colorPrice.ru, data.colorPrice.en);
         pattern.categories = await this.categoriesService.getCategoriesByIds(data.categories);
         pattern.images = await this.imagesService.getImagesByIds(data.images);
-        pattern.color = await this.filesService.getPrivateFile(data.color);
+        pattern.color = data.color ? await this.filesService.getPrivateFile(data.color) : null;
         pattern.sizes = await Promise.all((data.sizes || []).map(async (size: PatternSizeDto) => {
             const id: number = size.id;
 
@@ -129,43 +139,15 @@ export class PatternsService {
         return pattern;
     }
 
-    public async paginatedPatterns(page: number): Promise<PatternsPaginatedPageDto> {
-        const take: number = 10;
+    public async paginatedPatterns(page: number, filters: PatternsPaginatedFilters): Promise<PatternsPaginatedPageDto> {
+        const take = 10;
         const skip: number = take * (page - 1);
-        const count: number = Math.ceil(await this.patternsRepository.count() / take);
-
-        const patterns: PatternEntity[] = await this.patternsRepository.find({
-            where: {
-                state: ModelState.ACTIVE,
-                hidden: false,
-            },
-            relations: {
-                name: true,
-                description: true,
-                basePrice: true,
-                additionalPrice: true,
-                colorPrice: true,
-                images: true,
-                color: true,
-                sizes: {
-                    size: true,
-                },
-            },
-            order: {
-                images: {
-                    index: "ASC",
-                },
-                createdAt: "DESC"
-            },
-            select: {
-                sizes: {
-                    id: true,
-                },
-            },
-            loadRelationIds: { relations: ["categories"] },
-            take,
-            skip,
-        });
+        const [ids, total]: [number[], number] = await Promise.all([
+            this.getPaginatedPatternIds(filters, take, skip),
+            this.getFilteredPatternsQuery(filters).getCount(),
+        ]);
+        const patterns: PatternEntity[] = await this.getPatternsPageByIds(ids);
+        const count: number = Math.ceil(total / take);
 
         return {
             page,
@@ -258,5 +240,96 @@ export class PatternsService {
                     ...pattern,
                     sizes: pattern.sizes.map((size: PatternSizeEntity) => ({ ...size, size: size.size.id })),
                 })) as unknown as PatternEntityDto[];
+    }
+
+    private async getPaginatedPatternIds(filters: PatternsPaginatedFilters, take: number, skip: number): Promise<number[]> {
+        const rows: PatternIdRow[] = await this.getFilteredPatternsQuery(filters)
+            .select('pattern.id', 'id')
+            .addSelect('pattern.createdAt', 'createdAt')
+            .distinct(true)
+            .orderBy('pattern.createdAt', 'DESC')
+            .addOrderBy('pattern.id', 'DESC')
+            .limit(take)
+            .offset(skip)
+            .getRawMany<PatternIdRow>();
+
+        return rows.map((row: PatternIdRow) => Number(row.id));
+    }
+
+    private async getPatternsPageByIds(ids: number[]): Promise<PatternEntity[]> {
+        if (!ids.length) {
+            return [];
+        }
+
+        const patterns: PatternEntity[] = await this.patternsRepository.find({
+            where: {
+                id: In(ids),
+                state: ModelState.ACTIVE,
+                hidden: false,
+            },
+            relations: {
+                name: true,
+                description: true,
+                basePrice: true,
+                additionalPrice: true,
+                colorPrice: true,
+                images: true,
+                color: true,
+                sizes: {
+                    size: true,
+                },
+            },
+            order: {
+                images: {
+                    index: "ASC",
+                },
+            },
+            select: {
+                sizes: {
+                    id: true,
+                },
+            },
+            loadRelationIds: { relations: ["categories"] },
+        });
+        const patternsById: Map<number, PatternEntity> = new Map(
+            patterns.map((pattern: PatternEntity) => [pattern.id, pattern]),
+        );
+
+        return ids
+            .map((id: number) => patternsById.get(id))
+            .filter((pattern: PatternEntity | undefined): pattern is PatternEntity => Boolean(pattern));
+    }
+
+    private getFilteredPatternsQuery(filters: PatternsPaginatedFilters): SelectQueryBuilder<PatternEntity> {
+        const queryBuilder: SelectQueryBuilder<PatternEntity> = this.patternsRepository
+            .createQueryBuilder('pattern')
+            .leftJoin('pattern.name', 'name')
+            .leftJoin('pattern.description', 'description')
+            .where('pattern.state = :state', { state: ModelState.ACTIVE })
+            .andWhere('pattern.hidden = :hidden', { hidden: false });
+
+        if (filters.categories.length) {
+            queryBuilder
+                .innerJoin('pattern.categories', 'categoryFilter')
+                .andWhere('categoryFilter.id IN (:...categories)', { categories: filters.categories });
+        }
+
+        if (filters.sizes.length) {
+            queryBuilder
+                .innerJoin('pattern.sizes', 'sizeFilter')
+                .innerJoin('sizeFilter.size', 'selectedSize')
+                .andWhere('selectedSize.id IN (:...sizes)', { sizes: filters.sizes });
+        }
+
+        if (filters.query.trim()) {
+            queryBuilder.andWhere(new Brackets((qb: SelectQueryBuilder<PatternEntity>) => {
+                qb.where('name.ru ILIKE :query', { query: `%${filters.query.trim()}%` })
+                    .orWhere('name.en ILIKE :query')
+                    .orWhere('description.ru ILIKE :query')
+                    .orWhere('description.en ILIKE :query');
+            }));
+        }
+
+        return queryBuilder;
     }
 }

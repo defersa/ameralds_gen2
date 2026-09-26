@@ -197,3 +197,28 @@ export class PatternsPaginatedPageDto extends PaginatedPageDto {
     })
     public items: PatternEntityDto[];
 }
+
+export class PatternsPaginatedFilterDto {
+    @ApiProperty({
+        description: 'Pattern size ids',
+        type: 'number',
+        isArray: true,
+        required: false,
+    })
+    public sizes?: number[];
+
+    @ApiProperty({
+        description: 'Pattern category ids',
+        type: 'number',
+        isArray: true,
+        required: false,
+    })
+    public categories?: number[];
+
+    @ApiProperty({
+        description: 'Pattern search query',
+        type: 'string',
+        required: false,
+    })
+    public query?: string;
+}

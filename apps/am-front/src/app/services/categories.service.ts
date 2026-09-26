@@ -1,19 +1,19 @@
 import { OptionType } from "@am-front/interface/cdk.interface";
-import { inject, Injectable } from "@angular/core";
-import { combineLatest, Observable, OperatorFunction, pipe } from "rxjs";
-import { map, tap } from "rxjs/operators";
+import { computed, DestroyRef, inject, Injectable, signal, Signal, WritableSignal } from '@angular/core';
+import { Observable, OperatorFunction, pipe } from 'rxjs';
+import { tap } from "rxjs/operators";
 import {
     IResultRequest
 } from "@am-front/interface/request.interface";
 import { SnackService } from "@am-front/services/snackbar.service";
-import { BehaviorObservable, GetDataAction } from "@am-front/utils/data-action.subject";
 import { LangService, LangType } from "@am-front/services/lang.service";
 import {
     type CategoriesDto,
-    type CategoriesPaginatedPageDto, ApiCategoriesProducer,
-    type CategoryDto
+    type CategoriesPaginatedPageDto,
+    ApiCategoriesProducer,
+    type CategoryDto,
 } from "@am-front/root/api-v2";
-import { toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 @Injectable({
@@ -23,10 +23,27 @@ export class CategoriesService {
     private categoriesService: ApiCategoriesProducer = inject(ApiCategoriesProducer);
     private snack: SnackService = inject(SnackService);
     private langService: LangService = inject(LangService);
+    private destroyRef: DestroyRef = inject(DestroyRef);
 
-    public categories$: BehaviorObservable<CategoryDto[]> = GetDataAction([], () => this.getAllCategories());
-    public categoriesList$: Observable<OptionType[]> = this.getCategoriesList();
-    public categoriesById$: Observable<Record<number, OptionType>> = this.getCategoriesByIds();
+    public readonly categories: WritableSignal<CategoryDto[]> = signal([]);
+    public readonly categoriesList: Signal<OptionType[]> = computed(() => {
+        const lang: LangType = this.langService.lang();
+
+        return this.categories()
+            .map((category: CategoryDto) => ({
+                label: category.label[lang],
+                value: category.id
+            }));
+    });
+
+    public readonly categoriesById: Signal<Record<number, OptionType>> = computed(() =>
+        Object.fromEntries(
+            this.categoriesList()
+                .map((category: OptionType) => [category.value, category])));
+
+    constructor() {
+        this.getAllCategories();
+    }
 
     public getCategory(id: number): Observable<CategoryDto> {
         return this.categoriesService.categoriesControllerEntity(id);
@@ -36,11 +53,12 @@ export class CategoriesService {
         return this.categoriesService.categoriesControllerPage(page);
     }
 
-    public getAllCategories(): Observable<CategoryDto[]> {
-        return this.categoriesService.categoriesControllerAll()
+    private getAllCategories(): void {
+        this.categoriesService.categoriesControllerAll()
             .pipe(
-                map((response: CategoriesDto) => response.items)
-            );
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe((response: CategoriesDto) => this.categories.set(response.items));
     }
 
     public editCategory(values: { id: number; ru: string; en?: string }): Observable<CategoryDto> {
@@ -66,33 +84,7 @@ export class CategoriesService {
     private retakeAndMessage<T>(message: string): OperatorFunction<T, T> {
         return pipe(
             this.snack.informAfterResult(message),
-            tap(() => this.categories$.retake())
-        );
-    }
-
-    private getCategoriesList(): Observable<OptionType[]> {
-        return combineLatest([
-            toObservable(this.langService.lang),
-            this.categories$,
-        ]).pipe(
-            map(([lang, values]: [LangType, CategoryDto[]]) => values.map((item: CategoryDto) => ({
-                label: item.label[lang],
-                value: item.id
-            })))
-        );
-    }
-
-    private getCategoriesByIds(): Observable<Record<number, OptionType>> {
-        return combineLatest([
-            toObservable(this.langService.lang),
-            this.categories$,
-        ]).pipe(
-            map(([lang, values]: [LangType, CategoryDto[]]) =>
-                Object.fromEntries(values.map((item: CategoryDto) => [item.id, {
-                    label: item.label[lang],
-                    value: item.id
-                }]))
-            ),
+            tap(() => this.getAllCategories()),
         );
     }
 }

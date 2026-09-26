@@ -23,31 +23,13 @@
 
     <div class="row">
         <div class="col-12">
-            <amstore-chips-checkbox [items]="categoriesList$ | async" formControlName="categories" [color]="color()" label="Категории"/>
+            <amstore-chips-checkbox [items]="categoriesList()" formControlName="categories" [color]="color()" label="Категории"/>
         </div>
     </div>
 
     <div class="row">
         <div class="col-12">
-            <amstore-chips-checkbox [items]="sizesList$ | async" formControlName="sizes" [color]="color()" label="Размер"/>
-        </div>
-    </div>
-
-    <div class="row amstore-filter-buttons">
-        <div class="col-12 text-right">
-            @if (!isEmpty) {
-                <amstore-button color="warn" (click)="clearFilters($event)">
-                    Очистить
-                </amstore-button>
-            }
-
-            <amstore-button [stroked]="true" color="warn" [disabled]="!isChanged" (click)="resetFilters()">
-                Отменить
-            </amstore-button>
-
-            <amstore-button [disabled]="!isChanged" [color]="color()" (click)="setFilters()">
-                Найти
-            </amstore-button>
+            <amstore-chips-checkbox [items]="sizesList()" formControlName="sizes" [color]="color()" label="Размер"/>
         </div>
     </div>
 </amstore-panel>

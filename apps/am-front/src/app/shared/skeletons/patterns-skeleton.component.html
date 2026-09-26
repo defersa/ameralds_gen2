@@ -1,0 +1,31 @@
+@for (item of skeletonItems; track item) {
+    <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonTheme">
+        <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonImageTheme"/>
+
+        <div class="amstore-pattern-skeleton-content">
+            <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonTitleTheme"/>
+
+            <div class="amstore-pattern-skeleton-line">
+                <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonIconTheme"/>
+
+                @for (chip of skeletonChipItems; track chip) {
+                    <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonChipTheme"/>
+                }
+            </div>
+
+            <div class="amstore-pattern-skeleton-line">
+                <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonIconTheme"/>
+
+                <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonSmallChipTheme"/>
+                <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonSmallChipTheme"/>
+            </div>
+
+            <div class="amstore-pattern-skeleton-line">
+                <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonIconTheme"/>
+                <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonTextTheme"/>
+            </div>
+
+            <ngx-skeleton-loader appearance="custom-content" [theme]="skeletonButtonTheme"/>
+        </div>
+    </ngx-skeleton-loader>
+}

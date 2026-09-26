@@ -5,8 +5,8 @@ import {
     InputSignal,
     output,
     OutputEmitterRef,
-    Signal,
-} from "@angular/core";
+    Signal
+} from '@angular/core';
 import { AmstoreColor } from "../core/color";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 

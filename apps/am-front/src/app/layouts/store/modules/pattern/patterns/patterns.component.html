@@ -1,9 +1,0 @@
-<amstore-filters (onSetFilters)="setFilterWithPage($event)" [filters]="filters"/>
-
-@for (item of items(); track item.id) {
-    <amstore-snapshot-pattern [pattern]="item" [routerLink]="[item.id]">
-        <amstore-pattern-details-short [pattern]="item" [routerLink]="[item.id]"/>
-    </amstore-snapshot-pattern>
-}
-
-<amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page"/>

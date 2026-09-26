@@ -1,27 +1,35 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AdminGuard } from "@am-front/core/guards/admin.guard";
-import { AuthGuard } from "@am-front/core/guards/auth.guard";
+import { MainComponent } from '@am-front/root/features/main.component';
 
 
 export const routes: Routes = [
     {
-        path: '',
-        loadChildren: () => import('./layouts/store/store.module').then(m => m.StoreModule),
-    },
-    {
-        path: 'account',
-        loadChildren: () => import('./layouts/account/account.module').then(m => m.AccountModule),
-        canActivate: [AuthGuard],
-    },
-    {
         path: 'auth',
-        loadChildren: () => import('./layouts/auth/auth.module').then(m => m.AuthModule)
+        loadChildren: () => import('@am-front/root/features/auth/auth.module').then(m => m.AuthModule)
     },
     {
-        path: 'admin',
-        loadChildren: () => import('./layouts/admin/admin.module').then(m => m.AdminModule),
-        canActivate: [AdminGuard],
+        path: '',
+        component: MainComponent,
+        children: [
+            {
+                path: 'account',
+                loadChildren: () => import('@am-front/root/features/main/account/account.routes')
+                    .then(m => m.AccountRoutes)
+            },
+            {
+                path: 'admin',
+                loadChildren: () => import('@am-front/root/features/main/admin/admin.routes')
+                    .then(m => m.AdminRoutes),
+                canActivate: [AdminGuard],
+            },
+            {
+                path: '',
+                loadChildren: () => import('@am-front/root/features/main/store/store.routes')
+                    .then(m => m.StoreRoutes)
+            }
+        ],
     },
     {
         path: '**',

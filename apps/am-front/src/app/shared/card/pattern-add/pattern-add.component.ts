@@ -28,7 +28,6 @@ import { AmstoreCardDirective } from '../card.directive';
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
 import { AmstoreCheckboxComponent } from "@am-front/cdk/forms/checkbox/checkbox.component";
-import { AsyncPipe } from "@angular/common";
 import { AmstoreSelectComponent } from "@am-front/cdk/forms/select/select.component";
 import {
     type CreatePatternDto,
@@ -51,7 +50,6 @@ import { AmstorePatternSizesComponent } from "@am-front/shared/card/pattern-add/
         AmstoreInputComponent,
         AmstoreCheckboxComponent,
         ReactiveFormsModule,
-        AsyncPipe,
         AmstoreSelectComponent,
         ImageListComponent,
         AmstoreUploadComponent,
@@ -69,7 +67,7 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective {
     private categoriesService: CategoriesService = inject(CategoriesService);
     private patternsService: PatternsService = inject(PatternsService);
 
-    public categoriesList$: Observable<OptionType[]> = this.categoriesService.categoriesList$;
+    public categoriesList: Signal<OptionType[]> = this.categoriesService.categoriesList;
     public images: ImageDto[] = [];
 
     public patternForm: FormGroup;

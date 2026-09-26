@@ -1,0 +1,20 @@
+@use 'spacing';
+
+.amstore-filter {
+    &-buttons {
+        padding: spacing.get-spacing(3) 0;
+
+        amstore-button:not(:last-child) {
+            margin-right: spacing.get-spacing(2);
+        }
+    }
+
+    &-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        width: 100%;
+        padding-right: spacing.get-spacing(2);
+    }
+}

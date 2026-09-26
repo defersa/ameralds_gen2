@@ -16,6 +16,7 @@ import { ProfileComponent } from '@am-front/core/profile/profile.component';
 import { AuthInterceptor } from '@am-front/root/auth.interceptor';
 import { DownloadInterceptor } from '@am-front/root/download.interceptor';
 import { provideDefaultClient } from '@am-front/root/api-v2';
+import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 
 
 registerLocaleData(localeRu, 'ru-RU', localeRuExtra);
@@ -32,7 +33,14 @@ registerLocaleData(localeRu, 'ru-RU', localeRuExtra);
         AmstoreHeaderAdminComponent,
         AmastoreLanguageComponent,
         CartSnapComponent,
-        ProfileComponent
+        ProfileComponent,
+        NgxSkeletonLoaderModule.forRoot({
+            animation: 'progress',
+            appearance: 'line',
+            theme: {
+                'border-radius': '4px',
+            },
+        })
     ], providers: [
         provideDefaultClient({ basePath: '' }),
         provideHttpClient(withInterceptors([AuthInterceptor, DownloadInterceptor])),

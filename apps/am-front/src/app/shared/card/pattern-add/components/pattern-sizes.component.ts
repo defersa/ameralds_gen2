@@ -5,13 +5,12 @@ import {
     inject,
     input,
     InputSignal,
-} from "@angular/core";
+    Signal,
+} from '@angular/core';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { FormGroupPipe } from "@am-front/shared/pipes/form-group.pipe";
 import { AmstoreSelectComponent } from "@am-front/cdk/forms/select/select.component";
-import { AsyncPipe } from "@angular/common";
 import { SizesService } from "@am-front/services/sizes.service";
-import { Observable } from "rxjs";
 import { OptionType } from "@am-front/interface/cdk.interface";
 import { AmstoreUploadComponent } from "@am-front/cdk/forms/upload/upload.component";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
@@ -29,7 +28,6 @@ import { filter } from "rxjs/operators";
         ReactiveFormsModule,
         FormGroupPipe,
         AmstoreSelectComponent,
-        AsyncPipe,
         AmstoreUploadComponent,
         AmstoreButtonComponent,
         AmstoreInputComponent,
@@ -43,7 +41,7 @@ export class AmstorePatternSizesComponent {
     private changeDetector: ChangeDetectorRef = inject(ChangeDetectorRef);
     private dialog: DialogService = inject(DialogService);
 
-    public sizesList$: Observable<OptionType[]> = this.sizeService.list$;
+    public sizesList: Signal<OptionType[]> = this.sizeService.sizesList;
 
     public addSize(size: Partial<FullPatternSizeDto> = {}): void {
         this.formArray().push(new FormGroup({
