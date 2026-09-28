@@ -123,6 +123,20 @@ export class AmstorePatternsFilterComponent {
         });
     }
 
+    public clearQuery(): void {
+        if (!this.filterSet().query) {
+            return;
+        }
+
+        this.filterForm().markAsTouched();
+        this.filterSet.set({
+            ...this.filterSet(),
+            query: '',
+            page: 1,
+            immediately: true,
+        });
+    }
+
     private initFiltersWithParams(): void {
         const queryParams: Signal<Params> = toSignal(
             this.activateRoute.queryParams, {
@@ -174,4 +188,3 @@ export class AmstorePatternsFilterComponent {
 function ParamsToArray(value: any): number[] {
     return (typeof value === 'string' ? [value] : value as [])?.map(Number) || [];
 }
-

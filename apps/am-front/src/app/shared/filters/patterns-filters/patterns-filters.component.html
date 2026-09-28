@@ -11,7 +11,12 @@
         }
     </amstore-panel-header>
 
-    <amstore-input-signal label="Поиск по названиям" [formField]="filterForm.query"/>
+    <amstore-input-signal
+        (onSuffixClick)="clearQuery()"
+        [formField]="filterForm.query"
+        [suffixName]="filterSet().query ? 'cross' : undefined"
+        label="Поиск по названиям"
+    />
 
     <amstore-checkbox-list-signal [items]="categoriesList()" [formField]="filterForm.categories" label="Категории"/>
     <amstore-checkbox-list-signal [items]="sizesList()" [formField]="filterForm.sizes" label="Размеры"/>

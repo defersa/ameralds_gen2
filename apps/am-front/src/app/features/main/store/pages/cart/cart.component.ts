@@ -1,15 +1,18 @@
 import { Component, computed, DestroyRef, effect, inject, signal, Signal, WritableSignal } from '@angular/core';
 import { PatternsService } from "@am-front/services/patterns.service";
 import { IdRecord } from "@am-front/interface/common.interface";
-import { NumberEntityDto, PatternEntityDto } from '@am-front/root/api-v2';
+import { PatternEntityDto } from '@am-front/root/api-v2';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from "@angular/router";
-import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
-import { Currency, LangService } from "@am-front/services/lang.service";
-import { AmstoreInfoComponent } from "@am-front/cdk/info/info.component";
 import { MajorCartService } from '@am-front/services/cart/major-cart.service';
 import { CartItemModel } from '@am-front/services/cart/order.misc';
 import { AmstoreSnapshotPatternComponent } from '@am-front/shared/snapshot/pattern/pattern.component';
+import { AuthService } from '@am-front/services/auth.service';
+import { ProfileService } from '@am-front/services/profile.service';
+
+import { ActionAdminComponent } from './components/action-admin/action-admin.component';
+import { ActionAuthComponent } from './components/action-auth/action-auth.component';
+import { ActionNoAuthComponent } from './components/action-no-auth/action-no-auth.component';
 
 
 interface CartItem {
@@ -23,21 +26,22 @@ interface CartItem {
     styleUrls: ["./cart.component.scss"],
     standalone: true,
     imports: [
-        AmstoreButtonComponent,
-        AmstoreInfoComponent,
+        ActionAdminComponent,
+        ActionAuthComponent,
+        ActionNoAuthComponent,
         AmstoreSnapshotPatternComponent
     ]
 })
 export class CartComponent {
     private readonly cartService: MajorCartService = inject(MajorCartService);
-    private readonly langService: LangService = inject(LangService);
+    private readonly authService: AuthService = inject(AuthService);
+    private readonly profileService: ProfileService = inject(ProfileService);
     private readonly patternService: PatternsService = inject(PatternsService);
     private readonly router: Router = inject(Router);
     private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
-    public readonly price: Signal<null | NumberEntityDto> = this.cartService.price;
-    public readonly currency: Signal<Currency> = this.langService.currency;
-    public readonly count: Signal<number> = computed(() => this.cartService.cart()?.length || 0);
+    public readonly auth: Signal<boolean> = this.authService.auth;
+    public readonly isAdmin: Signal<boolean> = this.profileService.isAdmin;
 
     public removed: WritableSignal<CartItem[]> = signal([]);
     public items: Signal<CartItem[]> = computed(() => {

@@ -96,12 +96,15 @@ export class AdminOrderService {
             await this.patternOrdersService.removeOrderPatter(previousItem);
             patterns = patterns.filter(
                 (item: OrderPatternEntity) =>
-                    item.pattern.id === pattern.pattern,
+                    item.pattern.id !== pattern.pattern,
             );
         }
 
         const newOrderPatternEntity: OrderPatternEntity =
-            await this.patternOrdersService.createOrderPattern(prepared);
+            await this.patternOrdersService.createOrderPattern(
+                prepared,
+                { adminOrder: order },
+            );
 
         patterns.push(newOrderPatternEntity);
         order.patterns = patterns;
@@ -126,7 +129,7 @@ export class AdminOrderService {
         if (previousItem) {
             await this.patternOrdersService.removeOrderPatter(previousItem);
             patterns = patterns.filter(
-                (item: OrderPatternEntity) => item.pattern.id === id,
+                (item: OrderPatternEntity) => item.pattern.id !== id,
             );
         }
 

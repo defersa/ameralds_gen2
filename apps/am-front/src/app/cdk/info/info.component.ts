@@ -24,7 +24,7 @@ const ICON_MAP: Record<StatusInfo, IconsName> = {
         IconsComponent
     ],
     host: {
-        class: "amstore-info",
+        class: "amstore-info py-3 px-6",
         "[class.is-contrast]": "contrast()"
     }
 })

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { ProfileComponent } from '@am-front/root/features/main/account/pages/profile/profile.component';
 import { PatternRoutes } from '@am-front/shared/pages/pattern/pattern.routes';
-import { CartComponent } from '@am-front/root/features/main/account/pages/cart/cart.component';
+import { CartComponent } from '@am-front/root/features/main/store/pages/cart/cart.component';
 import { OrdersComponent } from '@am-front/root/features/main/account/pages/orders/orders.component';
 import { PatternsComponent } from '@am-front/root/features/main/account/pages/patterns/patterns.component';
 import { MenuSection } from '@am-front/shared/menu/menu.component';
@@ -14,11 +14,6 @@ export const PROFILE_ROUTES_SECTION: MenuSection = {
             label: 'Профиль',
             path: ['/', 'account', 'profile'],
             icon: 'profile'
-        },
-        {
-            label: 'Корзина',
-            path: ['/', 'account', 'cart'],
-            icon: 'card'
         },
         {
             label: 'Заказы',

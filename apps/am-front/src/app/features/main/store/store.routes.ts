@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { JewelryComponent } from '@am-front/root/features/main/store/pages/jewelry/jewelry.component';
 import { PatternsComponent } from '@am-front/root/features/main/store/pages/patterns/patterns.component';
 import { PatternRoutes } from '@am-front/shared/pages/pattern/pattern.routes';
+import { CartComponent } from '@am-front/root/features/main/store/pages/cart/cart.component';
 
 
 export const BASE_ROUTES_SECTION: MenuSection = {
@@ -17,6 +18,11 @@ export const BASE_ROUTES_SECTION: MenuSection = {
             label: 'Украшения',
             path: ['/', 'jewelrys'],
             icon: 'jewelry'
+        },
+        {
+            label: 'Корзина',
+            path: ['/', 'cart'],
+            icon: 'card'
         }
     ]
 };
@@ -40,5 +46,9 @@ export const StoreRoutes: Routes = [
     {
         path: 'jewelrys',
         component: JewelryComponent,
+    },
+    {
+        path: 'cart',
+        component: CartComponent,
     },
 ];

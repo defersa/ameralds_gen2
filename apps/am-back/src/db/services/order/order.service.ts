@@ -87,10 +87,13 @@ export class OrderService {
 
         if (previousItem) {
             await this.patternOrdersService.removeOrderPatter(previousItem);
-            patterns = patterns.filter((item: OrderPatternEntity) => item.pattern.id === pattern.pattern);
+            patterns = patterns.filter((item: OrderPatternEntity) => item.pattern.id !== pattern.pattern);
         }
 
-        const newOrderPatternEntity: OrderPatternEntity = await this.patternOrdersService.createOrderPattern(prepared);
+        const newOrderPatternEntity: OrderPatternEntity = await this.patternOrdersService.createOrderPattern(
+            prepared,
+            { order: cart },
+        );
         patterns.push(newOrderPatternEntity);
         cart.patterns = patterns;
 
@@ -111,7 +114,7 @@ export class OrderService {
 
         if (previousItem) {
             await this.patternOrdersService.removeOrderPatter(previousItem);
-            patterns = patterns.filter((item: OrderPatternEntity) => item.pattern.id === id);
+            patterns = patterns.filter((item: OrderPatternEntity) => item.pattern.id !== id);
         }
 
         cart.patterns = patterns;
@@ -130,7 +133,7 @@ export class OrderService {
         const patternOrders: OrderPatternEntity[] = await Promise.all(
             preparedPatternsToBuy.map(
                 async (pattern: InputShortOrderPatternDto) =>
-                    await this.patternOrdersService.createOrderPattern(pattern)
+                    await this.patternOrdersService.createOrderPattern(pattern, { order: cart })
             )
         );
 

@@ -10,9 +10,9 @@ import { NumberEntityDto } from '@am-front/root/api-v2';
 
 
 @Component({
-    selector: "amstore-cart-snap",
-    templateUrl: "./cart-snap.component.html",
-    styleUrls: ["./cart-snap.component.scss"],
+    selector: "amstore-cart-badge",
+    templateUrl: "./cart-badge.component.html",
+    styleUrls: ["./cart-badge.component.scss"],
     imports: [
         AmstoreButtonRoundComponent,
         IconsComponent,
@@ -20,7 +20,7 @@ import { NumberEntityDto } from '@am-front/root/api-v2';
         RouterLink,
     ],
 })
-export class CartSnapComponent {
+export class CartBadgeComponent {
     private cartService: MajorCartService = inject(MajorCartService);
     private langService: LangService = inject(LangService);
 

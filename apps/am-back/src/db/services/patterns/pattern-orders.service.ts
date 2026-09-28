@@ -8,6 +8,12 @@ import { PatternsSizeService } from "@am-back/db/service/patterns/pattern-sizes.
 import { OrderPatternEntity, UserPatternEntity } from '../../entities/patterns/pattern-order.entity';
 import { PatternEntity } from '../../entities/patterns/pattern.entity';
 import { PatternSizeEntity } from '../../entities/patterns/pattern-size.entity';
+import type { AdminOrderEntity, UserOrderEntity } from '../../entities/purchases/order.entity';
+
+interface OrderPatternOwner {
+    order?: UserOrderEntity;
+    adminOrder?: AdminOrderEntity;
+}
 
 
 @Injectable()
@@ -25,7 +31,10 @@ export class PatternOrdersService {
         this.orderPatternRepository = this.dataSource.getRepository<OrderPatternEntity>(OrderPatternEntity);
     }
 
-    public async createOrderPattern(order: InputShortOrderPatternDto): Promise<OrderPatternEntity> {
+    public async createOrderPattern(
+        order: InputShortOrderPatternDto,
+        owner: OrderPatternOwner = {},
+    ): Promise<OrderPatternEntity> {
         const pattern: PatternEntity = await this.patternsService.getPattern(order.pattern);
         const sizes: PatternSizeEntity[] = await this.patternSizeService.getPatternSizes(order.pattern, order.sizes);
 
@@ -34,6 +43,7 @@ export class PatternOrdersService {
             sizes,
             requiresPatternPurchase: order.requiresPatternPurchase,
             color: order.color,
+            ...owner,
         });
 
         await this.orderPatternRepository.save(orderEntity);

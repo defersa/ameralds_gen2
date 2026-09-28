@@ -7,7 +7,7 @@ import { UserPaymentEntity } from "./payment.entity";
 
 @Entity({ schema: 'users' })
 export class AdminOrderEntity extends BaseModel {
-    @OneToMany(() => OrderPatternEntity, (pattern: OrderPatternEntity) => pattern.order)
+    @OneToMany(() => OrderPatternEntity, (pattern: OrderPatternEntity) => pattern.adminOrder)
     public patterns: OrderPatternEntity[];
 
     @Column()
