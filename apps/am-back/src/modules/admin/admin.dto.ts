@@ -67,6 +67,13 @@ export class AdminOrderDto extends BaseEntityDto {
     public email?: string;
 
     @ApiProperty({
+        description: 'Admin order VK',
+        type: 'string',
+        required: false,
+    })
+    public vk?: string;
+
+    @ApiProperty({
         description: 'Admin order complete status',
         type: 'boolean',
     })

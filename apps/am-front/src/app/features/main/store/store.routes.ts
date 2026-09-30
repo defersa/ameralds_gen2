@@ -14,11 +14,11 @@ export const BASE_ROUTES_SECTION: MenuSection = {
             path: ['/', 'patterns'],
             icon: 'pattern'
         },
-        {
-            label: 'Украшения',
-            path: ['/', 'jewelrys'],
-            icon: 'jewelry'
-        },
+        // {
+        //     label: 'Украшения',
+        //     path: ['/', 'jewelrys'],
+        //     icon: 'jewelry'
+        // },
         {
             label: 'Корзина',
             path: ['/', 'cart'],

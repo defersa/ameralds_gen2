@@ -20,6 +20,47 @@ amstore-forms-input, amstore-forms-input-password {
     align-items: flex-end;
     width: 100%;
 
+    &__title {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: spacing.get-spacing(2);
+        margin: 0;
+
+        h2 {
+            flex: 1;
+            margin: 0;
+            text-align: left;
+        }
+    }
+
+    &__close {
+        appearance: none;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        width: 32px;
+        padding: 0;
+        transition: background-color 150ms ease, color 150ms ease;
+
+        &:hover {
+            background: theming-var.get-amstore-color(gray, slight);
+        }
+
+        &:focus-visible {
+            outline: none;
+        }
+    }
+
+    &__content {
+        padding-top: spacing.get-spacing(4);
+    }
+
     &__error {
         color: theming-var.get-amstore-color(red, dark);
         padding-bottom: spacing.get-spacing(8);

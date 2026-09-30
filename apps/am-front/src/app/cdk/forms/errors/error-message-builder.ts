@@ -1,8 +1,13 @@
 import { ValidationErrors } from "@angular/forms";
+import type { ValidationError } from "@angular/forms/signals";
+
+
 type TransformFunc = (value?: any) => string;
 const ErrorTemplates: Record<string, TransformFunc> = {
     required: () => 'Это поле обязательно',
     email: () => 'Email не корректен',
+    vkUrl: () => 'Ссылка должна начинаться с https://vk.ru/',
+    contactRequired: () => 'Заполните хотя бы одно из полей',
     minValue: (value: { current: number; expected: number; }) => `Текущее значение ${value.current} меньше чем минимально ожидаемое ${value.expected}`,
     notUniq: (value: unknown) => `Значение должно быть отлично от существующих!`,
     auth: () => '',
@@ -12,19 +17,30 @@ const ErrorTemplates: Record<string, TransformFunc> = {
     emailBusy: () => 'Данный email уже занят!'
 }
 
-export function getControlErrors(errors: ValidationErrors | null): string | null {
+export type FormErrors = ValidationErrors | readonly ValidationError.WithOptionalFieldTree[];
+
+export function getControlErrors(errors: FormErrors | null): string | null {
     if (!errors) {
         return null;
     }
-    return Object.keys(errors)
+
+    const preparedErrors: ValidationErrors = Array.isArray(errors)
+        ? errors.reduce((result: ValidationErrors, error: ValidationError.WithOptionalFieldTree) => {
+            result[error.kind] = error;
+
+            return result;
+        }, {})
+        : errors;
+
+    return Object.keys(preparedErrors)
         .map((key: string) => {
             const transformFunc: TransformFunc | null = ErrorTemplates[key];
 
             if (key === 'message') {
-                return errors[key];
+                return preparedErrors[key];
             }
 
-            return transformFunc ? transformFunc(errors[key]) : 'Has no template for error ' + key
+            return transformFunc ? transformFunc(preparedErrors[key]) : 'Has no template for error ' + key
         })
         .join(', ');
 }

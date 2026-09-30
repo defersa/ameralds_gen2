@@ -8,16 +8,17 @@ import {
     output,
     OutputEmitterRef
 } from "@angular/core";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatInput } from "@angular/material/input";
 import type { FormValueControl } from "@angular/forms/signals";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import type { IconsName } from "@am-front/cdk/icons/icons.map";
 import { AmstoreSignalFormsBaseDirective } from "../forms.abstract.directive";
+import { ErrorsPipe } from "@am-front/cdk/forms/errors/errors.pipe";
 
 
 export type InputSignalValue = string | number | null;
 export type InputSignalType = 'number' | 'text' | 'search' | 'password' | 'email';
+
+let nextInputId = 0;
 
 @Component({
     selector: "amstore-input-signal",
@@ -25,14 +26,16 @@ export type InputSignalType = 'number' | 'text' | 'search' | 'password' | 'email
     styleUrl: "./input.component.scss",
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        MatFormFieldModule,
-        MatInput,
-        IconsComponent
+        IconsComponent,
+        ErrorsPipe
     ]
 })
 export class AmstoreInputSignalComponent
     extends AmstoreSignalFormsBaseDirective<InputSignalValue>
     implements FormValueControl<InputSignalValue> {
+    public readonly inputId = `amstore-input-signal-${nextInputId++}`;
+    public readonly messageId = `${this.inputId}-message`;
+
     public readonly value: ModelSignal<InputSignalValue> = model<InputSignalValue>(null);
 
     public readonly hint: InputSignal<string | undefined> = input<string>();

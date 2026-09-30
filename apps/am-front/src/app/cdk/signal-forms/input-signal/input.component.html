@@ -1,42 +1,56 @@
-<mat-form-field>
-    @if (label()) {
-        <mat-label>
-            {{ label() }}
-        </mat-label>
-    }
+<div
+    class="amstore-input-signal"
+    [hidden]="hidden()"
+    [class.is-disabled]="disabled()"
+    [class.is-invalid]="showErrors()"
+>
+    <div class="amstore-input-signal__field">
+        @if (label()) {
+            <label class="amstore-input-signal__label" [for]="inputId">
+                {{ label() }}
+            </label>
+        }
 
-    <input
-        matInput
-        [type]="type()"
-        [value]="value() ?? ''"
-        [disabled]="disabled()"
-        [readonly]="readonly()"
-        [required]="required()"
-        [name]="name() ?? null"
-        [autocomplete]="autocomplete() ?? null"
-        (input)="changeValue($event)"
-        (blur)="markAsTouched()"
-    >
+        <input
+            class="amstore-input-signal__input"
+            [id]="inputId"
+            [type]="type()"
+            [value]="value() ?? ''"
+            [disabled]="disabled()"
+            [readonly]="readonly()"
+            [required]="required()"
+            [name]="name() ?? null"
+            [autocomplete]="autocomplete() ?? null"
+            [attr.aria-describedby]="hint() || showErrors() ? messageId : null"
+            [attr.aria-invalid]="showErrors()"
+            (input)="changeValue($event)"
+            (blur)="markAsTouched()"
+        >
 
-    @if (suffixName()) {
-        <amstore-icon
-            (click)="emitSuffixClick()"
-            [iconName]="suffixName()"
-            [size]="20"
-            color="accent"
-            matSuffix
-        />
-    }
+        @if (suffixName()) {
+            <button
+                class="amstore-input-signal__suffix"
+                type="button"
+                [disabled]="disabled()"
+                [attr.aria-label]="label() || 'Действие поля'"
+                (click)="emitSuffixClick()"
+            >
+                <amstore-icon
+                    [iconName]="suffixName()"
+                    [isBlack]="true"
+                    [size]="20"
+                />
+            </button>
+        }
+    </div>
 
-    @if (hint()) {
-        <mat-hint>
-            {{ hint() }}
-        </mat-hint>
+    @if (showErrors() || hint()) {
+        <div
+            class="amstore-input-signal__message"
+            [class.is-error]="showErrors()"
+            [id]="messageId"
+        >
+            {{ showErrors() ? (errors() | errors) : hint() }}
+        </div>
     }
-
-    @if (showErrors()) {
-        <mat-error>
-            {{ errorMessage() }}
-        </mat-error>
-    }
-</mat-form-field>
+</div>

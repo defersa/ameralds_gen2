@@ -11,12 +11,14 @@ import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from "@angular/rou
 import { AmstoreButtonMenuComponent } from "@am-front/cdk/buttons/menu/menu.component";
 import { IconsComponent } from "@am-front/cdk/icons/icons.component";
 import { MatDivider } from '@angular/material/list';
+import { MatIcon } from '@angular/material/icon';
 
 
 export type MenuListType = {
     label: string;
     path?: string[];
     icon?: IconsName;
+    fontIcon?: string;
 }
 
 export type SectionsConfig = {
@@ -46,7 +48,8 @@ export const AMSTORE_SECTION_CONFIG: InjectionToken<SectionsConfig> =
         RouterLink,
         RouterLinkActive,
         IconsComponent,
-        MatDivider
+        MatDivider,
+        MatIcon
     ]
 })
 export class MenuComponent {

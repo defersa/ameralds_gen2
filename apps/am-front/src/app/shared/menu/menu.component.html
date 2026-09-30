@@ -7,7 +7,11 @@
                                  [color]='section.color'
                                  [active]="route.isActive"
                                  [routerLinkActiveOptions]="routerLinkActiveOptions">
-                <amstore-icon [iconName]="item.icon || 'profile'" [size]="20" [color]="section.color"/>
+                @if (item.fontIcon) {
+                    <mat-icon [fontIcon]="item.fontIcon"/>
+                } @else {
+                    <amstore-icon [iconName]="item.icon || 'profile'" [size]="20" [color]="section.color"/>
+                }
                 {{item.label}}
             </amstore-button-menu>
         }

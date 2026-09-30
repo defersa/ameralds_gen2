@@ -35,6 +35,7 @@ export interface IPurchaseSaved {
 export type IAdminOrder = {
     id: number;
     email: string;
+    vk?: string;
     create_date: Date;
     purchases: IPurchaseSaved[];
 };
@@ -42,6 +43,7 @@ export type IAdminOrder = {
 export interface IAdminOrderShort {
     id: number;
     email: string;
+    vk?: string;
     create_date: Date;
     purchases: {
         pattern: { id: number; name: ILangText };

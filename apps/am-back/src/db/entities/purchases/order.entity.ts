@@ -10,8 +10,11 @@ export class AdminOrderEntity extends BaseModel {
     @OneToMany(() => OrderPatternEntity, (pattern: OrderPatternEntity) => pattern.adminOrder)
     public patterns: OrderPatternEntity[];
 
-    @Column()
+    @Column({ nullable: true })
     public email?: string;
+
+    @Column({ nullable: true })
+    public vk?: string;
 
     @Column()
     public isComplete: boolean;

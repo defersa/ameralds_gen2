@@ -1,6 +1,12 @@
-<h3 mat-dialog-title>Войти</h3>
+<div mat-dialog-title class="amstore-dialog-login__title !pt-4">
+    <h2>Войти</h2>
 
-<mat-dialog-content>
+    <button class="amstore-dialog-login__close" type="button" aria-label="Закрыть" (click)="close()">
+        <amstore-icon iconName="cross" [size]="20" [isBlack]="true"/>
+    </button>
+</div>
+
+<mat-dialog-content class="amstore-dialog-login__content">
     <form class="amstore-dialog-login" [formGroup]="authForm">
         <amstore-forms-input color="primary"
                              type="email"

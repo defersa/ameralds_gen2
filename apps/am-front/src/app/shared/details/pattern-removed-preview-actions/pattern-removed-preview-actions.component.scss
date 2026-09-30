@@ -1,0 +1,23 @@
+.amstore-short-line {
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+
+    > * {
+        flex: 0 0 auto;
+    }
+
+    &::after {
+        background: linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
+        bottom: 0;
+        content: "";
+        pointer-events: none;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 48px;
+    }
+}

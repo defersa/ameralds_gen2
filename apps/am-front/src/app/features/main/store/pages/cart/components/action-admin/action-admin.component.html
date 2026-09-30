@@ -1,1 +1,12 @@
+<div class="rounded-xl border border-gray-200 bg-white shadow-sm px-6 py-4 flex flex-col gap-4 my-4">
+    <h3>
+        Куда отправить
+    </h3>
 
+    <amstore-input-signal [formField]="adminOrderForm.email" label="Email" type="email"></amstore-input-signal>
+    <amstore-input-signal [formField]="adminOrderForm.vk" label="VK"></amstore-input-signal>
+
+    <div class="flex flex-row justify-end">
+        <amstore-button class="flex-shrink-0" size="large" (click)="create()">Отправить</amstore-button>
+    </div>
+</div>

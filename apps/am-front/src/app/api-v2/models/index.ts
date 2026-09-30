@@ -454,6 +454,8 @@ export interface AdminOrderDto {
     updatedAt?: Date;
     /** Admin order email */
     email?: string;
+    /** Admin order VK */
+    vk?: string;
     /** Admin order complete status */
     isComplete: boolean;
     /** Admin order patterns */

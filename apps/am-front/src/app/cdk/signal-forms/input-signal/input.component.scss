@@ -1,13 +1,108 @@
-@use "spacing";
+@use "theming-var";
 
 :host {
     display: block;
+}
 
-    amstore-icon {
-        padding: 0 spacing.get-spacing(2);
+.amstore-input-signal {
+    width: 100%;
+}
+
+.amstore-input-signal__field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    border: 1px solid theming-var.get-amstore-color(gray, middle);
+    border-radius: 4px;
+    background: theming-var.get-amstore-color(gray, white);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.amstore-input-signal__field:focus-within {
+    border-color: theming-var.get-amstore-color(gray, dark);
+    box-shadow: 0 0 0 1px theming-var.get-amstore-color(gray, dark);
+}
+
+.amstore-input-signal__label {
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    z-index: 1;
+    padding: 0 6px;
+    background: theming-var.get-amstore-color(gray, white);
+    color: theming-var.get-amstore-color(gray, middle);
+    font-size: 14px;
+    line-height: 18px;
+}
+
+.amstore-input-signal__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 42px;
+    padding: 0 12px 0 20px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: theming-var.get-amstore-color(gray, dark);
+    font: inherit;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+.amstore-input-signal__input::placeholder {
+    color: theming-var.get-amstore-color(gray, middle);
+}
+
+.amstore-input-signal__suffix {
+    display: flex;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.amstore-input-signal__suffix:disabled {
+    cursor: default;
+}
+
+.amstore-input-signal__message {
+    margin-top: 4px;
+    padding-left: 2px;
+    color: theming-var.get-amstore-color(gray, middle);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.amstore-input-signal__message.is-error {
+    color: theming-var.get-amstore-color(red, dark);
+}
+
+.amstore-input-signal.is-invalid {
+    .amstore-input-signal__field {
+        border-color: theming-var.get-amstore-color(red, dark);
     }
 
-    mat-form-field {
-        width: 100%;
+    .amstore-input-signal__label {
+        color: theming-var.get-amstore-color(red, dark);
+    }
+}
+
+.amstore-input-signal.is-disabled {
+    .amstore-input-signal__field {
+        background: theming-var.get-amstore-color(gray, slight);
+        border-color: theming-var.get-amstore-color(gray, light);
+    }
+
+    .amstore-input-signal__input,
+    .amstore-input-signal__label,
+    .amstore-input-signal__message,
+    .amstore-input-signal__suffix {
+        opacity: .65;
     }
 }

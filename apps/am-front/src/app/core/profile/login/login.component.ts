@@ -17,6 +17,7 @@ import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component
 import { AmstoreInputPasswordComponent } from "@am-front/cdk/forms/input-password/input-password.component";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { UserTokensDTO } from "@am-front/root/api-v2";
+import { IconsComponent } from '@am-front/cdk/icons/icons.component';
 
 
 @Component({
@@ -30,6 +31,7 @@ import { UserTokensDTO } from "@am-front/root/api-v2";
         ReactiveFormsModule,
         AmstoreInputPasswordComponent,
         AmstoreButtonComponent,
+        IconsComponent,
         MatDialogActions
     ]
 })
@@ -78,6 +80,10 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
                     this.authForm.markAsPristine();
                 }
             )
+    }
+
+    public close(): void {
+        this.matDialogRef.close();
     }
 
     private _removeAuthError(errors: ValidationErrors | null): ValidationErrors | null {

@@ -14,11 +14,13 @@ export const ADMIN_ROUTES_SECTION: MenuSection = {
             label: 'Размеры',
             path: ['/', 'admin', 'sizes'],
             icon: 'pattern',
+            // fontIcon: 'straighten',
         },
         {
             label: 'Категории',
             path: ['/', 'admin', 'categories'],
             icon: 'pattern',
+            // fontIcon: 'style',
         },
         {
             label: 'Корзина',

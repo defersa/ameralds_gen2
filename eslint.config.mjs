@@ -25,6 +25,8 @@ export default [
       '**/*.mjs',
     ],
     // Override or add rules here
-    rules: {},
+    rules: {
+      '@typescript-eslint/no-inferrable-types': 'off',
+    },
   },
 ];

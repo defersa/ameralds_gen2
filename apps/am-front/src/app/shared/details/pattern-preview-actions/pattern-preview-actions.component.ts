@@ -30,6 +30,15 @@ interface PatternCartStatus {
     color: 'own' | 'cart' | 'available' | null;
 }
 
+const DEFAULT_CART_STATUS: PatternCartStatus = {
+    sizes: {
+        own: [],
+        cart: [],
+        available: [],
+    },
+    color: null,
+};
+
 @Component({
     selector: "amstore-pattern-preview",
     templateUrl: "./pattern-preview-actions.component.html",
@@ -74,6 +83,10 @@ export class PatternPreviewActionsComponent {
         const sizesById: Record<number, SizeDto> = Object.fromEntries(
             sizes.map((size: SizeDto) => [size.id, size]),
         );
+
+        if (sizes.length === 0) {
+            return DEFAULT_CART_STATUS;
+        }
 
         return {
             sizes: {
