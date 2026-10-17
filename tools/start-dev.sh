@@ -69,6 +69,8 @@ fi
 
 echo "Starting database..."
 AM_BD_DETACH=1 bash apps/am-bd/_up.sh
+echo "Starting Mailpit..."
+npm run am:mailpit:up
 start "backend" npm run am:back:start:dev
 start "frontend" npm run am:front:start
 

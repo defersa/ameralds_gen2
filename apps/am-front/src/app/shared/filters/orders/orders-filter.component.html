@@ -1,47 +1,25 @@
-<amstore-panel [color]="color()" [formGroup]="filterForm">
+<amstore-panel color="special">
     <amstore-panel-header class="amstore-filter-header">
         Фильтры
 
-        @if (!isEmpty) {
-            <amstore-button (click)="clearFilters($event)" [color]="color()">
+        @if (hasFilters()) {
+            <amstore-button (click)="clearFilters($event)" color="special">
                 Очистить
+
                 <amstore-icon [contrast]="true" [iconName]="'cross'" [size]="20"/>
             </amstore-button>
         }
     </amstore-panel-header>
 
-    <div class="row">
-        <div class="col-6">
-            <amstore-forms-input formControlName="email">Email</amstore-forms-input>
-        </div>
-        <div class="col-6">
-            <amstore-form-select>Сортировка</amstore-form-select>
-        </div>
-    </div>
+    <div class="flex flex-col gap-4">
+        <amstore-input-signal [formField]="filterForm.email" label="Email"/>
+        <amstore-input-signal [formField]="filterForm.vk" label="VK"/>
 
-    <div class="row">
-        <div class="col-6">
-            <amstore-data-range-picker
-                startPlaceholder="Начало"
-                endPlaceholder="Конец"
-                label="Дата заказа"
-                [startFormControl]="startFormControl"
-                [endFormControl]="endFormControl">
-            </amstore-data-range-picker>
-        </div>
-
-    </div>
-    <div class="row amstore-filter-buttons">
-        <div class="col-12 text-right">
-            @if (!isEmpty) {
-                <amstore-button color="warn" (click)="clearFilters($event)">Очистить</amstore-button>
-            }
-
-            <amstore-button [stroked]="true" color="warn" [disabled]="!isChanged" (click)="resetFilters()">
-                Отменить
-            </amstore-button>
-
-            <amstore-button [disabled]="!isChanged" [color]="color()" (click)="setFilters()">Найти</amstore-button>
-        </div>
+        <amstore-datepicker-signal [formField]="filterForm.startDate" label="Дата заказа с"/>
+        <amstore-datepicker-signal [formField]="filterForm.endDate" label="Дата заказа по"/>
     </div>
 </amstore-panel>
+
+<ng-content/>
+
+<amstore-paginator (goToPageEvent)="handlePagination($event)" [pageCount]="pagesCount()" [page]="filterSet().page" color="special"/>

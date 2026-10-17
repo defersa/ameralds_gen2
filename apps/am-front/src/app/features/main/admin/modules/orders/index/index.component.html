@@ -1,9 +1,68 @@
-<amstore-orders-filter (onSetFilters)="setFilterWithPage($event)" [filters]="filters" color="special"/>
+<h1>Заказы админа</h1>
 
-<!--@for (order of items$ | async; track order) {-->
-<!--    <div style="padding: 16px">-->
-<!--        <amstore-snapshot-admin-order [order]="order" [routerLink]="['/', 'admin', 'orders', 'card', order.id]"/>-->
-<!--    </div>-->
-<!--}-->
-
-<amstore-paginator (goToPageEvent)="setFilter({page: $event})" [pageCount]="pageCount" [page]="page" color="special"/>
+<amstore-orders-filter (filtersUpdate)="filtersUpdate$.next($event)" [pagesCount]="pagesCount()">
+    @if (loading()) {
+        <p class="orders-state" role="status">Загрузка заказов…</p>
+    } @else if (loadFailed()) {
+        <p class="orders-state orders-state--error" role="alert">Не удалось загрузить заказы. Попробуйте обновить страницу.</p>
+    } @else {
+        <div class="orders-table-wrapper" role="region" aria-label="Список заказов админа" tabindex="0">
+            <table class="orders-table">
+                <colgroup>
+                    <col class="orders-table__number-column">
+                    <col class="orders-table__email-column">
+                    <col class="orders-table__vk-column">
+                    <col class="orders-table__date-column">
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">Заказ</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">VK</th>
+                        <th scope="col">Дата заказа</th>
+                        <th scope="col">Схемы</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (order of orders(); track order.id) {
+                        <tr>
+                            <th scope="row" class="orders-table__number">№{{ order.id }}</th>
+                            <td [class.orders-table__muted]="!order.email">{{ order.email || '—' }}</td>
+                            <td [class.orders-table__muted]="!order.vk">{{ order.vk || '—' }}</td>
+                            <td>
+                                @if (order.createdAt) {
+                                    <time class="orders-table__date" [attr.datetime]="order.createdAt | date : 'yyyy-MM-ddTHH:mm:ssZZZZZ'">
+                                        <span>{{ order.createdAt | date : 'dd.MM.yyyy' }}</span>
+                                        <span class="orders-table__time">{{ order.createdAt | date : 'HH:mm' }}</span>
+                                    </time>
+                                } @else {
+                                    <span class="orders-table__muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                <ul class="orders-table__patterns">
+                                    @for (pattern of order.patterns; track $index) {
+                                        <li>
+                                            @if (pattern.name) {
+                                                <amstore-lang-text [text]="pattern.name"/>
+                                            } @else {
+                                                Название недоступно
+                                            }
+                                        </li>
+                                    } @empty {
+                                        <li class="orders-table__muted">Схем нет</li>
+                                    }
+                                </ul>
+                            </td>
+                        </tr>
+                    } @empty {
+                        <tr>
+                            <td class="orders-table__empty" colspan="5">Заказы не найдены.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</amstore-orders-filter>

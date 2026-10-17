@@ -1,53 +1,57 @@
-import { Component, inject } from '@angular/core';
-import { AdminCartService } from "@am-front/services/cart/sources/admin-cart.service";
-import { FilteredPage, FiltersSet } from "@am-front/shared/abstract/filtered-page";
-import { Params } from "@angular/router";
-import { DestroyService } from "@am-front/utils/destroy.service";
-import { OrdersFilterComponent } from "@am-front/shared/filters/orders/orders-filter.component";
-import { AmstorePaginatorComponent } from "@am-front/cdk/paginator/paginator.component";
+import { Component, DestroyRef, inject, signal, WritableSignal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, distinctUntilChanged, of, Subject, switchMap } from 'rxjs';
+import { AdminOrderListDto, AdminOrdersPaginatedPageDto } from '@am-front/root/api-v2';
+import { AdminOrdersService } from '@am-front/services/admin-orders.service';
+import { OrdersFilterComponent, OrdersFilterValues } from '@am-front/shared/filters/orders/orders-filter.component';
+import { LangTextComponent } from '@am-front/shared/lang-text/lang-text.component';
+import { loadingHandler } from '@am-front/utils/loading-with';
 
 
 @Component({
-    selector: "admin-orders-index",
+    selector: "amstore-admin-orders-index",
     templateUrl: "./index.component.html",
     styleUrls: ["./index.component.scss"],
-    providers: [DestroyService],
     imports: [
+        DatePipe,
         OrdersFilterComponent,
-        AmstorePaginatorComponent
-    ]
+        LangTextComponent,
+    ],
 })
-export class IndexComponent extends FilteredPage {
+export class IndexComponent {
+    private readonly adminOrdersService: AdminOrdersService = inject(AdminOrdersService);
+    private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
-    public pageCount: number = 1;
-    public page: number;
-    public filters: Record<string, unknown> = {};
+    public readonly orders: WritableSignal<AdminOrderListDto[]> = signal([]);
+    public readonly pagesCount: WritableSignal<number> = signal(1);
+    public readonly loading: WritableSignal<boolean> = signal(false);
+    public readonly loadFailed: WritableSignal<boolean> = signal(false);
 
-    protected adminOrder: AdminCartService = inject(AdminCartService);
+    public readonly filtersUpdate$: Subject<OrdersFilterValues> = new Subject();
 
-    public setFilterWithPage(filters: Record<string, unknown>): void {
-        this.setFilter({
-            ...filters,
-            page: 1,
-        });
+    constructor() {
+        this.filtersUpdate$
+            .pipe(
+                distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+                switchMap(({ page, email, vk, startDate, endDate }: OrdersFilterValues) => {
+                    this.loadFailed.set(false);
+
+                    return this.adminOrdersService.getOrders(page, email, vk, startDate, endDate)
+                        .pipe(
+                            loadingHandler(this.loading),
+                            catchError(() => {
+                                this.loadFailed.set(true);
+
+                                return of<AdminOrdersPaginatedPageDto>({ page, count: 0, items: [] });
+                            }),
+                        );
+                }),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe((response: AdminOrdersPaginatedPageDto) => {
+                this.orders.set(response.items);
+                this.pagesCount.set(response.count);
+            });
     }
-
-    protected initFilters(query: Params): FiltersSet {
-        const startDate: Date = query['startDate'] ? new Date(query['startDate']) : null;
-        const endDate: Date = query['endDate'] ? new Date(query['endDate']) : null;
-
-        this.filters = {
-            email: query['email'] ?? '',
-            startDate,
-            endDate,
-        };
-
-        this.page = Number(query['page']) || 1;
-
-        return {
-            ...this.filters,
-            page: query['page']
-        };
-    }
-
 }

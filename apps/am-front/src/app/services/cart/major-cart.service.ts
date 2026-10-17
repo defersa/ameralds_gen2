@@ -75,7 +75,7 @@ export class MajorCartService {
 
     public cartById: Signal<Record<number, CartItemModel>> = computed(() => {
         return Object.fromEntries(
-            this.cart().map((item: CartItemModel) => [item.pattern, item]),
+            (this.cart() ?? []).map((item: CartItemModel) => [item.pattern, item]),
         );
     });
 

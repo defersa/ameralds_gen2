@@ -49,19 +49,19 @@ export const AdminRoutes: Routes = [
     },
     {
         path: 'patterns',
-        loadChildren: () => import('./modules/patterns/patterns.module').then(m => m.PatternsModule),
+        loadChildren: () => import('./modules/patterns/patterns.routes').then(m => m.PatternsRoutes),
     },
     {
         path: 'sizes',
-        loadChildren: () => import('./modules/sizes/sizes.module').then(m => m.SizesModule),
+        loadChildren: () => import('./modules/sizes/sizes.routes').then(m => m.SizesRoutes),
     },
     {
         path: 'categories',
-        loadChildren: () => import('./modules/categories/categories.module').then(m => m.CategoriesModule),
+        loadChildren: () => import('./modules/categories/categories.routes').then(m => m.CategoriesRoutes),
     },
     {
         path: 'orders',
-        loadChildren: () => import('./modules/orders/orders.module').then(m => m.OrdersModule),
+        loadChildren: () => import('./modules/orders/orders.routes').then(m => m.OrdersRoutes),
     },
     {
         path: 'generator',

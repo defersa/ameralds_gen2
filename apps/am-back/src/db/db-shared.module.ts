@@ -13,6 +13,7 @@ import { OrderService } from "@am-back/db/service/order/order.service";
 import { PatternOrdersService } from "@am-back/db/service/patterns/pattern-orders.service";
 import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
 import { AdminOrderService } from '@am-back/db/service/order/admin-order.service';
+import { AdminOrderMailService } from '@am-back/db/service/order/admin-order-mail.service';
 
 
 const services: any[] = [
@@ -30,6 +31,7 @@ const services: any[] = [
     UserPatternService,
     OrderService,
     AdminOrderService,
+    AdminOrderMailService,
 ];
 
 @Module({

@@ -1,0 +1,126 @@
+@use "spacing";
+@use "theming-var";
+
+:host {
+    display: block;
+    min-width: 0;
+}
+
+.orders-table-wrapper {
+    max-width: 100%;
+    margin-bottom: spacing.get-spacing(4);
+    overflow-x: auto;
+    border: 1px solid theming-var.get-amstore-color(turquoise, light);
+    border-radius: 8px;
+
+    &:focus-visible {
+        outline: 2px solid theming-var.get-amstore-color(turquoise, dark);
+        outline-offset: 2px;
+    }
+}
+
+.orders-table {
+    width: 100%;
+    min-width: 700px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    background: theming-var.get-amstore-color(gray, white);
+    color: theming-var.get-amstore-color(gray, dark);
+    font-size: 14px;
+    line-height: 22px;
+    text-align: left;
+
+    th,
+    td {
+        padding: spacing.get-spacing(4);
+        vertical-align: top;
+        overflow-wrap: anywhere;
+    }
+
+    thead {
+        background: theming-var.get-amstore-color(turquoise, slight);
+        color: theming-var.get-amstore-color(turquoise, deep);
+
+        th {
+            font-weight: 600;
+        }
+    }
+
+    tbody tr {
+        border-top: 1px solid theming-var.get-amstore-color(turquoise, light);
+
+        &:hover {
+            background: theming-var.get-amstore-color(turquoise, slight);
+        }
+    }
+
+    &__number-column {
+        width: 96px;
+    }
+
+    &__email-column {
+        width: 23%;
+    }
+
+    &__vk-column {
+        width: 21%;
+    }
+
+    &__date-column {
+        width: 144px;
+    }
+
+    &__number {
+        color: theming-var.get-amstore-color(turquoise, deep);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__date {
+        display: grid;
+        font-variant-numeric: tabular-nums;
+    }
+
+    &__time,
+    &__muted {
+        color: theming-var.get-amstore-color(gray, middle);
+    }
+
+    &__time {
+        font-size: 12px;
+    }
+
+    &__patterns {
+        display: grid;
+        gap: spacing.get-spacing(1);
+        margin: 0;
+        padding-left: spacing.get-spacing(4);
+        list-style: disc;
+
+        li::marker {
+            color: theming-var.get-amstore-color(turquoise, dark);
+        }
+    }
+
+    td.orders-table__empty {
+        padding: spacing.get-spacing(8);
+        color: theming-var.get-amstore-color(gray, middle);
+        text-align: center;
+    }
+}
+
+.orders-state {
+    margin: 0 0 spacing.get-spacing(4);
+    padding: spacing.get-spacing(6);
+    border: 1px solid theming-var.get-amstore-color(turquoise, light);
+    border-radius: 8px;
+    background: theming-var.get-amstore-color(turquoise, slight);
+    color: theming-var.get-amstore-color(gray, middle);
+    text-align: center;
+
+    &--error {
+        border-color: theming-var.get-amstore-color(red, light);
+        background: theming-var.get-amstore-color(red, slight);
+        color: theming-var.get-amstore-color(red, deep);
+    }
+}

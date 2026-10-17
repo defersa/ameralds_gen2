@@ -14,6 +14,7 @@ import {
     DEFAULT_CART_PRICE
 } from '@am-front/services/cart/order.misc';
 import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
+import { SnackService } from '@am-front/services/snackbar.service';
 
 
 @Injectable({
@@ -22,6 +23,7 @@ import { AbstractCartService } from '@am-front/services/cart/sources/abstract-ca
 export class AdminCartService extends AbstractCartService {
     private profileService: ProfileService = inject(ProfileService);
     private adminProducer: ApiAdminProducer = inject(ApiAdminProducer);
+    private snackService: SnackService = inject(SnackService);
     private destroyRef: DestroyRef = inject(DestroyRef);
 
     public readonly cart: WritableSignal<CartItemModel[]> = signal(null);
@@ -38,7 +40,7 @@ export class AdminCartService extends AbstractCartService {
                 return;
             }
 
-            this.getActualAdminCart()
+            this.getActualAdminCart();
         });
     }
 
@@ -47,7 +49,10 @@ export class AdminCartService extends AbstractCartService {
 
         this.adminProducer.adminCartControllerLastOrder()
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((order: AdminOrderResponseDto) => this.updateCartAndPrice(order));
+            .subscribe({
+                next: (order: AdminOrderResponseDto) => this.updateCartAndPrice(order),
+                error: () => this.snackService.warn('Не удалось обновить корзину'),
+            });
     }
 
     public addProduct(product: CartItemModel): void {

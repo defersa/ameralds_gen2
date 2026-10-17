@@ -1,0 +1,58 @@
+<div
+    class="amstore-input-signal"
+    [hidden]="hidden()"
+    [class.is-disabled]="disabled()"
+    [class.is-invalid]="showErrors()"
+>
+    <div class="amstore-input-signal__field">
+        @if (label()) {
+            <label class="amstore-input-signal__label" [for]="inputId">
+                {{ label() }}
+            </label>
+        }
+
+        <input
+            #dateInput
+            class="amstore-input-signal__input"
+            [id]="inputId"
+            [matDatepicker]="picker"
+            [value]="value()"
+            [min]="min() ?? null"
+            [max]="max() ?? null"
+            [disabled]="disabled()"
+            [readonly]="readonly()"
+            [required]="required()"
+            [name]="name() ?? ''"
+            [placeholder]="placeholder()"
+            autocomplete="off"
+            [attr.aria-describedby]="hint() || showErrors() ? messageId : null"
+            [attr.aria-invalid]="showErrors()"
+            (dateChange)="changeValue($event)"
+            (blur)="markAsTouched()"
+        >
+
+        <button
+            class="amstore-input-signal__suffix"
+            type="button"
+            [disabled]="disabled() || readonly()"
+            [attr.aria-label]="label() ? 'Открыть календарь: ' + label() : 'Открыть календарь'"
+            aria-haspopup="dialog"
+            [attr.aria-expanded]="picker.opened"
+            (click)="picker.open()"
+        >
+            <amstore-icon iconName="time" color="primary" [size]="20"/>
+        </button>
+    </div>
+
+    @if (showErrors() || hint()) {
+        <div
+            class="amstore-input-signal__message"
+            [class.is-error]="showErrors()"
+            [id]="messageId"
+        >
+            {{ showErrors() ? (firstError()?.message || (errors() | errors)) : hint() }}
+        </div>
+    }
+</div>
+
+<mat-datepicker #picker [disabled]="disabled() || readonly()"/>

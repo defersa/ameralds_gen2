@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { RequestOptions, AdminOrderResponseDto, InputShortOrderPatternDto } from "../models";
+import { RequestOptions, AdminOrderResponseDto, AdminOrdersPaginatedPageDto, InputShortOrderPatternDto, CompleteAdminOrderDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiAdminProducer {
@@ -73,6 +73,47 @@ export class ApiAdminProducer {
         });
     }
 
+    adminCartControllerPage(page: number, email?: string, vk?: string, startDate?: Date, endDate?: Date, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrdersPaginatedPageDto>;
+    adminCartControllerPage(page: number, email?: string, vk?: string, startDate?: Date, endDate?: Date, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrdersPaginatedPageDto>>;
+    adminCartControllerPage(page: number, email?: string, vk?: string, startDate?: Date, endDate?: Date, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrdersPaginatedPageDto>>;
+    adminCartControllerPage(page: number, email?: string, vk?: string, startDate?: Date, endDate?: Date, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/admin/cart/list/${page}`;
+
+        let params = new HttpParams();
+        if (email != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, email, 'email');
+        }
+        if (vk != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, vk, 'vk');
+        }
+        if (startDate != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, startDate, 'startDate');
+        }
+        if (endDate != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, endDate, 'endDate');
+        }
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('get', url, {
+            observe,
+            headers,
+            params,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
     adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
     adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
     adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
@@ -96,6 +137,37 @@ export class ApiAdminProducer {
 
         return this.httpClient.request('patch', url, {
             body: inputShortOrderPatternDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    adminCartControllerCompleteOrder(completeAdminOrderDto?: CompleteAdminOrderDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
+    adminCartControllerCompleteOrder(completeAdminOrderDto?: CompleteAdminOrderDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
+    adminCartControllerCompleteOrder(completeAdminOrderDto?: CompleteAdminOrderDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
+    adminCartControllerCompleteOrder(completeAdminOrderDto?: CompleteAdminOrderDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/admin/cart/complete`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('patch', url, {
+            body: completeAdminOrderDto,
             observe,
             headers,
             reportProgress: options?.reportProgress,

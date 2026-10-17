@@ -33,6 +33,13 @@ module.exports = {
             watch: isHmr,
             outputFileName,
             outputHashing: 'none',
+            assets: [
+                {
+                    input: join(__dirname, '../am-front/src/public/assets'),
+                    glob: 'amstore logo.svg',
+                    output: 'mail/assets',
+                },
+            ],
             generatePackageJson: true,
             externalDependencies: isHmr ? [] : 'all',
             mergeExternals: isHmr,

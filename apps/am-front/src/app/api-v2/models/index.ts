@@ -469,6 +469,44 @@ export interface AdminOrderResponseDto {
     order: AdminOrderDto;
 }
 
+export interface AdminOrderPatternNameDto {
+    /** Name of the ordered pattern */
+    name: LabelEntityDto;
+}
+
+export interface AdminOrderListDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Admin order email */
+    email?: string;
+    /** Admin order VK */
+    vk?: string;
+    /** Admin order complete status */
+    isComplete: boolean;
+    /** Names of the ordered patterns */
+    patterns: Array<AdminOrderPatternNameDto>;
+}
+
+export interface AdminOrdersPaginatedPageDto {
+    /** Current page */
+    page: number;
+    /** Count of pages */
+    count: number;
+    /** Paginated admin orders */
+    items: Array<AdminOrderListDto>;
+}
+
+export interface CompleteAdminOrderDto {
+    /** Email to save on the completed admin order */
+    email?: string;
+    /** VK to save on the completed admin order */
+    vk?: string;
+}
+
 /** Request Options for Angular HttpClient requests */
 export interface RequestOptions<TResponseType extends 'arraybuffer' | 'blob' | 'json' | 'text'> {
     headers?: HttpHeaders;
