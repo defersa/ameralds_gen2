@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ApiAdminProducer, AdminOrdersPaginatedPageDto } from '@am-front/root/api-v2';
+import { ApiAdminProducer, AdminOrderDetailsDto, AdminOrdersPaginatedPageDto } from '@am-front/root/api-v2';
 
 
 @Injectable({
@@ -8,6 +8,10 @@ import { ApiAdminProducer, AdminOrdersPaginatedPageDto } from '@am-front/root/ap
 })
 export class AdminOrdersService {
     private readonly adminProducer: ApiAdminProducer = inject(ApiAdminProducer);
+
+    public getOrder(id: number): Observable<AdminOrderDetailsDto> {
+        return this.adminProducer.adminCartControllerGetAdminOrderById(id);
+    }
 
     public getOrders(
         page: number,

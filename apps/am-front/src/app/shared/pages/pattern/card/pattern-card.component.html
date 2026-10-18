@@ -18,6 +18,7 @@
 
 @if (pattern$ | async; as pattern) {
     <amstore-pattern-card [pattern]="pattern">
+        <amstore-pattern-common [pattern]="pattern"/>
         <amstore-pattern-cart [pattern]="pattern"/>
     </amstore-pattern-card>
 }

@@ -30,11 +30,11 @@
             max-width: 100%;
 
             @include utils.fhd {
-                height: 120px;
+                height: 140px;
             }
 
             @include utils.qhd {
-                height: 160px;
+                height: 180px;
             }
         }
     }

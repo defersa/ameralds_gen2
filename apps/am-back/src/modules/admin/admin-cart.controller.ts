@@ -4,7 +4,7 @@ import { Roles } from "@am-back/core/guards/role.guard";
 import { UserRole } from "../../db/entities/user.entity";
 import { ErrorsDto } from "../errors/errors.dto";
 import { InputShortOrderPatternDto } from '../orders/dto/orders.dto';
-import { AdminOrderResponseDto, AdminOrdersPaginatedFilterDto, AdminOrdersPaginatedPageDto, CompleteAdminOrderDto } from "./admin.dto";
+import { AdminOrderDetailsDto, AdminOrderResponseDto, AdminOrdersPaginatedFilterDto, AdminOrdersPaginatedPageDto, CompleteAdminOrderDto } from "./admin.dto";
 import { AdminOrderService } from '@am-back/db/service/order/admin-order.service';
 import { ParamsPaginatedDto } from '../../common/common.dto';
 import { toString } from '@ameralds/utils';
@@ -42,6 +42,13 @@ export class AdminCartController {
             startDate: startDate ? new Date(startDate) : undefined,
             endDate: endDate ? new Date(endDate) : undefined,
         });
+    }
+
+    @Get(':id')
+    @ApiOkResponse({ description: 'Admin order with full pattern details returned.', type: AdminOrderDetailsDto })
+    @ApiBadRequestResponse({ description: 'Admin order does not exist or its ID is invalid.', type: ErrorsDto })
+    public async getAdminOrderById(@Param('id', ParseIntPipe) id: number): Promise<AdminOrderDetailsDto> {
+        return this.adminOrderService.getAdminOrderById(id);
     }
 
     @Patch('add')

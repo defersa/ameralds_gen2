@@ -1,6 +1,7 @@
 import { ApiProperty, OmitType } from "@nestjs/swagger";
 import { BaseEntityDto, LabelEntityDto, NumberEntityDto, PaginatedPageDto } from "../../common/common.dto";
 import { SizeDto } from '../sizes/sizes.dto';
+import { FullPatternEntityDto } from '../patterns/patterns.dto';
 
 
 export class AdminOrderPatternSizeDto extends BaseEntityDto {
@@ -85,6 +86,24 @@ export class AdminOrderDto extends BaseEntityDto {
         isArray: true,
     })
     public patterns: AdminOrderPatternDto[];
+}
+
+export class AdminOrderDetailsPatternDto extends OmitType(AdminOrderPatternDto, ['pattern'] as const) {
+    @ApiProperty({
+        description: 'Full ordered pattern, or null if it has been deleted',
+        type: FullPatternEntityDto,
+        nullable: true,
+    })
+    public pattern: FullPatternEntityDto | null;
+}
+
+export class AdminOrderDetailsDto extends OmitType(AdminOrderDto, ['patterns'] as const) {
+    @ApiProperty({
+        description: 'Admin order items with full pattern details',
+        type: AdminOrderDetailsPatternDto,
+        isArray: true,
+    })
+    public patterns: AdminOrderDetailsPatternDto[];
 }
 
 export class AdminOrderPatternNameDto {

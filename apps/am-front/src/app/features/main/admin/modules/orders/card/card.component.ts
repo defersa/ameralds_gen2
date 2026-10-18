@@ -1,48 +1,80 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute } from "@angular/router";
-import { AsyncPipe, DatePipe, Location } from "@angular/common";
-import { AdminCartService } from "@am-front/services/cart/sources/admin-cart.service";
-import { Observable } from "rxjs";
-import { IAdminOrder, IPurchaseSaved } from "@am-front/interface/order.interface";
-import { map } from "rxjs/operators";
-import { PattenSizeFiles } from "@am-front/interface/pattern.interface";
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal, Signal, WritableSignal } from '@angular/core';
+import { DatePipe, DecimalPipe, Location } from "@angular/common";
+import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, distinctUntilChanged, map, of, switchMap } from 'rxjs';
+import { getPatternPrice } from '@ameralds/utils';
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
-import { AmstoreInfoComponent } from "@am-front/cdk/info/info.component";
-import { IconsComponent } from "@am-front/cdk/icons/icons.component";
+import { AdminOrderDetailsDto } from '@am-front/root/api-v2';
+import { AdminOrdersService } from '@am-front/services/admin-orders.service';
+import { Currency, LangService } from '@am-front/services/lang.service';
+import { AmstorePatternCardComponent } from '@am-front/shared/card/pattern/pattern.component';
+import { loadingHandler } from '@am-front/utils/loading-with';
 
-
-type IAdminOrderWithStatus = IAdminOrder & {
-    purchases: (IPurchaseSaved & {
-        sizesWithStatus: {
-            value: number;
-            status: boolean;
-        }[];
-    })[];
-}
 
 @Component({
-    selector: "app-card",
+    selector: "amstore-card",
     templateUrl: "./card.component.html",
     styleUrls: ["./card.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         AmstoreButtonComponent,
-        AsyncPipe,
-        AmstoreInfoComponent,
-        IconsComponent,
+        AmstorePatternCardComponent,
         DatePipe,
+        DecimalPipe,
     ]
 })
-export class CardComponent implements OnInit {
-    public readonly location: Location = inject(Location);
-    public readonly adminOrder: AdminCartService = inject(AdminCartService);
-    public readonly route: ActivatedRoute = inject(ActivatedRoute);
+export class CardComponent {
+    private readonly location: Location = inject(Location);
+    private readonly route: ActivatedRoute = inject(ActivatedRoute);
+    private readonly adminOrdersService: AdminOrdersService = inject(AdminOrdersService);
+    private readonly langService: LangService = inject(LangService);
+    private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
-    public id: number;
+    public readonly adminOrder: WritableSignal<AdminOrderDetailsDto | null> = signal(null);
+    public readonly loading: WritableSignal<boolean> = signal(false);
+    public readonly loadFailed: WritableSignal<boolean> = signal(false);
+    public readonly currency: Signal<Currency> = this.langService.currency;
+    public readonly orderPrice: Signal<number | null> = computed(() => {
+        const order: AdminOrderDetailsDto = this.adminOrder();
 
-    public order$: Observable<IAdminOrderWithStatus>;
+        if (!order || order.patterns.some((item) => !item.pattern)) {
+            return null;
+        }
 
-    public ngOnInit(): void {
-        this.id = Number(this.route.snapshot.paramMap.get('id')) ?? null;
+        const lang = this.langService.lang();
+
+        return order.patterns.reduce((sum, item) => sum + getPatternPrice(item)[lang], 0);
+    });
+
+    constructor() {
+        this.route.paramMap
+            .pipe(
+                map((params) => Number(params.get('id'))),
+                distinctUntilChanged(),
+                switchMap((id: number) => {
+                    this.adminOrder.set(null);
+                    this.loadFailed.set(false);
+
+                    if (!Number.isSafeInteger(id) || id <= 0) {
+                        this.loadFailed.set(true);
+
+                        return of(null);
+                    }
+
+                    return this.adminOrdersService.getOrder(id)
+                        .pipe(
+                            loadingHandler(this.loading),
+                            catchError(() => {
+                                this.loadFailed.set(true);
+
+                                return of(null);
+                            }),
+                        );
+                }),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe((order: AdminOrderDetailsDto | null) => this.adminOrder.set(order));
     }
 
     public getBack(): void {

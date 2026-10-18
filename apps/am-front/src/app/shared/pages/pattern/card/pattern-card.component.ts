@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AsyncPipe, Location } from "@angular/common";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { AmstorePatternCardComponent } from "@am-front/shared/card/pattern/pattern.component";
+import { PatternCommonComponent } from "@am-front/shared/details/pattern-common/pattern-common.component";
 import { Observable } from "rxjs";
 import { PatternsService } from "@am-front/services/patterns.service";
 import { FullPatternEntityDto } from "@am-front/root/api-v2";
@@ -19,9 +20,9 @@ import { ProfileService } from '@am-front/services/profile.service';
         AmstoreButtonComponent,
         RouterLink,
         AmstorePatternCardComponent,
+        PatternCommonComponent,
         PatternCartComponent,
-        AsyncPipe,
-        PatternCartComponent
+        AsyncPipe
     ]
 })
 export class PatternCardComponent {

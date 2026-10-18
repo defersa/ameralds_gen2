@@ -500,6 +500,40 @@ export interface AdminOrdersPaginatedPageDto {
     items: Array<AdminOrderListDto>;
 }
 
+export interface AdminOrderDetailsPatternDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Sizes of order pattern */
+    sizes: Array<AdminOrderPatternSizeDto>;
+    /** Status of colors able */
+    color: boolean;
+    /** Whether base pattern purchase should be included */
+    requiresPatternPurchase: boolean;
+    /** Full ordered pattern, or null if it has been deleted */
+    pattern: FullPatternEntityDto;
+}
+
+export interface AdminOrderDetailsDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Admin order email */
+    email?: string;
+    /** Admin order VK */
+    vk?: string;
+    /** Admin order complete status */
+    isComplete: boolean;
+    /** Admin order items with full pattern details */
+    patterns: Array<AdminOrderDetailsPatternDto>;
+}
+
 export interface CompleteAdminOrderDto {
     /** Email to save on the completed admin order */
     email?: string;

@@ -17,24 +17,5 @@
         <span>Схема</span>
     </div>
 
-
-    <div class="amstore-card-container-line">
-        <h3>Описание:</h3>
-
-        <p>
-            Безумно красивый жгут на 2/3 содержащий великолепие и превосходство над остальными жгутами в своем классе
-        </p>
-    </div>
-
-
-    <div class="amstore-card-container-line">
-        <h3>Категории:</h3>
-        <div class="amstore-row">
-            @for (category of categories(); track category) {
-                <amstore-chip [isDark]="true" size="large">{{category.label}}</amstore-chip>
-            }
-        </div>
-    </div>
-
     <ng-content/>
 </div>

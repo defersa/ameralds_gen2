@@ -10,10 +10,9 @@
             <table class="orders-table">
                 <colgroup>
                     <col class="orders-table__number-column">
-                    <col class="orders-table__email-column">
+                    <col>
                     <col class="orders-table__vk-column">
                     <col class="orders-table__date-column">
-                    <col>
                 </colgroup>
                 <thead>
                     <tr>
@@ -21,13 +20,25 @@
                         <th scope="col">Email</th>
                         <th scope="col">VK</th>
                         <th scope="col">Дата заказа</th>
-                        <th scope="col">Схемы</th>
                     </tr>
                 </thead>
                 <tbody>
                     @for (order of orders(); track order.id) {
+                        @let expanded = expandedOrderIds().has(order.id);
                         <tr>
-                            <th scope="row" class="orders-table__number">№{{ order.id }}</th>
+                            <th scope="row" class="orders-table__number">
+                                <button
+                                    type="button"
+                                    class="orders-table__toggle"
+                                    [attr.aria-label]="'Схемы заказа №' + order.id"
+                                    [attr.aria-expanded]="expanded"
+                                    [attr.aria-controls]="'order-patterns-' + order.id"
+                                    (click)="toggleOrder(order.id)"
+                                >
+                                    <amstore-icon [iconName]="expanded ? 'chevrone-up' : 'chevrone-down'" color="special" [size]="16" aria-hidden="true"/>
+                                    <span>№{{ order.id }}</span>
+                                </button>
+                            </th>
                             <td [class.orders-table__muted]="!order.email">{{ order.email || '—' }}</td>
                             <td [class.orders-table__muted]="!order.vk">{{ order.vk || '—' }}</td>
                             <td>
@@ -40,25 +51,33 @@
                                     <span class="orders-table__muted">—</span>
                                 }
                             </td>
-                            <td>
-                                <ul class="orders-table__patterns">
-                                    @for (pattern of order.patterns; track $index) {
-                                        <li>
-                                            @if (pattern.name) {
-                                                <amstore-lang-text [text]="pattern.name"/>
-                                            } @else {
-                                                Название недоступно
+                        </tr>
+                        <tr class="orders-table__details" [id]="'order-patterns-' + order.id" [hidden]="!expanded">
+                            <td colspan="4">
+                                <div class="orders-table__details-content">
+                                    <div>
+                                        <p class="orders-table__patterns-title">Схемы ({{ order.patterns.length }})</p>
+                                        <ul class="orders-table__patterns">
+                                            @for (pattern of order.patterns; track $index) {
+                                                <li>
+                                                    @if (pattern.name) {
+                                                        <amstore-lang-text [text]="pattern.name"/>
+                                                    } @else {
+                                                        Название недоступно
+                                                    }
+                                                </li>
+                                            } @empty {
+                                                <li class="orders-table__muted">Схем нет</li>
                                             }
-                                        </li>
-                                    } @empty {
-                                        <li class="orders-table__muted">Схем нет</li>
-                                    }
-                                </ul>
+                                        </ul>
+                                    </div>
+                                    <a class="orders-table__details-link" [routerLink]="['/admin/orders/card', order.id]">Подробнее</a>
+                                </div>
                             </td>
                         </tr>
                     } @empty {
                         <tr>
-                            <td class="orders-table__empty" colspan="5">Заказы не найдены.</td>
+                            <td class="orders-table__empty" colspan="4">Заказы не найдены.</td>
                         </tr>
                     }
                 </tbody>

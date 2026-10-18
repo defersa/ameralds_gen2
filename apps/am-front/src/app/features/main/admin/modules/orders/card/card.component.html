@@ -1,46 +1,66 @@
-<div class="amstore-pattern-card-actions">
+<div class="order-card__navigation">
     <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
 </div>
 
-@if (order$ | async; as order) {
-    <div>
-        <amstore-info [contrast]="true" [needIcon]="false" class="order-card__info" color="special">
-            <h2 class="snapshot-order__header">Заказ №{{order.id}}</h2>
+@if (loading()) {
+    <p class="order-card__state" role="status">Загрузка заказа…</p>
+} @else if (loadFailed()) {
+    <p class="order-card__state order-card__state--error" role="alert">Не удалось загрузить заказ. Проверьте ссылку или попробуйте обновить страницу.</p>
+} @else if (adminOrder(); as order) {
+    <section class="order-card__summary" aria-labelledby="order-title">
+        <h1 id="order-title">Заказ №{{ order.id }}</h1>
 
-            <div class="snapshot-order__title">
-                <amstore-icon iconName="profile" [size]="20"/>
-                Email: {{order.email}}
+        <dl class="order-card__details flex flex-col gap-3">
+            <div>
+                <dt>Стоимость</dt>
+                <dd class="order-card__price">
+                    @if (orderPrice() !== null) {
+                        {{ orderPrice() | number : '1.0-2' }} {{ currency() }}
+                    } @else {
+                        <span title="В заказе есть удалённая схема">Недоступна</span>
+                    }
+                </dd>
             </div>
-
-            <div class="snapshot-order__title">
-                <amstore-icon iconName="time" [size]="20"/>
-                Дата заказа: {{order.create_date | date : 'yyyy.MM.dd HH:mm.SS'}}
+            <div>
+                <dt>Количество схем</dt>
+                <dd>{{ order.patterns.length }}</dd>
             </div>
-        </amstore-info>
+            <div>
+                <dt>Email</dt>
+                <dd>{{ order.email || '—' }}</dd>
+            </div>
+            <div>
+                <dt>Дата создания</dt>
+                <dd>
+                    @if (order.createdAt) {
+                        <time [attr.datetime]="order.createdAt | date : 'yyyy-MM-ddTHH:mm:ssZZZZZ'">
+                            {{ order.createdAt | date : 'dd.MM.yyyy HH:mm' }}
+                        </time>
+                    } @else {
+                        —
+                    }
+                </dd>
+            </div>
+        </dl>
 
-        @for (purchase of order.purchases; track purchase) {
-<!--            <amstore-snapshot-pattern [pattern]="purchase.pattern">-->
-<!--                <p>-->
-<!--                    Купленные размеры:-->
-<!--                </p>-->
+        <div class="order-card__actions" role="group" aria-label="Действия с заказом">
+            <amstore-button size="small" color="accent" [disabled]="true">Действие 1</amstore-button>
+            <amstore-button size="small" [stroked]="true" [disabled]="true">Действие 2</amstore-button>
+            <amstore-button size="small" color="warn" [stroked]="true" [disabled]="true">Действие 3</amstore-button>
+        </div>
+    </section>
 
-<!--                <div class="order-card__purchase-row">-->
-<!--                    @for (size of purchase.sizesWithStatus; track size) {-->
-<!--                        <amstore-chip [stroked]="!size.status">-->
-<!--                            {{size.value}} бср-->
-<!--                        </amstore-chip>-->
-<!--                    }-->
-<!--                </div>-->
+    <section aria-labelledby="order-patterns-title">
+        <h2 id="order-patterns-title" class="order-card__patterns-title">Схемы заказа</h2>
 
-<!--                <p>-->
-<!--                    Подбор:-->
-<!--                </p>-->
-
-<!--                <div class="order-card__purchase-row">-->
-<!--                    <amstore-chip [stroked]="!purchase.colors">{{purchase.colors ? 'Куплен' : 'Не куплен'}}</amstore-chip>-->
-<!--                </div>-->
-<!--            </amstore-snapshot-pattern>-->
+        @for (item of order.patterns; track item.id) {
+            @if (item.pattern) {
+                <amstore-pattern-card [pattern]="item.pattern"/>
+            } @else {
+                <p class="order-card__state">Схема удалена</p>
+            }
+        } @empty {
+            <p class="order-card__state">В заказе нет схем.</p>
         }
-    </div>
-
+    </section>
 }

@@ -1,11 +1,13 @@
 import { Component, DestroyRef, inject, signal, WritableSignal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, distinctUntilChanged, of, Subject, switchMap } from 'rxjs';
 import { AdminOrderListDto, AdminOrdersPaginatedPageDto } from '@am-front/root/api-v2';
 import { AdminOrdersService } from '@am-front/services/admin-orders.service';
 import { OrdersFilterComponent, OrdersFilterValues } from '@am-front/shared/filters/orders/orders-filter.component';
 import { LangTextComponent } from '@am-front/shared/lang-text/lang-text.component';
+import { IconsComponent } from '@am-front/cdk/icons/icons.component';
 import { loadingHandler } from '@am-front/utils/loading-with';
 
 
@@ -15,8 +17,10 @@ import { loadingHandler } from '@am-front/utils/loading-with';
     styleUrls: ["./index.component.scss"],
     imports: [
         DatePipe,
+        RouterLink,
         OrdersFilterComponent,
         LangTextComponent,
+        IconsComponent,
     ],
 })
 export class IndexComponent {
@@ -27,6 +31,7 @@ export class IndexComponent {
     public readonly pagesCount: WritableSignal<number> = signal(1);
     public readonly loading: WritableSignal<boolean> = signal(false);
     public readonly loadFailed: WritableSignal<boolean> = signal(false);
+    public readonly expandedOrderIds: WritableSignal<Set<number>> = signal(new Set());
 
     public readonly filtersUpdate$: Subject<OrdersFilterValues> = new Subject();
 
@@ -52,6 +57,21 @@ export class IndexComponent {
             .subscribe((response: AdminOrdersPaginatedPageDto) => {
                 this.orders.set(response.items);
                 this.pagesCount.set(response.count);
+                this.expandedOrderIds.set(new Set());
             });
+    }
+
+    public toggleOrder(orderId: number): void {
+        this.expandedOrderIds.update((expandedOrderIds) => {
+            const next = new Set(expandedOrderIds);
+
+            if (next.has(orderId)) {
+                next.delete(orderId);
+            } else {
+                next.add(orderId);
+            }
+
+            return next;
+        });
     }
 }

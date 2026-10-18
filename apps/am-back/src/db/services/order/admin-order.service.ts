@@ -7,6 +7,7 @@ import { InputShortOrderPatternDto } from '../../../modules/orders/dto/orders.dt
 import { OrderPatternEntity } from '../../entities/patterns/pattern-order.entity';
 import { ModelState } from '../../abstract/abstract.model';
 import {
+    AdminOrderDetailsDto,
     AdminOrderListDto,
     AdminOrderResponseDto,
     AdminOrdersPaginatedPageDto,
@@ -45,6 +46,75 @@ export class AdminOrderService {
     ) {
         this.adminOrderRepository =
             this.dataSource.getRepository<AdminOrderEntity>(AdminOrderEntity);
+    }
+
+    public async getAdminOrderById(id: number): Promise<AdminOrderDetailsDto> {
+        const order: AdminOrderEntity = await this.adminOrderRepository.findOne({
+            where: {
+                id,
+                state: ModelState.ACTIVE,
+            },
+            relations: {
+                patterns: {
+                    sizes: {
+                        size: true,
+                    },
+                    pattern: {
+                        name: true,
+                        description: true,
+                        basePrice: true,
+                        additionalPrice: true,
+                        colorPrice: true,
+                        images: true,
+                        categories: true,
+                        color: true,
+                        sizes: {
+                            size: true,
+                            cbb: true,
+                            jbb: true,
+                            pdf: true,
+                            png: true,
+                        },
+                    },
+                },
+            },
+            order: {
+                patterns: {
+                    id: 'ASC',
+                    pattern: {
+                        images: {
+                            index: 'ASC',
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!order) {
+            throw new HttpException(
+                { code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.CART },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        return {
+            ...order,
+            patterns: (order.patterns ?? []).map((item: OrderPatternEntity) => ({
+                ...item,
+                pattern: item.pattern ? {
+                    ...item.pattern,
+                    categories: item.pattern.categories.map((category) => category.id),
+                    sizes: item.pattern.sizes.map((size) => ({
+                        id: size.id,
+                        size: size.size,
+                        cbb: size.cbb?.id ?? null,
+                        jbb: size.jbb?.id ?? null,
+                        pdf: size.pdf?.id ?? null,
+                        png: size.png?.id ?? null,
+                    })),
+                } : null,
+            })),
+        };
     }
 
     public async paginatedAdminOrder(
@@ -314,11 +384,14 @@ export class AdminOrderService {
                 isComplete: order.isComplete,
                 createdAt: order.createdAt,
                 updatedAt: order.updatedAt,
-                patterns: (order.patterns ?? []).map((item: OrderPatternEntity) => ({
-                    name: item.pattern?.name
-                        ? { ru: item.pattern.name.ru, en: item.pattern.name.en }
-                        : null,
-                })),
+                patterns: (order.patterns ?? [])
+                    .filter(Boolean)
+                    .map((item: OrderPatternEntity) => ({
+                        id: item.pattern.id,
+                        name: item.pattern.name
+                            ? { ru: item.pattern.name.ru, en: item.pattern.name.en }
+                            : null,
+                    })),
             }));
     }
 

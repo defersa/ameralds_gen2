@@ -1,15 +1,97 @@
 @use "spacing";
+@use "theming-var";
+@use "utils";
 
+:host {
+    display: block;
+    min-width: 0;
+}
 
 .order-card {
-    &__info {
-        flex-direction: column;
+    &__navigation {
         margin: spacing.get-spacing(4) 0;
     }
 
-    &__purchase-row {
+    &__summary {
+        margin-bottom: spacing.get-spacing(6);
+        padding: spacing.get-spacing(6);
+        border: 1px solid theming-var.get-amstore-color(turquoise, middle);
+        border-radius: 8px;
+        background: theming-var.get-amstore-color(gray, white);
+        box-shadow: 0 2px 8px rgb(17 17 17 / 5%);
+
+        h1 {
+            margin: 0 0 spacing.get-spacing(4);
+            color: theming-var.get-amstore-color(turquoise, deep);
+            font-size: 24px;
+            line-height: 32px;
+        }
+    }
+
+    &__details {
+
+        dt {
+            color: theming-var.get-amstore-color(gray, middle);
+            font-size: 14px;
+        }
+
+        dd {
+            margin: spacing.get-spacing(1) 0 0;
+            color: theming-var.get-amstore-color(gray, dark);
+            font-size: 16px;
+            font-weight: 500;
+            overflow-wrap: anywhere;
+        }
+
+        dd.order-card__price {
+            color: theming-var.get-amstore-color(turquoise, deep);
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 28px;
+        }
+    }
+
+    &__actions {
         display: flex;
-        flex-direction: row;
+        flex-wrap: wrap;
         gap: spacing.get-spacing(2);
+        margin-top: spacing.get-spacing(4);
+        padding-top: spacing.get-spacing(4);
+        border-top: 1px solid theming-var.get-amstore-color(turquoise, light);
+    }
+
+    &__patterns-title {
+        margin: 0 0 spacing.get-spacing(4);
+        font-size: 20px;
+    }
+
+    &__state {
+        margin: 0 0 spacing.get-spacing(4);
+        padding: spacing.get-spacing(6);
+        border-radius: 8px;
+        background: theming-var.get-amstore-color(gray, slight);
+        color: theming-var.get-amstore-color(gray, middle);
+        text-align: center;
+
+        &--error {
+            background: theming-var.get-amstore-color(red, slight);
+            color: theming-var.get-amstore-color(red, deep);
+        }
+    }
+
+    @include utils.portable {
+        &__details {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @include utils.mobile {
+        &__summary {
+            padding: spacing.get-spacing(4);
+        }
+
+        &__details {
+            grid-template-columns: minmax(0, 1fr);
+        }
     }
 }
