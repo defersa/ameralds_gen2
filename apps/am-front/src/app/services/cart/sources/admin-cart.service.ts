@@ -1,8 +1,6 @@
 import { DestroyRef, effect, inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { ProfileService } from '@am-front/services/profile.service';
 import {
-    AdminOrderPatternDto,
-    AdminOrderPatternSizeDto,
     AdminOrderResponseDto,
     ApiAdminProducer,
     NumberEntityDto,
@@ -15,6 +13,7 @@ import {
 } from '@am-front/services/cart/order.misc';
 import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
 import { SnackService } from '@am-front/services/snackbar.service';
+import { map, Observable, tap } from 'rxjs';
 
 
 @Injectable({
@@ -55,13 +54,15 @@ export class AdminCartService extends AbstractCartService {
             });
     }
 
-    public addProduct(product: CartItemModel): void {
-        this.adminProducer.adminCartControllerAddItemToOrder({
+    public addProduct(product: CartItemModel): Observable<void> {
+        return this.adminProducer.adminCartControllerAddItemToOrder({
             ...product,
             requiresPatternPurchase: true,
         })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((order: AdminOrderResponseDto) => this.updateCartAndPrice(order));
+            .pipe(
+                tap((order: AdminOrderResponseDto) => this.updateCartAndPrice(order)),
+                map(() => undefined),
+            );
     }
 
     public removeProduct(id: number): void {
@@ -70,10 +71,15 @@ export class AdminCartService extends AbstractCartService {
             .subscribe((order: AdminOrderResponseDto) => this.updateCartAndPrice(order));
     }
 
-    public clearCart(): void {
-        this.adminProducer.adminCartControllerClearAll()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((order: AdminOrderResponseDto) => this.updateCartAndPrice(order));
+    public clearCart(): Observable<void> {
+        return this.adminProducer.adminCartControllerClearAll()
+            .pipe(
+                tap(() => {
+                    this.cart.set([]);
+                    this.price.set(DEFAULT_CART_PRICE);
+                }),
+                map(() => undefined),
+            );
     }
 
     private updateCartAndPrice(cart: AdminOrderResponseDto): void {

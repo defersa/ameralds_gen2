@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { Transporter } from 'nodemailer';
 import type { Attachment } from 'nodemailer/lib/mailer';
+import { extname } from 'node:path';
 import { process } from '@am-back/core/declare/process';
 import { AdminOrderEntity } from '../../entities/purchases/order.entity';
 import { DataSourceService } from '../../data-source.service';
+import { ModelState } from '../../abstract/abstract.model';
+import { getAdminOrderFiles } from './order.utils';
 import { getPatternPrice } from '@ameralds/utils';
 import { getMailLogo, getMailProductImage } from '../../../mail/mail-assets';
 import { CompletedOrderMailItem, renderCompletedOrderMail } from '../../../mail/templates/completed-order.template';
@@ -27,10 +30,10 @@ export class AdminOrderMailService {
         }
 
         const completedOrder = await this.dataSource.getRepository(AdminOrderEntity).findOne({
-            where: { id: order.id },
+            where: { id: order.id, state: ModelState.ACTIVE },
             relations: {
                 patterns: {
-                    sizes: { size: true },
+                    sizes: { size: true, cbb: true, pdf: true },
                     pattern: {
                         name: true,
                         categories: { label: true },
@@ -44,11 +47,16 @@ export class AdminOrderMailService {
             order: { patterns: { id: 'ASC' } },
         });
 
-        if (!completedOrder) {
-            throw new Error(`Completed admin order ${order.id} was not found`);
-        }
-
-        const attachments: Attachment[] = [await getMailLogo()];
+        const files = getAdminOrderFiles(completedOrder);
+        const attachments: Attachment[] = [
+            await getMailLogo(),
+            ...files.map((file): Attachment => ({
+                filename: file.name,
+                path: file.path,
+                contentType: extname(file.name).toLowerCase() === '.pdf' ? 'application/pdf' : 'application/octet-stream',
+                contentDisposition: 'attachment',
+            })),
+        ];
         const items: CompletedOrderMailItem[] = await Promise.all((completedOrder.patterns ?? []).map(async (item, index) => {
             const pattern = item.pattern;
             const image = [...(pattern?.images ?? [])].sort((a, b) => a.index - b.index || a.id - b.id)[0];

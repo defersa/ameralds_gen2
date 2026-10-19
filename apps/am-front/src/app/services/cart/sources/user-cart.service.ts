@@ -3,7 +3,6 @@ import {
     NumberEntityDto,
     ApiOrdersProducer,
     CartDto,
-    CartOrderPatternDto
 } from '@am-front/root/api-v2';
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
@@ -13,6 +12,7 @@ import {
 } from '@am-front/services/cart/order.misc';
 import { AuthService } from '@am-front/services/auth.service';
 import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
+import { map, Observable, tap } from 'rxjs';
 
 
 @Injectable({
@@ -49,10 +49,12 @@ export class UserCartService extends AbstractCartService {
             .subscribe((order: CartDto) => this.updateCartAndPrice(order));
     }
 
-    public addProduct(pattern: CartItemModel): void {
-        this.orderProducer.ordersControllerAddItemToCart(pattern)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((order: CartDto) => this.updateCartAndPrice(order));
+    public addProduct(pattern: CartItemModel): Observable<void> {
+        return this.orderProducer.ordersControllerAddItemToCart(pattern)
+            .pipe(
+                tap((order: CartDto) => this.updateCartAndPrice(order)),
+                map(() => undefined),
+            );
     }
 
     public removeProduct(id: number): void {
@@ -61,10 +63,12 @@ export class UserCartService extends AbstractCartService {
             .subscribe((order: CartDto) => this.updateCartAndPrice(order));
     }
 
-    public clearCart(): void {
-        this.orderProducer.ordersControllerClearAll()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((order: CartDto) => this.updateCartAndPrice(order));
+    public clearCart(): Observable<void> {
+        return this.orderProducer.ordersControllerClearAll()
+            .pipe(
+                tap((order: CartDto) => this.updateCartAndPrice(order)),
+                map(() => undefined),
+            );
     }
 
     public mergeLocalCart(patterns: CartItemModel[]): void {

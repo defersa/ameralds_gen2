@@ -13,6 +13,14 @@ export class AdminOrdersService {
         return this.adminProducer.adminCartControllerGetAdminOrderById(id);
     }
 
+    public resendOrderEmail(id: number): Observable<void> {
+        return this.adminProducer.adminCartControllerResendOrderEmail(id);
+    }
+
+    public downloadOrderFile(id: number, fileId: number): Observable<Blob> {
+        return this.adminProducer.adminCartControllerDownloadOrderFile(id, fileId);
+    }
+
     public getOrders(
         page: number,
         email?: string,

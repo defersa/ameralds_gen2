@@ -6,6 +6,7 @@ import type { AppConfigInterface } from '@am-back/core/config/app-config.module'
 import { FileEntity, PrivateFileEntity, PublicFileEntity } from "../entities/files/file.entity";
 import { getPathWithDir } from "../../utils/path-with-dir";
 import { createReadStream, createWriteStream, ReadStream, WriteStream } from 'fs';
+import { open } from 'fs/promises';
 import { removeFile } from "../../utils/remove-file";
 import { ModelState } from "../abstract/abstract.model";
 import { ApiEntityNames, ApiErrorCodes } from "../../modules/errors/errors.dto";
@@ -93,6 +94,23 @@ export class FilesService {
         }
 
         return createReadStream(fileEntity.path);
+    }
+
+    public async getFileAsStream(file: FileEntity): Promise<ReadStream> {
+        try {
+            const handle = await open(file.path, 'r');
+
+            return handle.createReadStream();
+        } catch (error) {
+            if (error.code === 'ENOENT' || error.code === 'ENOTDIR') {
+                throw new HttpException(
+                    { code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.FILE },
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+
+            throw error;
+        }
     }
 
     public async setUsageStatus(file: FileEntity, status: boolean): Promise<void> {

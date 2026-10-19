@@ -16,7 +16,7 @@ import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { AuthInterceptor } from './auth.interceptor';
 import { DownloadInterceptor } from './download.interceptor';
 import { appRoutes } from './app.routes';
-import { provideDefaultClient } from './api-v2';
+import { provideApiClient } from './api-client.providers';
 
 registerLocaleData(localeRu, 'ru-RU', localeRuExtra);
 
@@ -26,7 +26,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
     provideAnimations(),
-    provideDefaultClient({ basePath: '' }),
+    provideApiClient(),
     provideHttpClient(
       withInterceptors([AuthInterceptor, DownloadInterceptor]),
       withInterceptorsFromDi(),

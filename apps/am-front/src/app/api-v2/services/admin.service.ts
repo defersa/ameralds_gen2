@@ -166,6 +166,33 @@ export class ApiAdminProducer {
         });
     }
 
+    adminCartControllerDownloadOrderFile(id: number, fileId: number, observe?: 'body', options?: RequestOptions<'blob'>): Observable<Blob>;
+    adminCartControllerDownloadOrderFile(id: number, fileId: number, observe?: 'response', options?: RequestOptions<'blob'>): Observable<HttpResponse<Blob>>;
+    adminCartControllerDownloadOrderFile(id: number, fileId: number, observe?: 'events', options?: RequestOptions<'blob'>): Observable<HttpEvent<Blob>>;
+    adminCartControllerDownloadOrderFile(id: number, fileId: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/admin/cart/${id}/download/${fileId}`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/pdf, application/octet-stream');
+        }
+
+        return this.httpClient.request('get', url, {
+            observe,
+            headers,
+            responseType: 'blob',
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
     adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<AdminOrderResponseDto>;
     adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<AdminOrderResponseDto>>;
     adminCartControllerAddItemToOrder(inputShortOrderPatternDto: InputShortOrderPatternDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<AdminOrderResponseDto>>;
@@ -220,6 +247,29 @@ export class ApiAdminProducer {
 
         return this.httpClient.request('patch', url, {
             body: completeAdminOrderDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    adminCartControllerResendOrderEmail(id: number, observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
+    adminCartControllerResendOrderEmail(id: number, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
+    adminCartControllerResendOrderEmail(id: number, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
+    adminCartControllerResendOrderEmail(id: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/admin/cart/${id}/resend-email`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+
+        return this.httpClient.request('post', url, {
+            body: null,
             observe,
             headers,
             reportProgress: options?.reportProgress,

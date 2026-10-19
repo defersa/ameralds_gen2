@@ -8,6 +8,7 @@ import {
 import { SnackService } from '@am-front/services/snackbar.service';
 import { CartItemModel, DEFAULT_CART_PRICE } from '@am-front/services/cart/order.misc';
 import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
+import { defer, Observable, of, throwError } from 'rxjs';
 
 
 const LOCAL_PATTERN_CART_NAME = 'LOCAL_CART';
@@ -36,30 +37,36 @@ export class LocalCartService extends AbstractCartService {
         });
     }
 
-    public addProduct(item: CartItemModel): void {
-        const preparedItem: CartItemModel = {
-            ...item,
-            requiresPatternPurchase: true
-        };
+    public addProduct(item: CartItemModel): Observable<void> {
+        return defer(() => {
+            const preparedItem: CartItemModel = {
+                ...item,
+                requiresPatternPurchase: true
+            };
 
-        if (!preparedItem.pattern || !preparedItem.sizes?.length) {
-            this.snack.warn('Товар недоступен');
+            if (!preparedItem.pattern || !preparedItem.sizes?.length) {
+                return throwError(() => new Error('Товар недоступен'));
+            }
 
-            return;
-        }
+            this.cart.set([
+                ...this.cart().filter((product: CartItemModel) => product.pattern !== preparedItem.pattern),
+                preparedItem
+            ]);
 
-        this.cart.set([
-            ...this.cart().filter((product: CartItemModel) => product.pattern !== preparedItem.pattern),
-            preparedItem
-        ]);
+            return of(undefined);
+        });
     }
 
     public removeProduct(id: number): void {
         this.cart.set(this.cart().filter((product: CartItemModel) => product.pattern !== id));
     }
 
-    public clearCart(): void {
-        this.cart.set([]);
+    public clearCart(): Observable<void> {
+        return defer(() => {
+            this.cart.set([]);
+
+            return of(undefined);
+        });
     }
 
     public updatePrice(cart: CartItemModel[]): void {

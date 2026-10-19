@@ -1,10 +1,20 @@
 import { createTransport } from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import MailComposer from 'nodemailer/lib/mail-composer';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { HttpStatus } from '@nestjs/common';
 import { AdminOrderEntity } from '../../entities/purchases/order.entity';
 import { AdminOrderMailService } from './admin-order-mail.service';
 import { DataSourceService } from '../../data-source.service';
 import { getMailLogo, getMailProductImage } from '../../../mail/mail-assets';
 import { OrderPatternEntity } from '../../entities/patterns/pattern-order.entity';
+import { PatternSizeEntity } from '../../entities/patterns/pattern-size.entity';
+import { PatternEntity } from '../../entities/patterns/pattern.entity';
+import { PrivateFileEntity } from '../../entities/files/file.entity';
+import { ModelState } from '../../abstract/abstract.model';
+import { ApiEntityNames, ApiErrorCodes } from '../../../modules/errors/errors.dto';
 
 
 jest.mock('nodemailer', () => ({
@@ -31,6 +41,7 @@ describe('AdminOrderMailService', () => {
         createTransportMock.mockReturnValue({ sendMail } as unknown as Transporter);
         order = Object.assign(new AdminOrderEntity(), {
             id: 42,
+            state: ModelState.ACTIVE,
             email: 'buyer@example.com',
             isComplete: true,
             patterns: [],
@@ -105,10 +116,10 @@ describe('AdminOrderMailService', () => {
         await service.sendCompletedOrder(order);
 
         expect(findOne).toHaveBeenCalledWith(expect.objectContaining({
-            where: { id: 42 },
+            where: { id: 42, state: ModelState.ACTIVE },
             relations: expect.objectContaining({
                 patterns: expect.objectContaining({
-                    sizes: { size: true },
+                    sizes: { size: true, cbb: true, pdf: true },
                     pattern: expect.objectContaining({ name: true, images: true, categories: { label: true } }),
                 }),
             }),
@@ -134,6 +145,188 @@ describe('AdminOrderMailService', () => {
         expect(message.html).toContain('Изображение недоступно');
         expect(message.html).not.toContain('cid:order-42-item-0@ameralds');
         expect(message.attachments).toHaveLength(1);
+    });
+
+    it('rejects a missing order without sending mail', async () => {
+        findOne.mockResolvedValue(null);
+
+        await expect(service.sendCompletedOrder(order)).rejects.toMatchObject({
+            status: HttpStatus.BAD_REQUEST,
+            response: { code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.CART },
+        });
+        expect(sendMail).not.toHaveBeenCalled();
+    });
+
+    it('rejects an inactive order without sending mail', async () => {
+        order.state = ModelState.INACTIVE;
+
+        await expect(service.sendCompletedOrder(order)).rejects.toMatchObject({
+            status: HttpStatus.BAD_REQUEST,
+            response: { code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.CART },
+        });
+        expect(sendMail).not.toHaveBeenCalled();
+    });
+
+    it('rejects an incomplete order without sending mail', async () => {
+        order.isComplete = false;
+
+        await expect(service.sendCompletedOrder(order)).rejects.toMatchObject({
+            status: HttpStatus.BAD_REQUEST,
+            response: { code: ApiErrorCodes.INVALID, entity: ApiEntityNames.CART },
+        });
+        expect(sendMail).not.toHaveBeenCalled();
+    });
+
+    describe('order file attachments', () => {
+        let directory: string;
+        let selectedSize: PatternSizeEntity;
+
+        beforeAll(async () => {
+            directory = await mkdtemp(join(tmpdir(), 'admin-order-mail-'));
+        });
+
+        afterAll(async () => {
+            await rm(directory, { recursive: true, force: true });
+        });
+
+        beforeEach(() => {
+            const file = (id: number, format: string) => Object.assign(new PrivateFileEntity(), {
+                id,
+                state: ModelState.ACTIVE,
+                name: `pattern-36.${format}`,
+                path: join(directory, `${id}.${format}`),
+            });
+            selectedSize = Object.assign(new PatternSizeEntity(), {
+                id: 21,
+                state: ModelState.ACTIVE,
+                size: { id: 3, value: 36 },
+                cbb: file(11, 'cbb'),
+                pdf: file(13, 'pdf'),
+                jbb: file(12, 'jbb'),
+                png: file(14, 'png'),
+            });
+            order.patterns = [Object.assign(new OrderPatternEntity(), {
+                id: 31,
+                state: ModelState.ACTIVE,
+                sizes: [selectedSize],
+                color: false,
+                requiresPatternPurchase: true,
+                pattern: Object.assign(new PatternEntity(), {
+                    id: 7,
+                    name: { ru: 'Волны', en: 'Waves' },
+                    images: [],
+                    categories: [],
+                    basePrice: { ru: 100, en: 1 },
+                    additionalPrice: { ru: 10, en: 0.1 },
+                    colorPrice: { ru: 25, en: 0.25 },
+                    sizes: [selectedSize, Object.assign(new PatternSizeEntity(), {
+                        id: 22,
+                        state: ModelState.ACTIVE,
+                        size: { id: 5, value: 40 },
+                        cbb: file(15, 'cbb'),
+                        pdf: file(16, 'pdf'),
+                    })],
+                }),
+            })];
+        });
+
+        it('attaches only CBB/PDF from selected sizes with their original names and preserves inline images', async () => {
+            jest.mocked(getMailProductImage).mockResolvedValue({
+                filename: 'preview.jpg',
+                content: Buffer.from('preview'),
+                cid: 'order-42-item-0@ameralds',
+            });
+
+            await service.sendCompletedOrder(order);
+
+            expect(sendMail.mock.calls[0][0].attachments).toEqual([
+                expect.objectContaining({ filename: 'amstore-logo.png', cid: 'amstore-logo@ameralds' }),
+                {
+                    filename: 'pattern-36.cbb',
+                    path: selectedSize.cbb.path,
+                    contentType: 'application/octet-stream',
+                    contentDisposition: 'attachment',
+                },
+                {
+                    filename: 'pattern-36.pdf',
+                    path: selectedSize.pdf.path,
+                    contentType: 'application/pdf',
+                    contentDisposition: 'attachment',
+                },
+                expect.objectContaining({ filename: 'preview.jpg', cid: 'order-42-item-0@ameralds' }),
+            ]);
+        });
+
+        it.each(['item', 'size', 'file'])('excludes inactive %s attachments', async (entity) => {
+            if (entity === 'item') {
+                order.patterns[0].state = ModelState.INACTIVE;
+            } else if (entity === 'size') {
+                selectedSize.state = ModelState.INACTIVE;
+            } else {
+                selectedSize.cbb.state = ModelState.INACTIVE;
+            }
+
+            await service.sendCompletedOrder(order);
+
+            const filenames = sendMail.mock.calls[0][0].attachments.map((attachment) => attachment.filename);
+            expect(filenames).toEqual(entity === 'file'
+                ? ['amstore-logo.png', 'pattern-36.pdf']
+                : ['amstore-logo.png']);
+        });
+
+        it('does not attach a file more than once when order items share it', async () => {
+            order.patterns.push(Object.assign(new OrderPatternEntity(), { ...order.patterns[0], id: 32 }));
+
+            await service.sendCompletedOrder(order);
+
+            expect(sendMail.mock.calls[0][0].attachments.map((attachment) => attachment.filename)).toEqual([
+                'amstore-logo.png', 'pattern-36.cbb', 'pattern-36.pdf',
+            ]);
+        });
+
+        it('handles absent CBB and PDF relations without attaching JBB or PNG', async () => {
+            selectedSize.cbb = null;
+            selectedSize.pdf = null;
+
+            await service.sendCompletedOrder(order);
+
+            expect(sendMail.mock.calls[0][0].attachments).toHaveLength(1);
+        });
+
+        it('builds original binary attachments from disk again on repeated sending', async () => {
+            const cbb = Buffer.from([0, 1, 255, 30, 4]);
+            const pdf = Buffer.from('%PDF-1.7\norder-file');
+            await Promise.all([
+                writeFile(selectedSize.cbb.path, cbb),
+                writeFile(selectedSize.pdf.path, pdf),
+            ]);
+            const messages: Buffer[] = [];
+            sendMail.mockImplementation(async (message) => {
+                messages.push(await new MailComposer(message).compile().build());
+            });
+
+            await service.sendCompletedOrder(order);
+            await service.sendCompletedOrder(order);
+
+            expect(messages).toHaveLength(2);
+            for (const message of messages) {
+                const content = message.toString();
+                expect(content).toContain('Content-Type: application/octet-stream');
+                expect(content).toContain('Content-Type: application/pdf');
+                expect(content).toMatch(/Content-Disposition: attachment; filename="?pattern-36\.cbb/i);
+                expect(content).toMatch(/Content-Disposition: attachment; filename="?pattern-36\.pdf/i);
+                expect(content).toContain(cbb.toString('base64'));
+                expect(content).toContain(pdf.toString('base64'));
+            }
+        });
+
+        it('reports a missing file on disk instead of silently omitting the attachment', async () => {
+            selectedSize.cbb.path = join(directory, 'missing.cbb');
+            selectedSize.pdf = null;
+            sendMail.mockImplementation((message) => new MailComposer(message).compile().build());
+
+            await expect(service.sendCompletedOrder(order)).rejects.toMatchObject({ code: 'ENOENT' });
+        });
     });
 
     it.each(['prod', 'production', 'test', undefined])(

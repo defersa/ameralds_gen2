@@ -5,6 +5,7 @@ import { DataSourceService } from '../../data-source.service';
 import { PatternOrdersService } from '@am-back/db/service/patterns/pattern-orders.service';
 import { InputShortOrderPatternDto } from '../../../modules/orders/dto/orders.dto';
 import { OrderPatternEntity } from '../../entities/patterns/pattern-order.entity';
+import { PrivateFileEntity } from '../../entities/files/file.entity';
 import { ModelState } from '../../abstract/abstract.model';
 import {
     AdminOrderDetailsDto,
@@ -15,6 +16,7 @@ import {
 } from '../../../modules/admin/admin.dto';
 import { AdminOrderMailService } from './admin-order-mail.service';
 import {
+    getAdminOrderFiles,
     getOrderPrice,
     prepareCartPattern,
 } from '@am-back/db/service/order/order.utils';
@@ -115,6 +117,34 @@ export class AdminOrderService {
                 } : null,
             })),
         };
+    }
+
+    public async getAdminOrderFile(id: number, fileId: number): Promise<PrivateFileEntity> {
+        const order = await this.adminOrderRepository.findOne({
+            where: {
+                id,
+                state: ModelState.ACTIVE,
+            },
+            relations: {
+                patterns: {
+                    sizes: {
+                        cbb: true,
+                        pdf: true,
+                    },
+                },
+            },
+        });
+
+        const file = getAdminOrderFiles(order).find((file) => file.id === fileId);
+
+        if (!file) {
+            throw new HttpException(
+                { code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.FILE },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        return file;
     }
 
     public async paginatedAdminOrder(
@@ -254,8 +284,10 @@ export class AdminOrderService {
     public async clearCart(): Promise<void> {
         const order: AdminOrderEntity = await this.getCart();
 
-        order.patterns.forEach((pattern: OrderPatternEntity) =>
-            this.patternOrdersService.removeOrderPatter(pattern),
+        await Promise.all(
+            order.patterns.map((pattern: OrderPatternEntity) =>
+                this.patternOrdersService.removeOrderPatter(pattern),
+            ),
         );
 
         order.patterns = [];
@@ -308,6 +340,38 @@ export class AdminOrderService {
             order: newOrder,
             price: getOrderPrice(newOrder.patterns ?? []),
         };
+    }
+
+    public async resendOrderEmail(id: number): Promise<void> {
+        const order: AdminOrderEntity = await this.adminOrderRepository.findOne({
+            where: {
+                id,
+                state: ModelState.ACTIVE,
+            },
+        });
+
+        if (!order) {
+            throw new HttpException(
+                { code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.CART },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        if (!order.isComplete) {
+            throw new HttpException(
+                { code: ApiErrorCodes.INVALID, entity: ApiEntityNames.CART },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        if (!order.email?.trim()) {
+            throw new HttpException(
+                { code: ApiErrorCodes.INVALID_EMAIL, entity: ApiEntityNames.CART },
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+
+        await this.adminOrderMailService.sendCompletedOrder(order);
     }
 
     private async getPaginatedAdminOrderIds(

@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable, Signal } from '@angular/core';
+import { computed, DestroyRef, effect, inject, Injectable, Signal } from '@angular/core';
 import { AuthService } from '@am-front/services/auth.service';
 import { ProfileService } from '@am-front/services/profile.service';
 import { LocalCartService } from '@am-front/services/cart/sources/local-cart.service';
@@ -7,6 +7,9 @@ import { AdminCartService } from '@am-front/services/cart/sources/admin-cart.ser
 import { CartItemModel, convertOrderPatternEntityToCartItem } from '@am-front/services/cart/order.misc';
 import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
 import { NumberEntityDto, UserProfilePatternDto } from '@am-front/root/api-v2';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { concat, defer, last, Observable } from 'rxjs';
+import { SnackService } from '@am-front/services/snackbar.service';
 
 
 export type CartType = 'local' | 'user' | 'admin';
@@ -15,11 +18,13 @@ export type CartType = 'local' | 'user' | 'admin';
     providedIn: 'root'
 })
 export class MajorCartService {
-    private authService: AuthService = inject(AuthService);
-    private profileService: ProfileService = inject(ProfileService);
-    private localCartService: LocalCartService = inject(LocalCartService);
-    private userCartService: UserCartService = inject(UserCartService);
-    private adminCartService: AdminCartService = inject(AdminCartService);
+    private readonly authService: AuthService = inject(AuthService);
+    private readonly profileService: ProfileService = inject(ProfileService);
+    private readonly localCartService: LocalCartService = inject(LocalCartService);
+    private readonly userCartService: UserCartService = inject(UserCartService);
+    private readonly adminCartService: AdminCartService = inject(AdminCartService);
+    private readonly snackService: SnackService = inject(SnackService);
+    private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
     public currentCartName: Signal<CartType> = computed(() => {
         if (this.profileService.isAdmin()) {
@@ -80,7 +85,9 @@ export class MajorCartService {
     });
 
     public addProduct(product: CartItemModel): void {
-        this.currentCartService().addProduct(product);
+        this.currentCartService().addProduct(product)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({ error: () => this.snackService.warn('Не удалось добавить товар в корзину') });
     }
 
     public removeProduct(id: number): void {
@@ -88,7 +95,20 @@ export class MajorCartService {
     }
 
     public clearCart(): void {
-        this.currentCartService().clearCart();
+        this.currentCartService().clearCart()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({ error: () => this.snackService.warn('Не удалось очистить корзину') });
+    }
+
+    public replaceCart(products: CartItemModel[]): Observable<void> {
+        return defer(() => {
+            const cartService = this.currentCartService();
+
+            return concat(
+                cartService.clearCart(),
+                ...products.map((product) => defer(() => cartService.addProduct(product))),
+            ).pipe(last());
+        });
     }
 
     private initLocalCartListener(): void {
@@ -104,7 +124,7 @@ export class MajorCartService {
                     this.userCartService.mergeLocalCart(localCart);
                 }
 
-                this.localCartService.clearCart();
+                this.localCartService.clearCart().subscribe();
             }
 
             previous = this.currentCartName();

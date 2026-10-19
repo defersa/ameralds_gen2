@@ -44,9 +44,19 @@
         </dl>
 
         <div class="order-card__actions" role="group" aria-label="Действия с заказом">
-            <amstore-button size="small" color="accent" [disabled]="true">Действие 1</amstore-button>
-            <amstore-button size="small" [stroked]="true" [disabled]="true">Действие 2</amstore-button>
-            <amstore-button size="small" color="warn" [stroked]="true" [disabled]="true">Действие 3</amstore-button>
+            <amstore-button
+                size="small"
+                color="accent"
+                [disabled]="actionPending() || !order.isComplete || !order.email?.trim()"
+                (click)="resendOrderEmail()"
+            >{{ resending() ? 'Отправка…' : 'Отправить заново' }}</amstore-button>
+            <amstore-button
+                size="small"
+                [stroked]="true"
+                [disabled]="actionPending() || !canCopyToCart()"
+                (click)="copyToCart()"
+            >{{ copying() ? 'Копирование…' : 'Скопировать в корзину' }}</amstore-button>
+            <amstore-button size="small" color="warn" [stroked]="true" [disabled]="true">Скачать</amstore-button>
         </div>
     </section>
 
@@ -55,7 +65,11 @@
 
         @for (item of order.patterns; track item.id) {
             @if (item.pattern) {
-                <amstore-pattern-card [pattern]="item.pattern"/>
+                <amstore-pattern-card [pattern]="item.pattern">
+                    @if (order.isComplete) {
+                        <amstore-pattern-admin-download [orderId]="order.id" [orderPattern]="item"/>
+                    }
+                </amstore-pattern-card>
             } @else {
                 <p class="order-card__state">Схема удалена</p>
             }

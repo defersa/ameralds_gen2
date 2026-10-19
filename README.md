@@ -30,6 +30,40 @@ These targets are either [inferred automatically](https://nx.dev/concepts/inferr
 
 [More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
+## Проверка PDF → JSON
+
+Из корня репозитория можно проверить разбор локальных PDF без запуска сервера:
+
+```sh
+npm run am:back:pdf:json -- "путь/схема.pdf"
+npm run am:back:pdf:json -- "путь/первая.pdf" "путь/вторая.pdf"
+```
+
+Для одного файла выводится объект с параметрами схемы и полями `sequence`, `totalBeads`,
+для нескольких — массив `{ file, result }`. Группы обозначаются строчными
+латинскими буквами `a–z` и читаются из текстового слоя со второй страницы.
+
+Параметры схемы: `name`, `author`, `circumference`, `repeatOfColors`, `rowsPerRepeat`,
+`totalRows`, `declaredTotalBeads`. Таблицы параметров читаются на всех страницах:
+из текста или через локальный OCR широких изображений таблиц, как в `temp/Elza.pdf`.
+Английская и русская модели OCR устанавливаются через npm; распознавание работает
+без сети. Если название или автор отсутствуют в таблице, используются свойства PDF
+`Title` и `Author`. Ненайденные параметры возвращаются как `null`.
+
+`rowsPerRepeat` сохраняет исходный текст, например `66 и 11 бисерин`.
+`totalBeads` — сумма распознанной последовательности, а `declaredTotalBeads` — число,
+указанное в таблице PDF. Они могут различаться: в `Elza.pdf` это 1265 и 1273.
+
+Чтобы сохранить результат в JSON, используйте `--silent`, убирающий служебный вывод npm:
+
+```sh
+npm run --silent am:back:pdf:json -- "путь/схема.pdf" > result.json
+```
+
+Предупреждения и ошибки идут в stderr. При ошибке чтения или разбора команда
+завершается с кодом `1`; JSON выводится после успешной обработки всех файлов.
+Справка: `npm run am:back:pdf:json -- --help`.
+
 ## Add new projects
 
 While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.

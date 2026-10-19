@@ -1,0 +1,27 @@
+@if (canDownload()) {
+    <div class="amstore-card-container-line">
+        <h3>Скачать файлы</h3>
+
+        <ul class="m-0 flex list-none flex-col gap-3 p-0">
+            @for (size of sizes(); track size.id) {
+                <li class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span>{{ size.label }}:</span>
+
+                    @for (file of size.files; track file.format) {
+                        <a
+                            [href]="'/api/admin/cart/' + orderId() + '/download/' + file.id"
+                            [attr.aria-label]="'Скачать ' + file.format.toUpperCase() + ', ' + size.label"
+                            [attr.aria-disabled]="downloading().has(file.id) ? 'true' : null"
+                            [attr.aria-busy]="downloading().has(file.id)"
+                            (click)="download($event, file.id)"
+                        >{{ file.format.toUpperCase() }}{{ downloading().has(file.id) ? '…' : '' }}</a>
+                    } @empty {
+                        <span class="amstore-text-secondary">Файлы недоступны</span>
+                    }
+                </li>
+            } @empty {
+                <li class="amstore-text-secondary">В заказе нет выбранных размеров.</li>
+            }
+        </ul>
+    </div>
+}

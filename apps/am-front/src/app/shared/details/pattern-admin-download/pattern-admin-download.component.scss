@@ -1,0 +1,10 @@
+@use "utils";
+
+a {
+    @include utils.link;
+
+    &[aria-disabled="true"] {
+        cursor: wait;
+        opacity: 0.6;
+    }
+}

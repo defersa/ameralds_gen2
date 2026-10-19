@@ -8,6 +8,7 @@
         "am:mail:preview": "cross-env TS_NODE_PROJECT=apps/am-back/tsconfig.app.json node -r ts-node/register/transpile-only -r tsconfig-paths/register tools/preview-order-email.ts",
         "am:back:start:dev": "cross-env NODE_ENV=dev NEST_HMR=true npx nx run am-back:serve-hmr --outputStyle=stream",
         "am:back:build": "npx nx run am-back:build",
+        "am:back:pdf:json": "cross-env TS_NODE_PROJECT=apps/am-back/tsconfig.app.json node -r ts-node/register/transpile-only tools/translate-pdf-to-json.ts",
         "am:back:start": "npx nx run am-back:serve --outputStyle=stream",
         "am:back:typeorm": "npm --workspace @ameralds/am-back run typeorm --",
         "am:back:typeorm:migration:generate": "npm --workspace @ameralds/am-back run typeorm:migration:generate",
