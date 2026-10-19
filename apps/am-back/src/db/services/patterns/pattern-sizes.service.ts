@@ -26,20 +26,17 @@ export class PatternsSizeService {
     public async createPatternSize(data: PatternSizeDto): Promise<PatternSizeEntity> {
         const size: SizeEntity = await this.sizesService.getSize(data.size);
         const cbb: FileEntity = await this.filesService.getPrivateFile(data.cbb);
-        const jbb: FileEntity = await this.filesService.getPrivateFile(data.jbb);
         const png: FileEntity = await this.filesService.getPrivateFile(data.png);
         const pdf: FileEntity = await this.filesService.getPrivateFile(data.pdf);
 
         await this.filesService.setUsageStatus(pdf, true);
         await this.filesService.setUsageStatus(png, true);
-        await this.filesService.setUsageStatus(jbb, true);
         await this.filesService.setUsageStatus(cbb, true);
 
         const patternSize: PatternSizeEntity = this.patternsSizeRepository.create({
             size,
             cbb,
             png,
-            jbb,
             pdf
         });
 
@@ -57,7 +54,6 @@ export class PatternsSizeService {
             relations: {
                 size: true,
                 cbb: true,
-                jbb: true,
                 png: true,
                 pdf: true,
             }});
@@ -67,23 +63,19 @@ export class PatternsSizeService {
         }
 
         const cbb: FileEntity = await this.filesService.getPrivateFile(data.cbb);
-        const jbb: FileEntity = await this.filesService.getPrivateFile(data.jbb);
         const png: FileEntity = await this.filesService.getPrivateFile(data.png);
         const pdf: FileEntity = await this.filesService.getPrivateFile(data.pdf);
 
         await this.filesService.setUsageStatus(patternSize.cbb, false);
-        await this.filesService.setUsageStatus(patternSize.jbb, false);
         await this.filesService.setUsageStatus(patternSize.png, false);
         await this.filesService.setUsageStatus(patternSize.pdf, false);
 
         await this.filesService.setUsageStatus(pdf, true);
         await this.filesService.setUsageStatus(png, true);
-        await this.filesService.setUsageStatus(jbb, true);
         await this.filesService.setUsageStatus(cbb, true);
 
         patternSize.state = ModelState.ACTIVE;
         patternSize.cbb = cbb;
-        patternSize.jbb = jbb;
         patternSize.png = png;
         patternSize.pdf = pdf;
 
@@ -109,7 +101,6 @@ export class PatternsSizeService {
         patternSize.state = ModelState.INACTIVE;
 
         await this.filesService.setUsageStatus(patternSize.cbb, false);
-        await this.filesService.setUsageStatus(patternSize.jbb, false);
         await this.filesService.setUsageStatus(patternSize.png, false);
         await this.filesService.setUsageStatus(patternSize.pdf, false);
 

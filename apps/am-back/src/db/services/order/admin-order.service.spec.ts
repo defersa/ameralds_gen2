@@ -38,7 +38,6 @@ describe('AdminOrderService.getAdminOrderById', () => {
                 Object.assign(new PatternSizeEntity(), {
                     ...selectedSize,
                     cbb: { id: 11 },
-                    jbb: { id: 12 },
                     pdf: { id: 13 },
                     png: { id: 14 },
                 }),
@@ -46,7 +45,6 @@ describe('AdminOrderService.getAdminOrderById', () => {
                     id: 22,
                     size: { id: 5, value: 40 },
                     cbb: null,
-                    jbb: null,
                     pdf: null,
                     png: null,
                 }),
@@ -99,8 +97,8 @@ describe('AdminOrderService.getAdminOrderById', () => {
                     images: [{ id: 9, name: 'Preview', preview: 'preview.webp', full: 'full.webp' }],
                     color: { id: 10, name: 'Colors', path: 'colors.pdf' },
                     sizes: [
-                        { id: 21, size: { id: 3, value: 36 }, cbb: 11, jbb: 12, pdf: 13, png: 14 },
-                        { id: 22, size: { id: 5, value: 40 }, cbb: null, jbb: null, pdf: null, png: null },
+                        { id: 21, size: { id: 3, value: 36 }, cbb: 11, pdf: 13, png: 14 },
+                        { id: 22, size: { id: 5, value: 40 }, cbb: null, pdf: null, png: null },
                     ],
                 },
             }],
@@ -122,7 +120,7 @@ describe('AdminOrderService.getAdminOrderById', () => {
                         images: true,
                         categories: true,
                         color: true,
-                        sizes: { size: true, cbb: true, jbb: true, pdf: true, png: true },
+                        sizes: { size: true, cbb: true, pdf: true, png: true },
                     },
                 },
             },
@@ -172,7 +170,6 @@ describe('AdminOrderService.getAdminOrderFile', () => {
             state: ModelState.ACTIVE,
             cbb: file(11, 'cbb'),
             pdf: file(13, 'pdf'),
-            jbb: file(12, 'jbb'),
             png: file(14, 'png'),
         });
         order = Object.assign(new AdminOrderEntity(), {
@@ -230,7 +227,7 @@ describe('AdminOrderService.getAdminOrderFile', () => {
     });
 
     it.each([
-        ['JBB', 12],
+        ['an unrelated file', 12],
         ['PNG', 14],
         ['CBB from an unselected size', 15],
         ['PDF from an unselected size', 16],

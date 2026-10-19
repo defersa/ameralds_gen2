@@ -2,7 +2,7 @@
   "name": "@ameralds/am-front",
   "private": true,
   "scripts": {
-    "am:front:generate:api": "ng-openapi -c openapi.config.ts"
+    "am:front:generate:api": "node ../../tools/generate-front-api.cjs"
   },
   "dependencies": {
     "@angular/animations": "^22.1.0",

@@ -73,7 +73,6 @@ export class AdminOrderService {
                         sizes: {
                             size: true,
                             cbb: true,
-                            jbb: true,
                             pdf: true,
                             png: true,
                         },
@@ -110,7 +109,6 @@ export class AdminOrderService {
                         id: size.id,
                         size: size.size,
                         cbb: size.cbb?.id ?? null,
-                        jbb: size.jbb?.id ?? null,
                         pdf: size.pdf?.id ?? null,
                         png: size.png?.id ?? null,
                     })),

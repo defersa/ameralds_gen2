@@ -37,9 +37,9 @@ describe('PatternAdminDownloadComponent', () => {
                 id: 7,
                 name: { ru: 'Волны', en: 'Waves' },
                 sizes: [
-                    { id: 21, size: { id: 3, value: 36 }, cbb: 11, pdf: 13, jbb: 12, png: 14 },
-                    { id: 22, size: { id: 5, value: 40 }, cbb: 15, pdf: 16, jbb: 18, png: 19 },
-                    { id: 23, size: { id: 6, value: 44 }, cbb: null, pdf: 17, jbb: 20, png: 21 },
+                    { id: 21, size: { id: 3, value: 36 }, cbb: 11, pdf: 13, png: 14 },
+                    { id: 22, size: { id: 5, value: 40 }, cbb: 15, pdf: 16, png: 19 },
+                    { id: 23, size: { id: 6, value: 44 }, cbb: null, pdf: 17, png: 21 },
                 ],
             },
         } as AdminOrderDetailsPatternDto;
@@ -81,7 +81,7 @@ describe('PatternAdminDownloadComponent', () => {
         expect(fixture.nativeElement.textContent).toContain('36 бвк');
         expect(fixture.nativeElement.textContent).toContain('44 бвк');
         expect(fixture.nativeElement.textContent).not.toContain('40 бвк');
-        expect(fixture.nativeElement.textContent).not.toMatch(/JBB|PNG/);
+        expect(fixture.nativeElement.textContent).not.toContain('PNG');
     });
 
     it.each([

@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { process } from '@am-back/core/declare/process';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import helmet from 'helmet';
@@ -49,19 +48,6 @@ async function bootstrap() {
     );
 
     app.setGlobalPrefix('api');
-
-    if (isDev) {
-        const config = new DocumentBuilder()
-            .setTitle('Ameralds api')
-            .setDescription('The amerald API description')
-            .setVersion('1.0')
-            .setBasePath('api')
-            .build();
-        const document = SwaggerModule.createDocument(app, config);
-        SwaggerModule.setup('swagger', app, document, {
-            jsonDocumentUrl: 'swagger/schema',
-        });
-    }
 
     if (module.hot) {
         module.hot.accept();

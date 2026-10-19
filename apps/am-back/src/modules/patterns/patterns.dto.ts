@@ -23,12 +23,6 @@ class BasePatternSizeDto extends EntityDto {
         type: 'number',
     })
     public png: number;
-
-    @ApiProperty({
-        description: 'Jbb file id',
-        type: 'number',
-    })
-    public jbb: number;
 }
 
 export class PatternSizeDto extends BasePatternSizeDto {

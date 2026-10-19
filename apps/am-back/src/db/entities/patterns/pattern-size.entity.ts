@@ -1,8 +1,9 @@
-import { Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from "typeorm";
 import { BaseModel } from "../../abstract/abstract.model";
 import { SizeEntity } from "./size.entity";
 import { PatternEntity } from "./pattern.entity";
 import { PrivateFileEntity } from "../files/file.entity";
+import type { PdfTranslationResult } from '../../../utils/translate-pdf-to-json';
 
 
 @Entity({ schema: 'patterns' })
@@ -25,7 +26,6 @@ export class PatternSizeEntity extends BaseModel {
     @JoinColumn({ foreignKeyConstraintName: 'pngFile' })
     public png: PrivateFileEntity;
 
-    @OneToOne(() => PrivateFileEntity, { onDelete: 'SET NULL', nullable: true })
-    @JoinColumn({ foreignKeyConstraintName: 'jbbFile' })
-    public jbb: PrivateFileEntity;
+    @Column({ type: 'jsonb', nullable: true, select: false })
+    public parsed: PdfTranslationResult | null;
 }

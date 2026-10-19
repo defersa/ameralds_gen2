@@ -38,7 +38,6 @@ export type PattenSizeFiles = {
     id: number;
     size: SizeType;
     cbb: Blob | { id: number; };
-    jbb: Blob | { id: number; };
     png: Blob | { id: number; };
     pdf: Blob | { id: number; };
 }

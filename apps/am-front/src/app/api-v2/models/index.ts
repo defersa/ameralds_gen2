@@ -209,8 +209,6 @@ export interface PatternSizeDto {
     pdf: number;
     /** Png file id */
     png: number;
-    /** Jbb file id */
-    jbb: number;
     /** Size id */
     size: number;
 }
@@ -301,8 +299,6 @@ export interface FullPatternSizeDto {
     pdf: number;
     /** Png file id */
     png: number;
-    /** Jbb file id */
-    jbb: number;
     /** Size id */
     size: SizeDto;
 }

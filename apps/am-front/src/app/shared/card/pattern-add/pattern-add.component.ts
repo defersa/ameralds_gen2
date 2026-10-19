@@ -184,7 +184,6 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective {
                 id: value["id"] as unknown as number,
                 size: value["size"] as unknown as number,
                 cbb: value["cbb"].id,
-                jbb: value["jbb"].id,
                 png: value["png"].id,
                 pdf: value["pdf"].id,
             }));

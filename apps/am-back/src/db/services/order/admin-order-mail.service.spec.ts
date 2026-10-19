@@ -202,7 +202,6 @@ describe('AdminOrderMailService', () => {
                 size: { id: 3, value: 36 },
                 cbb: file(11, 'cbb'),
                 pdf: file(13, 'pdf'),
-                jbb: file(12, 'jbb'),
                 png: file(14, 'png'),
             });
             order.patterns = [Object.assign(new OrderPatternEntity(), {
@@ -284,7 +283,7 @@ describe('AdminOrderMailService', () => {
             ]);
         });
 
-        it('handles absent CBB and PDF relations without attaching JBB or PNG', async () => {
+        it('handles absent CBB and PDF relations without attaching PNG', async () => {
             selectedSize.cbb = null;
             selectedSize.pdf = null;
 

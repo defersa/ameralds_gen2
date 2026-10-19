@@ -2,7 +2,7 @@ import type { GeneratorConfig } from "ng-openapi";
 
 
 const config: GeneratorConfig = {
-    input: "http://localhost:3000/swagger/schema",
+    input: "../../dist/openapi/schema.json",
     output: "./src/app/api-v2",
     options: {
         dateType: "Date",

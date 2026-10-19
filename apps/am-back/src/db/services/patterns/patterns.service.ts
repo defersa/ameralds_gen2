@@ -211,7 +211,6 @@ export class PatternsService {
                 color: true,
                 sizes: {
                     cbb: true,
-                    jbb: true,
                     pdf: true,
                     png: true,
                     size: true,

@@ -43,18 +43,6 @@ module.exports = {
             generatePackageJson: true,
             externalDependencies: isHmr ? [] : 'all',
             mergeExternals: isHmr,
-            transformers: [
-                {
-                    name: '@nestjs/swagger/plugin',
-                    options: {
-                        dtoFileNameSuffix: ['.dto.ts', '.entity.ts'],
-                        controllerFileNameSuffix: ['.controller.ts'],
-                        classValidatorShim: true,
-                        classTransformerShim: true,
-                        introspectComments: true,
-                    },
-                },
-            ],
         }),
         ...(isHmr
             ? [

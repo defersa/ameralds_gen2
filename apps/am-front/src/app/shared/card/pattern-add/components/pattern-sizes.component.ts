@@ -53,7 +53,6 @@ export class AmstorePatternSizesComponent {
                 },
                 Validators.required),
             cbb: new FormControl(size.cbb ?? null, Validators.required),
-            jbb: new FormControl(size.jbb ?? null, Validators.required),
             png: new FormControl(size.png ?? null, Validators.required),
             pdf: new FormControl(size.pdf ?? null, Validators.required),
         }));
