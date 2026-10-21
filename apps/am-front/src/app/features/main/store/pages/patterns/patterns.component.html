@@ -1,3 +1,10 @@
+@if (isAdmin()) {
+    <amstore-button [stroked]="true" color="primary" [routerLink]="['create']" class="mb-4">
+        <amstore-icon iconName="setting" [size]="20"/>
+        Добавить новую схему
+    </amstore-button>
+}
+
 <amstore-pattern-filters (filtersUpdate)="filtersUpdate$.next($event)" [pagesCount]="pagesCount()">
     @if (loading()) {
         <amstore-patterns-skeleton/>

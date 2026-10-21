@@ -21,7 +21,7 @@ export const PROFILE_ROUTES_SECTION: MenuSection = {
             icon: 'order'
         },
         {
-            label: 'Схемы',
+            label: 'Купленные',
             path: ['/', 'account', 'patterns'],
             icon: 'pattern'
         }

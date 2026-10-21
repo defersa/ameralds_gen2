@@ -1,4 +1,5 @@
-import { Component, DestroyRef, inject, signal, WritableSignal } from '@angular/core';
+import { Component, DestroyRef, inject, Signal, signal, WritableSignal } from '@angular/core';
+import { RouterLink } from "@angular/router";
 import { DestroyService } from "@am-front/utils/destroy.service";
 import { AmstoreSnapshotPatternComponent } from "@am-front/shared/snapshot/pattern/pattern.component";
 import { PatternPreviewActionsComponent } from "@am-front/shared/details/pattern-preview-actions/pattern-preview-actions.component";
@@ -13,6 +14,9 @@ import { distinctUntilChanged, Subject } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { loadingHandler } from '@am-front/utils/loading-with';
 import { AmstorePatternsSkeletonComponent } from '@am-front/shared/skeletons/patterns-skeleton.component';
+import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
+import { IconsComponent } from '@am-front/cdk/icons/icons.component';
+import { ProfileService } from '@am-front/services/profile.service';
 
 
 @Component({
@@ -25,16 +29,21 @@ import { AmstorePatternsSkeletonComponent } from '@am-front/shared/skeletons/pat
         PatternPreviewActionsComponent,
         AmstorePatternsFilterComponent,
         AmstorePatternsSkeletonComponent,
+        AmstoreButtonComponent,
+        IconsComponent,
+        RouterLink,
     ],
     standalone: true
 })
 export class PatternsComponent {
     protected patternsService: PatternsService = inject(PatternsService);
     protected destroyRef: DestroyRef = inject(DestroyRef);
+    private readonly profileService: ProfileService = inject(ProfileService);
 
     public readonly patterns: WritableSignal<PatternEntityDto[]> = signal([]);
     public readonly pagesCount: WritableSignal<number> = signal(1);
     public readonly loading: WritableSignal<boolean> = signal(false);
+    public readonly isAdmin: Signal<boolean> = this.profileService.isAdmin;
 
     public readonly filtersUpdate$: Subject<PatternsFilterValues> = new Subject();
 

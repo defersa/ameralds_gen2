@@ -6,11 +6,6 @@ export const ADMIN_ROUTES_SECTION: MenuSection = {
     color: 'special',
     list: [
         {
-            label: 'Схемы',
-            path: ['/', 'admin', 'patterns'],
-            icon: 'pattern',
-        },
-        {
             label: 'Размеры',
             path: ['/', 'admin', 'sizes'],
             icon: 'pattern',
@@ -21,11 +16,6 @@ export const ADMIN_ROUTES_SECTION: MenuSection = {
             path: ['/', 'admin', 'categories'],
             icon: 'pattern',
             // fontIcon: 'style',
-        },
-        {
-            label: 'Корзина',
-            path: ['/', 'admin', 'orders', 'cart'],
-            icon: 'pattern',
         },
         {
             label: 'Заказы админа',
