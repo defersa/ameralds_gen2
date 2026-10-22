@@ -1,4 +1,4 @@
-import { Column, Entity, TableInheritance } from "typeorm";
+import { Column, Entity, Index, TableInheritance } from "typeorm";
 import { BaseModel } from "../../abstract/abstract.model";
 
 
@@ -14,6 +14,11 @@ export class TokenEntity extends BaseModel {
     @Column()
     public expiredAt: Date;
 
+    @Index('IDX_token_value', { unique: true })
     @Column({ length: 300 })
     public value: string;
+
+    @Index('IDX_token_session')
+    @Column({ type: 'uuid', nullable: true })
+    public sessionId: string;
 }

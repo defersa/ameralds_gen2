@@ -15,6 +15,7 @@ import { extname } from 'path';
 
 @Controller('admin/cart')
 @ApiTags('admin')
+@Auth()
 @Roles(UserRole.ADMIN)
 export class AdminCartController {
     constructor(

@@ -11,7 +11,7 @@ import { AmstoreInputPasswordComponent } from "@am-front/cdk/forms/input-passwor
 import { AmstoreCheckboxComponent } from "@am-front/cdk/forms/checkbox/checkbox.component";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { switchMap } from "rxjs/operators";
-import { from, of } from 'rxjs';
+import { from } from 'rxjs';
 import { SnackService } from '@am-front/services/snackbar.service';
 
 
@@ -69,7 +69,7 @@ export class AmstoreRegistrationComponent {
                         data: {
                             title: 'Успешно',
                             smallTitle: 'Профиль успешно создан.',
-                            text: 'Для завершения регистрации требуется подтвердить аккаунт. Вам на почту выслано письмо с ссылкой на страницу с подтверждением аккаунта.',
+                            text: 'Теперь вы можете войти, используя email и пароль.',
                         },
                     });
                 },

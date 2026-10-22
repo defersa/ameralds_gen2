@@ -4,6 +4,8 @@ import {
   LOCALE_ID,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
+  inject,
+  provideAppInitializer,
 } from '@angular/core';
 import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
@@ -17,11 +19,13 @@ import { AuthInterceptor } from './auth.interceptor';
 import { DownloadInterceptor } from './download.interceptor';
 import { appRoutes } from './app.routes';
 import { provideApiClient } from './api-client.providers';
+import { AuthService } from './services/auth.service';
 
 registerLocaleData(localeRu, 'ru-RU', localeRuExtra);
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideAppInitializer(() => inject(AuthService).initialize()),
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),

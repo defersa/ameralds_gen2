@@ -1,94 +1,115 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
-import { IAuthResponse, IRefreshToken } from "@am-front/interface/profile.interface";
-import { HttpErrorResponse } from "@angular/common/http";
-import { LocalStorage } from "@am-front/decorators/local.decorator";
-import { Router } from "@angular/router";
-import { jwtDecode } from "jwt-decode";
-import { ApiUserProducer } from "@am-front/root/api-v2";
+import { inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { jwtDecode } from 'jwt-decode';
+import { catchError, defer, finalize, firstValueFrom, from, map, Observable, of, shareReplay, Subject, takeUntil, throwError, timeout } from 'rxjs';
+import { ApiUserProducer, UserTokensDTO } from '@am-front/root/api-v2';
 
+const LOGGED_OUT_KEY = 'am_logged_out';
 
-const ACCESS_TOKEN_NAME: string = 'accessToken';
-const REFRESH_TOKEN_NAME: string = 'refreshToken';
-
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-    @LocalStorage(ACCESS_TOKEN_NAME)
-    private localAccessToken!: string;
+    private userProducer = inject(ApiUserProducer);
+    private router = inject(Router);
+    private refreshRequest: Observable<string> | null = null;
+    private sessionChanges = new Subject<void>();
+    private sessionVersion = 0;
 
-    @LocalStorage(REFRESH_TOKEN_NAME)
-    private localRefreshToken!: string;
+    public readonly auth = signal(false);
+    public readonly token = signal<string | null>(null);
 
-    public accessExpiredAt(): Date {
-        const expiredAt: string = this.localAccessToken ? jwtDecode<{ expiredAt: string }>(this.localAccessToken)?.expiredAt : null;
-
-        return expiredAt ? new Date(expiredAt) : null;
+    public get sessionRevision(): number {
+        return this.sessionVersion;
     }
 
-    public refreshExpiredAt(): Date {
-        const expiredAt: string = this.localAccessToken ? jwtDecode<{ expiredAt: string }>(this.localRefreshToken)?.expiredAt : null;
-
-        return expiredAt ? new Date(expiredAt) : null;
+    constructor() {
+        // Токены старой версии приложения больше не должны оставаться в хранилище браузера.
+        try {
+            for (const key of ['accessToken', 'refreshToken', 'user_status']) {
+                localStorage.removeItem(key);
+            }
+        } catch { /* Storage может быть недоступен в приватном режиме. */ }
     }
 
-    private userProducer: ApiUserProducer = inject(ApiUserProducer);
-    private router: Router = inject(Router);
+    public async initialize(): Promise<void> {
+        try {
+            if (localStorage.getItem(LOGGED_OUT_KEY)) {
+                return;
+            }
+        } catch { /* Сессия всё ещё может быть восстановлена через cookie. */ }
+        await firstValueFrom(this.refreshAccessToken().pipe(catchError(() => of(null))));
+    }
 
-    public readonly auth: WritableSignal<boolean> = signal(Boolean(this.localAccessToken));
-    public readonly token: WritableSignal<string> = signal(this.localAccessToken);
-
-    public setToken(tokens: IAuthResponse): void {
+    public setToken(tokens: UserTokensDTO): void {
+        this.sessionChanges.next();
+        this.sessionVersion++;
         this.setAuthToken(tokens.access);
-        this.localRefreshToken = tokens.refresh;
+        try { localStorage.removeItem(LOGGED_OUT_KEY); } catch { /* Storage недоступен. */ }
     }
 
-    public logout(): void {
-        this.token.set(null);
-        this.auth.set(false);
-
-        this.localAccessToken = null;
-        this.localRefreshToken = null;
-
-        this.router.navigate(['/']);
-    }
-
-    public deleteToken(): void {
-        this.userProducer
-            .userControllerLogout({ access: this.localAccessToken, refresh: this.localRefreshToken })
-            .subscribe(() => this.logout());
-    }
-
-    public setAuthToken(token: string): void {
-        this.localAccessToken = token;
+    private setAuthToken(token: string): void {
+        const payload = jwtDecode<{ exp: number }>(token);
+        if (!Number.isFinite(payload.exp) || payload.exp * 1000 <= Date.now()) {
+            throw new Error('The access token has expired');
+        }
         this.token.set(token);
         this.auth.set(true);
     }
 
-    public tryToRefresh(): void {
-        if (!this.auth()) {
-            return;
+    private clearSession(): void {
+        this.sessionVersion++;
+        this.token.set(null);
+        this.auth.set(false);
+    }
+
+    public logout(): void {
+        this.sessionChanges.next();
+        this.clearSession();
+        try { localStorage.setItem(LOGGED_OUT_KEY, '1'); } catch { /* Storage недоступен. */ }
+        void this.router.navigate(['/']);
+    }
+
+    public deleteToken(): void {
+        this.logout();
+        // Локальный выход выполняется и при недоступности сервера.
+        this.withSessionLock(() => this.userProducer.userControllerLogout()).subscribe({ error: () => undefined });
+    }
+
+    private withSessionLock<T>(request: () => Observable<T>): Observable<T> {
+        return defer(() => navigator.locks
+            ? from(navigator.locks.request('ameralds-session', () => firstValueFrom(request())))
+            : request());
+    }
+
+    public refreshAccessToken(): Observable<string> {
+        if (this.refreshRequest) {
+            return this.refreshRequest;
         }
-
-        if (this.accessExpiredAt().valueOf() > Date.now()) {
-            return;
-        }
-
-        if (
-            this.refreshExpiredAt().valueOf() < Date.now()
-        ) {
-            return this.logout();
-        }
-
-        this.userProducer.userControllerRefresh({ access: this.localAccessToken, refresh: this.localRefreshToken })
-            .subscribe(
-                (result: IRefreshToken) => {
-                    this.setAuthToken(result.access);
-                },
-                (error: HttpErrorResponse) => {
-                    console.error(error.message);
-
-                    this.logout();
-                });
+        const version = this.sessionVersion;
+        const request = this.withSessionLock(() => version === this.sessionVersion
+            ? this.userProducer.userControllerRefresh().pipe(timeout(10_000), takeUntil(this.sessionChanges))
+            : throwError(() => new Error('The session has changed')))
+            .pipe(
+                map(tokens => {
+                    if (version !== this.sessionVersion) {
+                        throw new Error('The session has changed');
+                    }
+                    this.setAuthToken(tokens.access);
+                    return tokens.access;
+                }),
+                catchError(error => {
+                    if (version === this.sessionVersion) {
+                        this.clearSession();
+                    }
+                    return throwError(() => error);
+                }),
+                finalize(() => {
+                    if (this.refreshRequest === request) {
+                        this.refreshRequest = null;
+                    }
+                }),
+                shareReplay({ bufferSize: 1, refCount: false }),
+            );
+        this.refreshRequest = request;
+        return request;
     }
 }

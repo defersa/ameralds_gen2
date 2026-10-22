@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CartOrderPatternSizeDto, UserOrderDto } from "../orders/dto/orders.dto";
+import { CartOrderPatternSizeDto } from "../orders/dto/orders.dto";
 import { BaseEntityDto } from "../../common/common.dto";
 import { UserRole } from '../../db/entities/user.entity';
 
@@ -8,14 +8,21 @@ export class UserCredentialsDto {
     @ApiProperty({
         description: 'User email',
         type: 'string',
+        maxLength: 254,
     })
     public email: string;
 
     @ApiProperty({
         description: 'User password',
         type: 'string',
+        maxLength: 1024,
     })
     public password: string;
+}
+
+export class UserRegistrationCredentialsDto extends UserCredentialsDto {
+    @ApiProperty({ description: 'New password, at most 72 UTF-8 bytes', type: 'string', minLength: 8, maxLength: 72 })
+    public override password: string;
 }
 
 export class UserTokensDTO {
@@ -25,28 +32,7 @@ export class UserTokensDTO {
     })
     public access: string;
 
-    @ApiProperty({
-        description: 'Refresh token',
-        type: 'string',
-    })
-    public refresh: string;
 }
-
-export class RefreshTokenCredentialsDto {
-    @ApiProperty({
-        description: 'Access token',
-        type: 'string',
-    })
-    public access: string;
-
-    @ApiProperty({
-        description: 'Refresh token',
-        type: 'string',
-    })
-    public refresh: string;
-}
-
-export class LogoutCredentialsDto extends RefreshTokenCredentialsDto {}
 
 export class UserProfilePatternEntityDto extends BaseEntityDto {}
 

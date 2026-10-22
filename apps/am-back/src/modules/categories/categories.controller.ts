@@ -7,6 +7,7 @@ import { ParamsPaginatedDto, ParamsEntityDto } from "../../common/common.dto";
 import { CategoriesService } from "@am-back/db/service/patterns/categories.service";
 import { UserRole } from '../../db/entities/user.entity';
 import { CategoryEntity } from '../../db/entities/patterns/category.entity';
+import { Auth } from '../../core/guards/auth.guard';
 
 
 @Controller('categories')
@@ -25,6 +26,7 @@ export class CategoriesController {
     }
 
     @Post('create')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiCreatedResponse({ description: 'The category has been successfully created.', type: CategoryDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
@@ -35,6 +37,7 @@ export class CategoriesController {
     }
 
     @Delete(':id')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiOkResponse({ description: 'The category has been successfully removed.', type: null })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
@@ -54,6 +57,7 @@ export class CategoriesController {
     }
 
     @Get('list/:page')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiOkResponse({ description: 'The list of categories successfully returned.', type: CategoriesPaginatedPageDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
@@ -64,6 +68,8 @@ export class CategoriesController {
     }
 
     @Patch('edit/:id')
+    @Auth()
+    @Roles(UserRole.ADMIN)
     @ApiOkResponse({ description: 'The category has been successfully edited.', type: CategoryDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async edit(

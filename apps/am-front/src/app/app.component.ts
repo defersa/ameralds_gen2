@@ -1,6 +1,5 @@
-import { Component, inject, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AuthService } from '@am-front/services/auth.service';
 import { CartBadgeComponent } from '@am-front/core/cart-badge/cart-badge.component';
 import { HeaderComponent } from '@am-front/core/header/header.component';
 import { ProfileComponent } from '@am-front/core/profile/profile.component';
@@ -23,11 +22,5 @@ import { ProfileComponent } from '@am-front/core/profile/profile.component';
     },
 })
 export class AppComponent {
-    private authService: AuthService = inject(AuthService);
-
     public date: Date = new Date();
-
-    constructor() {
-        this.authService.tryToRefresh();
-    }
 }

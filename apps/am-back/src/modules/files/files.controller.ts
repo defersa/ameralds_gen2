@@ -1,3 +1,4 @@
+import { Auth } from '../../core/guards/auth.guard';
 import {
     ApiBadRequestResponse,
     ApiBody,
@@ -34,6 +35,7 @@ export class FilesController {
     }
 
     @Post('private/create')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiConsumes('multipart/form-data')
     @ApiBody({
@@ -60,6 +62,7 @@ export class FilesController {
 
 
     @Get('private/download/:id')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiOkResponse({
         schema: {

@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { UserCredentialsDto, RequestOptions, SuccessCreateDto, UserTokensDTO, RefreshTokenCredentialsDto, LogoutCredentialsDto, UserProfileDto } from "../models";
+import { UserRegistrationCredentialsDto, RequestOptions, SuccessCreateDto, UserCredentialsDto, UserTokensDTO, UserProfileDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiUserProducer {
@@ -25,10 +25,10 @@ export class ApiUserProducer {
         return context.set(this.clientContextToken, 'default');
     }
 
-    userControllerRegister(userCredentialsDto: UserCredentialsDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<SuccessCreateDto>;
-    userControllerRegister(userCredentialsDto: UserCredentialsDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<SuccessCreateDto>>;
-    userControllerRegister(userCredentialsDto: UserCredentialsDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<SuccessCreateDto>>;
-    userControllerRegister(userCredentialsDto: UserCredentialsDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<SuccessCreateDto>;
+    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<SuccessCreateDto>>;
+    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<SuccessCreateDto>>;
+    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
         const url = `${this.basePath}/api/user/user/register`;
 
         let headers: HttpHeaders;
@@ -47,7 +47,7 @@ export class ApiUserProducer {
         }
 
         return this.httpClient.request('post', url, {
-            body: userCredentialsDto,
+            body: userRegistrationCredentialsDto,
             observe,
             headers,
             reportProgress: options?.reportProgress,
@@ -87,10 +87,10 @@ export class ApiUserProducer {
         });
     }
 
-    userControllerRefresh(refreshTokenCredentialsDto: RefreshTokenCredentialsDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<UserTokensDTO>;
-    userControllerRefresh(refreshTokenCredentialsDto: RefreshTokenCredentialsDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<UserTokensDTO>>;
-    userControllerRefresh(refreshTokenCredentialsDto: RefreshTokenCredentialsDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<UserTokensDTO>>;
-    userControllerRefresh(refreshTokenCredentialsDto: RefreshTokenCredentialsDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+    userControllerRefresh(observe?: 'body', options?: RequestOptions<'json'>): Observable<UserTokensDTO>;
+    userControllerRefresh(observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<UserTokensDTO>>;
+    userControllerRefresh(observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<UserTokensDTO>>;
+    userControllerRefresh(observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
         const url = `${this.basePath}/api/user/user/refresh`;
 
         let headers: HttpHeaders;
@@ -103,13 +103,9 @@ export class ApiUserProducer {
         if (!headers.has('Accept')) {
             headers = headers.set('Accept', 'application/json');
         }
-        // Set Content-Type for JSON requests if not already set
-        if (!headers.has('Content-Type')) {
-            headers = headers.set('Content-Type', 'application/json');
-        }
 
         return this.httpClient.request('post', url, {
-            body: refreshTokenCredentialsDto,
+            body: null,
             observe,
             headers,
             reportProgress: options?.reportProgress,
@@ -118,10 +114,10 @@ export class ApiUserProducer {
         });
     }
 
-    userControllerLogout(logoutCredentialsDto: LogoutCredentialsDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
-    userControllerLogout(logoutCredentialsDto: LogoutCredentialsDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
-    userControllerLogout(logoutCredentialsDto: LogoutCredentialsDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
-    userControllerLogout(logoutCredentialsDto: LogoutCredentialsDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+    userControllerLogout(observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
+    userControllerLogout(observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
+    userControllerLogout(observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
+    userControllerLogout(observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
         const url = `${this.basePath}/api/user/user/logout`;
 
         let headers: HttpHeaders;
@@ -130,13 +126,9 @@ export class ApiUserProducer {
         } else {
             headers = new HttpHeaders(options?.headers);
         }
-        // Set Content-Type for JSON requests if not already set
-        if (!headers.has('Content-Type')) {
-            headers = headers.set('Content-Type', 'application/json');
-        }
 
         return this.httpClient.request('post', url, {
-            body: logoutCredentialsDto,
+            body: null,
             observe,
             headers,
             reportProgress: options?.reportProgress,

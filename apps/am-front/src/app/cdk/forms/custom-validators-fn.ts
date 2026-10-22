@@ -1,5 +1,6 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 import { Signal } from '@angular/core';
+import { isStrongPassword } from '@ameralds/utils';
 
 export class CustomValidatorFns {
     public static getMinValue: (value: number) => ValidatorFn = function (value: number): ValidatorFn {
@@ -87,7 +88,7 @@ export class CustomValidatorFns {
         if (!control) {
             return null;
         }
-        const isComplexity: boolean = (/(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{6,}/g).test(String(control.value));
+        const isComplexity = isStrongPassword(control.value);
         if (isComplexity) {
             return null;
         }

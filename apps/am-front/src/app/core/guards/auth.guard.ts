@@ -1,22 +1,17 @@
-import { Injectable } from "@angular/core";
-import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from "@angular/router";
-import { Observable } from "rxjs";
-import { ProfileService } from "@am-front/services/profile.service";
+import { inject, Injectable } from '@angular/core';
+import { Router, UrlTree } from '@angular/router';
+import { AuthService } from '@am-front/services/auth.service';
 
-
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthGuard {
-    constructor(private _profileService: ProfileService) {}
+    private auth = inject(AuthService);
+    private router = inject(Router);
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):
-        Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        return Boolean(this._profileService.userStatus());
+    public canActivate(): boolean | UrlTree {
+        return this.auth.auth() || this.router.parseUrl('/');
     }
 
-    canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot):
-        Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        return Boolean(this._profileService.userStatus());
+    public canActivateChild(): boolean | UrlTree {
+        return this.canActivate();
     }
 }

@@ -1,10 +1,12 @@
-import { CanActivate, ExecutionContext, Injectable, SetMetadata } from "@nestjs/common";
+import { applyDecorators, CanActivate, ExecutionContext, Injectable, SetMetadata, UnauthorizedException } from "@nestjs/common";
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Reflector } from "@nestjs/core";
 import type { RequestModel } from "@am-back/models/request.model";
+import { ApiErrorCodes } from '../../modules/errors/errors.dto';
 
 
 export const AUTH_KEY = 'auth';
-export const Auth = () => SetMetadata(AUTH_KEY, true);
+export const Auth = () => applyDecorators(SetMetadata(AUTH_KEY, true), ApiBearerAuth());
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -21,6 +23,10 @@ export class AuthGuard implements CanActivate {
         }
         const { user }: RequestModel = context.switchToHttp().getRequest();
 
-        return Boolean(user);
+        if (!user) {
+            throw new UnauthorizedException({ code: ApiErrorCodes.UNAUTHORIZED });
+        }
+
+        return true;
     }
 }

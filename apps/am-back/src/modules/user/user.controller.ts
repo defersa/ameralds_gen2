@@ -1,110 +1,86 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, Req } from "@nestjs/common";
-import { UserService } from "@am-back/db/service/user.service";
-import * as bcrypt from "bcrypt";
-import {
-    LogoutCredentialsDto,
-    RefreshTokenCredentialsDto,
-    UserCredentialsDto,
-    UserProfileDto,
-    UserTokensDTO
-} from "./user.dto";
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { ApiErrorCodes, ErrorsDto } from "../errors/errors.dto";
-import { Auth } from "@am-back/core/guards/auth.guard";
-import type { RequestModel } from "@am-back/models/request.model";
-import { UserEntity } from '../../db/entities/user.entity';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import type { Response } from 'express';
+import { UserService } from '@am-back/db/service/user.service';
+import { UserCredentialsDto, UserProfileDto, UserRegistrationCredentialsDto, UserTokensDTO } from './user.dto';
+import { ApiErrorCodes, ErrorsDto } from '../errors/errors.dto';
+import { Auth } from '@am-back/core/guards/auth.guard';
+import type { RequestModel } from '@am-back/models/request.model';
 import { SuccessCreateDto } from '../../common/common.dto';
-
-
-const passwordComplexCheck: RegExp = /(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z!@#$%^&*]{6,}/g;
-const emailCheck: RegExp = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+import { UserCredentialsPipe } from './user-credentials.pipe';
+import { clearRefreshCookie, readRefreshCookie, RefreshCookieAuth, SessionMutation, setRefreshCookie } from './session-http';
+import { isStrongPassword } from '@ameralds/utils';
 
 @Controller('user')
 @ApiTags('user')
 export class UserController {
-    constructor(
-        private userService: UserService,
-    ) {
-    }
+    constructor(private userService: UserService) {}
 
     @Post('register')
+    @SessionMutation()
+    @Throttle({ default: { limit: 5, ttl: 60_000 } })
     @ApiCreatedResponse({ description: 'The user has been successfully created.', type: SuccessCreateDto })
-    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
-    public async register(
-        @Body() { email, password }: UserCredentialsDto,
-    ): Promise<SuccessCreateDto> {
+    @ApiBadRequestResponse({ type: ErrorsDto })
+    public async register(@Body(UserCredentialsPipe) { email, password }: UserRegistrationCredentialsDto): Promise<SuccessCreateDto> {
+        if (!isStrongPassword(password)) {
+            throw new BadRequestException({ code: ApiErrorCodes.INVALID_PASSWORD });
+        }
         if (await this.userService.getUserByEmail(email)) {
-            throw new HttpException({ code: ApiErrorCodes.ALREADY_EXIST }, HttpStatus.BAD_REQUEST);
+            throw new BadRequestException({ code: ApiErrorCodes.ALREADY_EXIST });
         }
-
-        if (!passwordComplexCheck.test(password)) {
-            throw new HttpException({ code: ApiErrorCodes.INVALID_PASSWORD }, HttpStatus.BAD_REQUEST);
-        }
-
-        if (!emailCheck.test(email)) {
-            throw new HttpException({ code: ApiErrorCodes.INVALID_EMAIL }, HttpStatus.BAD_REQUEST);
-        }
-
         const user = await this.userService.creatUser(email, password);
-
         return { id: user.id };
     }
 
     @Post('sign-in')
-    @ApiOkResponse({ description: 'The user has been successfully authenticated.', type: UserTokensDTO })
+    @HttpCode(HttpStatus.OK)
+    @SessionMutation()
+    @Throttle({ default: { limit: 10, ttl: 60_000 } })
+    @ApiOkResponse({ description: 'Access token; refresh token is set as an HttpOnly cookie.', type: UserTokensDTO })
+    @ApiUnauthorizedResponse({ type: ErrorsDto })
+    @ApiBadRequestResponse({ type: ErrorsDto })
     public async signIn(
-        @Body() { email, password }: UserCredentialsDto,
+        @Body(UserCredentialsPipe) { email, password }: UserCredentialsDto,
+        @Res({ passthrough: true }) response: Response,
     ): Promise<UserTokensDTO> {
-        const user: UserEntity = await this.userService.getUserByEmail(email);
-
-        if (!user) {
-            throw new HttpException({ code: ApiErrorCodes.NOT_EXIST }, HttpStatus.BAD_REQUEST);
-        }
-
-        const isCorrectPassword: boolean = await bcrypt.compare(password, user.passwordHash);
-
-        if (!isCorrectPassword) {
-            throw new HttpException({ code: ApiErrorCodes.INCORRECT_PASSWORD }, HttpStatus.BAD_REQUEST);
-        }
-
-        return this.userService.createAccessToken(user);
+        const tokens = await this.userService.signIn(email, password);
+        setRefreshCookie(response, tokens);
+        return { access: tokens.access };
     }
 
     @Post('refresh')
-    @Auth()
-    @ApiOkResponse({ description: 'The auth token has been successfully refreshed.', type: UserTokensDTO })
-    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto })
-    public async refresh(
-        @Body() { refresh, access }: RefreshTokenCredentialsDto,
-    ): Promise<UserTokensDTO> {
-        const response: UserTokensDTO = await this.userService.refreshToken(access, refresh);
-
-        if (!response) {
-            throw new HttpException({ code: ApiErrorCodes.EXPIRED }, HttpStatus.BAD_REQUEST);
+    @HttpCode(HttpStatus.OK)
+    @SessionMutation()
+    @RefreshCookieAuth()
+    @ApiOkResponse({ description: 'Rotates the refresh cookie and issues a new access token.', type: UserTokensDTO })
+    @ApiUnauthorizedResponse({ type: ErrorsDto })
+    public async refresh(@Req() request: RequestModel, @Res({ passthrough: true }) response: Response): Promise<UserTokensDTO> {
+        const tokens = await this.userService.refreshToken(readRefreshCookie(request));
+        if (!tokens) {
+            clearRefreshCookie(response);
+            throw new UnauthorizedException({ code: ApiErrorCodes.EXPIRED });
         }
-
-        return response;
+        setRefreshCookie(response, tokens);
+        return { access: tokens.access };
     }
 
-
     @Post('logout')
-    @Auth()
-    @ApiOkResponse({ description: 'User has been logout.', type: null })
-    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto })
-    public async logout(
-        @Req() request: RequestModel,
-        @Body() { refresh, access }: LogoutCredentialsDto,
-    ): Promise<void> {
-        return this.userService.logout(request.user, access, refresh);
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @SessionMutation()
+    @RefreshCookieAuth()
+    @ApiNoContentResponse({ description: 'The session has been revoked and the refresh cookie cleared.' })
+    public async logout(@Req() request: RequestModel, @Res({ passthrough: true }) response: Response): Promise<void> {
+        await this.userService.logout(readRefreshCookie(request));
+        clearRefreshCookie(response);
     }
 
     @Get('profile')
     @Auth()
-    @ApiOkResponse({ description: 'Request of user profile.', type: UserProfileDto })
-    @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto })
-    public async profile(
-        @Req() request: RequestModel
-    ): Promise<UserProfileDto> {
-        return await this.userService.getUser(request.user.id);
+    @ApiOkResponse({ type: UserProfileDto })
+    @ApiUnauthorizedResponse({ type: ErrorsDto })
+    public async profile(@Req() request: RequestModel, @Res({ passthrough: true }) response: Response): Promise<UserProfileDto> {
+        response.setHeader('Cache-Control', 'no-store');
+        return this.userService.getUser(request.user.id);
     }
 }

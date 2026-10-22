@@ -8,7 +8,17 @@ import helmet from 'helmet';
 import 'reflect-metadata';
 import { getUploadsRoot } from './utils/path-with-dir';
 
-declare const module: any;
+interface HotModuleData {
+    closePromise?: Promise<void>;
+}
+
+declare const module: {
+    hot?: {
+        data?: HotModuleData;
+        accept(): void;
+        dispose(callback: (data: HotModuleData) => void): void;
+    };
+};
 
 async function bootstrap() {
     if (module.hot?.data?.closePromise) {
@@ -21,6 +31,10 @@ async function bootstrap() {
     });
 
     const isDev = process.env.NODE_ENV === 'dev';
+
+    if (process.env.TRUST_PROXY) {
+        app.set('trust proxy', process.env.TRUST_PROXY.split(',').map(value => value.trim()));
+    }
 
     app.use(
         helmet({
@@ -51,7 +65,7 @@ async function bootstrap() {
 
     if (module.hot) {
         module.hot.accept();
-        module.hot.dispose((data: any) => {
+        module.hot.dispose((data) => {
             data.closePromise = app.close();
         });
     }

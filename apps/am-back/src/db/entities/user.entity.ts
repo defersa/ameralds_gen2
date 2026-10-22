@@ -30,7 +30,7 @@ export class UserEntity extends BaseModel {
     @Column({ unique: true })
     public email: string;
 
-    @Column()
+    @Column({ select: false })
     public passwordHash: string;
 
     @Column({

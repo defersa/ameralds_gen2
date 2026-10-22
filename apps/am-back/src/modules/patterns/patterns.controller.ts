@@ -1,3 +1,4 @@
+import { Auth } from '../../core/guards/auth.guard';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
 import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { Roles } from "@am-back/core/guards/role.guard";
@@ -25,6 +26,7 @@ export class PatternsController {
     }
 
     @Post('create')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiCreatedResponse({ description: 'The pattern successfully created.', type: SuccessCreateDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
@@ -68,6 +70,7 @@ export class PatternsController {
     }
 
     @Patch('edit/:id')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiOkResponse({ description: 'The category has been successfully edited.', type: SuccessCreateDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})

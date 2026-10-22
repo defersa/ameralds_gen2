@@ -4,14 +4,12 @@ import {
     FormControl,
     FormGroup,
     ReactiveFormsModule,
-    UntypedFormControl,
     UntypedFormGroup,
     ValidationErrors
 } from "@angular/forms";
 import { RecaptchaDirective } from "../../recaptcha/recaptcha.directive";
 import { AuthService } from "@am-front/services/auth.service";
 import { ProfileService } from "@am-front/services/profile.service";
-import { IAuthResponse } from "@am-front/interface/profile.interface";
 import { MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
 import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
 import { AmstoreInputPasswordComponent } from "@am-front/cdk/forms/input-password/input-password.component";
@@ -74,8 +72,8 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
                     this.matDialogRef.close();
                 },
                 (error: HttpErrorResponse) => {
-                    this.error = 'Неверный логин или пароль';
-                    this.authForm.controls['username'].setErrors({ [this.errorName]: true });
+                    this.error = error.status === 429 ? 'Слишком много попыток. Попробуйте позже' : 'Неверный логин или пароль';
+                    this.authForm.controls['email'].setErrors({ [this.errorName]: true });
                     this.authForm.controls['password'].setErrors({ [this.errorName]: true });
                     this.authForm.markAsPristine();
                 }

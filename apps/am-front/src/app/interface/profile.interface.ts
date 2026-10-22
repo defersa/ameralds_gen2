@@ -1,4 +1,6 @@
 
+import type { UserTokensDTO } from '@am-front/root/api-v2';
+
 export interface IUser {
     id: number;
     username: string;
@@ -8,7 +10,7 @@ export interface IUser {
     person: {
         verify: boolean;
         location: 'ru' | 'en';
-        goods?: any;
+        goods?: unknown;
         patterns?: { id: number }[];
     }
 }
@@ -18,13 +20,4 @@ export type AuthRequestPayload = {
     password: string;
 }
 
-export interface IAuthResponse {
-    name?: string;
-    access?: string;
-    refresh?: string;
-    error?: string;
-}
-
-export type IRefreshToken = {
-    access: string;
-}
+export type IAuthResponse = UserTokensDTO;

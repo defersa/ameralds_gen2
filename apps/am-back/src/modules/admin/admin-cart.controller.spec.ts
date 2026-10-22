@@ -60,7 +60,7 @@ describe('AdminCartController.downloadOrderFile', () => {
     });
 
     it('denies anonymous requests before accessing the order or file', async () => {
-        await request(app.getHttpServer()).get('/api/admin/cart/42/download/13').expect(HttpStatus.FORBIDDEN);
+        await request(app.getHttpServer()).get('/api/admin/cart/42/download/13').expect(HttpStatus.UNAUTHORIZED);
 
         expect(getAdminOrderFile).not.toHaveBeenCalled();
         expect(getFileAsStream).not.toHaveBeenCalled();

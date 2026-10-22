@@ -7,6 +7,7 @@ import { MODULE_METADATA } from '@nestjs/common/constants';
 import { Test } from '@nestjs/testing';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { DataSource } from 'typeorm';
+import { JWT_MODULE_OPTIONS } from '@nestjs/jwt/dist/jwt.constants';
 import { AppModule } from '../apps/am-back/src/app.module';
 import { DbSharedModule } from '../apps/am-back/src/db/db-shared.module';
 
@@ -18,6 +19,7 @@ async function createSwaggerApplication(): Promise<INestApplication> {
 
     // Для описания контроллеров не нужны подключения к БД и экземпляры сервисов.
     builder.overrideProvider(DataSource).useValue({ isInitialized: false });
+    builder.overrideProvider(JWT_MODULE_OPTIONS).useValue({});
     const providers: Provider[] = Reflect.getMetadata(MODULE_METADATA.PROVIDERS, DbSharedModule) ?? [];
     for (const provider of providers) {
         const token = typeof provider === 'function' ? provider : provider.provide;
@@ -54,6 +56,8 @@ export async function generateFrontApi(): Promise<void> {
             .setTitle('Ameralds api')
             .setDescription('The amerald API description')
             .setVersion('1.0')
+            .addBearerAuth()
+            .addCookieAuth('am_refresh', { type: 'apiKey', in: 'cookie' }, 'am_refresh')
             .build();
         const document = SwaggerModule.createDocument(app, config);
         await mkdir(dirname(schemaPath), { recursive: true });

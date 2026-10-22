@@ -1,3 +1,4 @@
+import { Auth } from '../../core/guards/auth.guard';
 import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { ErrorsDto } from "../errors/errors.dto";
@@ -29,6 +30,7 @@ export class SizesController {
     }
 
     @Post('create')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiCreatedResponse({ description: 'The size has been successfully created.', type: SizeDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
@@ -39,6 +41,7 @@ export class SizesController {
     }
 
     @Delete(':id')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiOkResponse({ description: 'The size has been successfully removed.', type: null })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
@@ -58,6 +61,7 @@ export class SizesController {
     }
 
     @Get('list/:page')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiOkResponse({ description: 'The list of sizes successfully returned.', type: SizesPaginatedPageDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
@@ -68,6 +72,7 @@ export class SizesController {
     }
 
     @Patch('edit/:id')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiOkResponse({ description: 'The category has been successfully edited.', type: SizeDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})

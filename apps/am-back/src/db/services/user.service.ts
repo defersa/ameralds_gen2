@@ -1,151 +1,88 @@
-import { Injectable, Scope } from "@nestjs/common";
-import { DataSourceService } from "../data-source.service";
-import { FindOneOptions, Repository } from "typeorm";
-import * as bcrypt from "bcrypt";
-import { TokenService } from "@am-back/db/service/token.service";
-import { addDays } from "date-fns";
-import { UserProfileDto, UserTokensDTO } from "../../modules/user/user.dto";
-import { UserEntity } from "../entities/user.entity";
-import { TokenRefreshEntity } from '../entities/tokens/token-refresh.entity';
-import { TokenAccessEntity } from '../entities/tokens/token-access.entity';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { DataSourceService } from '../data-source.service';
+import { Raw, Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { TokenService, SessionTokens } from './token.service';
+import { UserProfileDto } from '../../modules/user/user.dto';
+import { UserEntity } from '../entities/user.entity';
+import { ModelState } from '../abstract/abstract.model';
+import { ApiErrorCodes } from '../../modules/errors/errors.dto';
 
+// Сравнение выполняется и для неизвестного email, чтобы не раскрывать наличие пользователя по времени ответа.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync('invalid-user-password', 10);
 
-@Injectable({
-    scope: Scope.DEFAULT
-})
+@Injectable()
 export class UserService {
     private userRepository: Repository<UserEntity>;
 
-    constructor(
-        private dataSource: DataSourceService,
-        private tokenService: TokenService,
-    ) {
-        this.userRepository = this.dataSource.getRepository<UserEntity>(UserEntity);
+    constructor(private dataSource: DataSourceService, private tokenService: TokenService) {
+        this.userRepository = this.dataSource.getRepository(UserEntity);
     }
 
     public getUserByEmail(email: string): Promise<UserEntity> {
-        return this.userRepository.findOne({
-            where: { email },
-            relations: {
-                access: true,
-                refresh: true,
-            }
-        });
+        return this.userRepository.findOne({ where: { email: Raw(alias => 'LOWER(' + alias + ') = :email', { email: email.toLowerCase() }) } });
     }
 
     public async creatUser(email: string, password: string): Promise<UserEntity> {
-        const passwordHash: string = await bcrypt.hash(password, await bcrypt.genSalt());
-
-        const user: UserEntity = this.userRepository.create({
-            passwordHash,
-            email,
-            username: email.split("@")[0]
-        });
-
-        await this.userRepository.save(user);
-
-        return user;
-    }
-
-    public async createAccessToken(user: UserEntity): Promise<UserTokensDTO> {
-        const accessTokenExpiredAt: Date = addDays(new Date(), 7);
-        const refreshTokenExpiredAt: Date = addDays(new Date(), 28);
-        const accessToken: TokenAccessEntity = await this.tokenService.createAccessToken({
-            userId: user.id,
-        }, accessTokenExpiredAt);
-
-        const refreshToken: TokenRefreshEntity = await this.tokenService.createRefreshToken({
-            userId: user.id,
-        }, refreshTokenExpiredAt);
-
-        user.access = [...(user.access ?? []), accessToken];
-        user.refresh = [...(user.refresh ?? []), refreshToken];
-
-        await this.userRepository.save(user);
-
-        return {
-            access: accessToken.value,
-            refresh: refreshToken.value
-        };
-    }
-
-    public async refreshToken(previousAccess: string, refreshToken: string): Promise<UserTokensDTO> {
-        await this.tokenService.deactivateToken(previousAccess);
-
-        const refreshTokenEntity: TokenRefreshEntity = await this.tokenService.getRefreshToken(refreshToken);
-
-        if (!refreshTokenEntity) {
-            return null;
-        }
-
-        const payload: Record<string, string> = this.tokenService.decodeToken(refreshToken);
-        const user: UserEntity = await this.userRepository.findOneBy({
-            id: Number(payload.userId),
-        });
-
-        const accessTokenExpiredAt: Date = addDays(new Date(), 7);
-
-        const accessToken: TokenAccessEntity = await this.tokenService.createAccessToken({
-            userId: user.id,
-        }, accessTokenExpiredAt);
-
-        user.access = [...(user.access ?? []), accessToken];
-        await this.userRepository.save(user);
-
-        return {
-            access: accessToken.value,
-            refresh: refreshTokenEntity.value,
-        };
-    }
-
-    public async logout(user: UserEntity, access: string, refresh: string): Promise<void> {
-        const accessEntity: TokenAccessEntity = user.access.find((token: TokenAccessEntity) => token.value === access);
-        const refreshEntity: TokenRefreshEntity = user.refresh.find((token: TokenRefreshEntity) => token.value === refresh);
-
-        await this.tokenService.setTokenInactive(accessEntity);
-        await this.tokenService.setTokenInactive(refreshEntity);
-    }
-
-    public async getUserByToken(token: string): Promise<UserEntity> {
-        const decodedToken: Record<string, string> = this.tokenService.decodeToken(token);
-        const expiredAt: Date = new Date(decodedToken.expiredAt);
-
-        if (expiredAt < new Date()) {
-            await this.tokenService.deactivateToken(token);
-
-            return null;
-        }
-
-        return await this.userRepository.findOne({
-            where: {
-                access: {
-                    value: token
-                }
-            },
-            relations: {
-                access: true,
-                refresh: true,
+        const passwordHash = await bcrypt.hash(password, 10);
+        const user = this.userRepository.create({ passwordHash, email, username: email.split('@')[0] });
+        try {
+            return await this.userRepository.save(user);
+        } catch (error) {
+            if (error.code === '23505') {
+                throw new BadRequestException({ code: ApiErrorCodes.ALREADY_EXIST });
             }
-        } as FindOneOptions<UserEntity>);
+            throw error;
+        }
+    }
+
+    public async signIn(email: string, password: string): Promise<SessionTokens> {
+        const user = await this.userRepository.findOne({
+            where: { email: Raw(alias => 'LOWER(' + alias + ') = :email', { email: email.toLowerCase() }) },
+            select: { id: true, passwordHash: true, state: true },
+        });
+        const validPassword = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
+        if (!user || !validPassword || user.state !== ModelState.ACTIVE) {
+            throw new UnauthorizedException({ code: ApiErrorCodes.INVALID_CREDENTIALS });
+        }
+        const tokens = await this.tokenService.createSession(user.id);
+        if (!tokens) {
+            throw new UnauthorizedException({ code: ApiErrorCodes.INVALID_CREDENTIALS });
+        }
+        return tokens;
+    }
+
+    public refreshToken(refresh: string): Promise<SessionTokens | null> {
+        return this.tokenService.rotateRefreshToken(refresh);
+    }
+
+    public logout(refresh: string): Promise<void> {
+        return this.tokenService.revokeSession(refresh);
+    }
+
+    public getUserByToken(token: string): Promise<UserEntity | null> {
+        return this.tokenService.getUserByAccessToken(token);
     }
 
     public async getUser(id: number): Promise<UserProfileDto> {
-        return await this.userRepository.findOne({
-            where: {
-                id,
-            },
-            relations: {
-                orders: true,
-                ownPatterns: {
-                    pattern: true,
-                    sizes: { size: true },
-                },
-            },
-            select: {
-                orders: {
-                    status: true,
-                }
-            }
+        const user = await this.userRepository.findOne({
+            where: { id, state: ModelState.ACTIVE },
+            relations: { ownPatterns: { pattern: true, sizes: { size: true } } },
         });
+        if (!user) {
+            throw new UnauthorizedException({ code: ApiErrorCodes.UNAUTHORIZED });
+        }
+        return {
+            id: user.id, createdAt: user.createdAt, updatedAt: user.updatedAt,
+            email: user.email, username: user.username, role: user.role,
+            ownPatterns: (user.ownPatterns ?? []).filter(item => item.state === ModelState.ACTIVE).map(item => ({
+                id: item.id, createdAt: item.createdAt, updatedAt: item.updatedAt, color: item.color,
+                pattern: item.pattern ? { id: item.pattern.id, createdAt: item.pattern.createdAt, updatedAt: item.pattern.updatedAt } : null,
+                sizes: (item.sizes ?? []).filter(size => size.state === ModelState.ACTIVE).map(size => ({
+                    id: size.id, createdAt: size.createdAt, updatedAt: size.updatedAt,
+                    size: size.size ? { id: size.size.id, value: size.size.value, createdAt: size.size.createdAt } : null,
+                })),
+            })),
+        };
     }
 }

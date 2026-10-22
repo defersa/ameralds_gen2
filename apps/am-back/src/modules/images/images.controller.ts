@@ -1,3 +1,4 @@
+import { Auth } from '../../core/guards/auth.guard';
 import { ApiBadRequestResponse, ApiBody, ApiConsumes, ApiCreatedResponse, ApiTags } from "@nestjs/swagger";
 import { Controller, NestInterceptor, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { Roles } from "@am-back/core/guards/role.guard";
@@ -18,6 +19,7 @@ export class ImagesController {
     }
 
     @Post('create')
+    @Auth()
     @Roles(UserRole.ADMIN)
     @ApiConsumes('multipart/form-data')
     @ApiBody({

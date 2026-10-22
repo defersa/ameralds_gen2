@@ -8,7 +8,7 @@ import { APP_CONFIG, appConfigModule } from "@am-back/core/config/app-config.mod
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: `env/.${process.env.NODE_ENV ?? 'dev'}.env`
+            envFilePath: [`env/.${process.env.NODE_ENV ?? 'dev'}.env`, '.env'],
         }),
     ],
     providers: [
