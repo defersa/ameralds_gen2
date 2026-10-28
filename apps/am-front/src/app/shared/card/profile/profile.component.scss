@@ -1,35 +1,30 @@
-@use "spacing";
+@use 'spacing';
+@use 'theming-var';
+@use 'typography';
 
 .amstore-profile-card {
-    .amstore-panel-content-wrapper {
-        padding: spacing.get-spacing(4) !important;
+    .amstore-panel {
+        border-radius: theming-var.$card-border-radius;
     }
 
-    &__main {
-        display: flex;
-        flex-direction: row;
+    .amstore-panel .amstore-panel-header {
+        height: auto;
+        min-height: spacing.get-spacing(16);
+        padding: spacing.get-spacing(4) spacing.get-spacing(8);
+        background: theming-var.get-amstore-color(blue, deep);
+        cursor: default;
 
-        &-image {
-            flex-shrink: 0;
+        h1 {
+            margin: 0;
+            @include typography.get-amstore-font('header', 24);
+        }
+    }
 
-            @media screen and (min-width: 1280px) {
-                width: 200px;
-                height: 200px;
-            }
-            @media screen and (min-width: 1920px) {
-                width: 250px;
-                height: 250px;
-            }
-            img {
-                object-fit: cover;
-                width: 100%;
-                height: 100%;
-                border-radius: 8px;
-            }
-        }
-        &-body {
-            margin: 0 spacing.get-spacing(4) 0 spacing.get-spacing(8);
-            flex-grow: 1;
-        }
+    .amstore-panel .amstore-panel-content-wrapper {
+        padding: spacing.get-spacing(4);
+    }
+
+    &__image {
+        border-radius: theming-var.$card-border-radius;
     }
 }

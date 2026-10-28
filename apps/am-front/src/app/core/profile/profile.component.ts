@@ -36,14 +36,12 @@ export class ProfileComponent {
 
     private _profile: IUser | null = null;
 
-    constructor(
-    ) {
-    }
-
     public login(): void {
         this._dialog.openCustomDialog(AmstoreLoginComponent, {
             panelClass: "amstore-dialog-login-panel",
-            minWidth: '400px'
+            minWidth: '0',
+            width: '440px',
+            maxWidth: 'calc(100vw - 32px)',
         });
     }
 

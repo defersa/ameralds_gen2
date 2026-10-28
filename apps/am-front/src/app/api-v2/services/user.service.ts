@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { UserRegistrationCredentialsDto, RequestOptions, SuccessCreateDto, UserCredentialsDto, UserTokensDTO, UserProfileDto } from "../models";
+import { EmailLoginRequestDto, RequestOptions, EmailLoginTokenDto, EmailLoginResponseDto, UserRegistrationCredentialsDto, UserCredentialsDto, UserTokensDTO, UserProfileDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiUserProducer {
@@ -25,11 +25,38 @@ export class ApiUserProducer {
         return context.set(this.clientContextToken, 'default');
     }
 
-    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<SuccessCreateDto>;
-    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<SuccessCreateDto>>;
-    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<SuccessCreateDto>>;
-    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
-        const url = `${this.basePath}/api/user/user/register`;
+    userControllerRequestEmailLogin(emailLoginRequestDto: EmailLoginRequestDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
+    userControllerRequestEmailLogin(emailLoginRequestDto: EmailLoginRequestDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
+    userControllerRequestEmailLogin(emailLoginRequestDto: EmailLoginRequestDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
+    userControllerRequestEmailLogin(emailLoginRequestDto: EmailLoginRequestDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/user/user/email-login/request`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('post', url, {
+            body: emailLoginRequestDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    userControllerSignInByEmail(emailLoginTokenDto: EmailLoginTokenDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<EmailLoginResponseDto>;
+    userControllerSignInByEmail(emailLoginTokenDto: EmailLoginTokenDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<EmailLoginResponseDto>>;
+    userControllerSignInByEmail(emailLoginTokenDto: EmailLoginTokenDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<EmailLoginResponseDto>>;
+    userControllerSignInByEmail(emailLoginTokenDto: EmailLoginTokenDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/user/user/email-login/consume`;
 
         let headers: HttpHeaders;
         if (options?.headers instanceof HttpHeaders) {
@@ -40,6 +67,33 @@ export class ApiUserProducer {
         // Advertise the response content type declared in the spec
         if (!headers.has('Accept')) {
             headers = headers.set('Accept', 'application/json');
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('post', url, {
+            body: emailLoginTokenDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
+    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
+    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
+    userControllerRegister(userRegistrationCredentialsDto: UserRegistrationCredentialsDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/user/user/register`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
         }
         // Set Content-Type for JSON requests if not already set
         if (!headers.has('Content-Type')) {

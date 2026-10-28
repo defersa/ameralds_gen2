@@ -5,7 +5,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { HttpStatus } from '@nestjs/common';
-import { AdminOrderEntity } from '../../entities/purchases/order.entity';
+import { AdminOrderEntity, UserOrderEntity } from '../../entities/purchases/order.entity';
 import { AdminOrderMailService } from './admin-order-mail.service';
 import { DataSourceService } from '../../data-source.service';
 import { getMailLogo, getMailProductImage } from '../../../mail/mail-assets';
@@ -15,6 +15,8 @@ import { PatternEntity } from '../../entities/patterns/pattern.entity';
 import { PrivateFileEntity } from '../../entities/files/file.entity';
 import { ModelState } from '../../abstract/abstract.model';
 import { ApiEntityNames, ApiErrorCodes } from '../../../modules/errors/errors.dto';
+import { EmailLoginService } from '../email-login.service';
+import { MailService } from '../../../mail/mail.service';
 
 
 jest.mock('nodemailer', () => ({
@@ -33,6 +35,8 @@ describe('AdminOrderMailService', () => {
     let service: AdminOrderMailService;
     let order: AdminOrderEntity;
     let findOne: jest.Mock;
+    let personalOrder: UserOrderEntity;
+    let createLink: jest.Mock;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -47,9 +51,11 @@ describe('AdminOrderMailService', () => {
             patterns: [],
         });
         findOne = jest.fn().mockImplementation(async () => order);
+        personalOrder = Object.assign(new UserOrderEntity(), { id: 17, user: { id: 9, email: 'buyer@example.com' } });
+        createLink = jest.fn().mockResolvedValue('http://localhost:4400/auth/email#token=secret');
         service = new AdminOrderMailService({
-            getRepository: jest.fn().mockReturnValue({ findOne }),
-        } as unknown as DataSourceService);
+            getRepository: jest.fn(entity => entity === AdminOrderEntity ? { findOne } : { findOne: jest.fn(async () => personalOrder) }),
+        } as unknown as DataSourceService, { createLink } as unknown as EmailLoginService, new MailService());
         jest.mocked(getMailLogo).mockResolvedValue({
             filename: 'amstore-logo.png',
             content: Buffer.from('logo'),
@@ -75,6 +81,9 @@ describe('AdminOrderMailService', () => {
             host: '127.0.0.1',
             port: 1025,
             secure: false,
+            connectionTimeout: 30_000,
+            greetingTimeout: 30_000,
+            socketTimeout: 60_000,
         });
         expect(sendMail).toHaveBeenCalledTimes(2);
         expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({
@@ -133,6 +142,21 @@ describe('AdminOrderMailService', () => {
         expect(message.text).toContain('Подбор: включён');
         expect(message.text).toMatch(/Итого: 500\s₽/);
         expect(message.attachments).toHaveLength(2);
+    });
+
+    it('adds a login link to the personal order using its owner and personal ID', async () => {
+        await service.sendCompletedOrder(order);
+        expect(createLink).toHaveBeenCalledWith(9, '/account/orders/17');
+        expect(sendMail.mock.calls[0][0].html).toContain('Открыть заказ');
+        expect(sendMail.mock.calls[0][0].text).toContain('http://localhost:4400/auth/email#token=secret');
+    });
+
+    it.each(['missing order', 'changed email'])('does not issue an account login link for a %s', async reason => {
+        if (reason === 'missing order') personalOrder = null;
+        else personalOrder.user.email = 'new-owner@example.com';
+        await service.sendCompletedOrder(order);
+        expect(createLink).not.toHaveBeenCalled();
+        expect(sendMail.mock.calls[0][0].html).not.toContain('Открыть заказ');
     });
 
     it('keeps the order readable if the pattern or its image is unavailable', async () => {

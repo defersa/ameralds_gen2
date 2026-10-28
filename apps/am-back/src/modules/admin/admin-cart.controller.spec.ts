@@ -13,20 +13,22 @@ import { ApiEntityNames, ApiErrorCodes } from '../errors/errors.dto';
 import { AdminCartController } from './admin-cart.controller';
 
 
-describe('AdminCartController.downloadOrderFile', () => {
+describe('AdminCartController', () => {
     let app: INestApplication;
     let file: PrivateFileEntity;
     let getAdminOrderFile: jest.Mock;
     let getFileAsStream: jest.Mock;
+    let completeOrder: jest.Mock;
     const content = Buffer.from('%PDF-1.7\nfile contents');
 
     beforeAll(async () => {
         getAdminOrderFile = jest.fn();
         getFileAsStream = jest.fn();
+        completeOrder = jest.fn();
         const module = await Test.createTestingModule({
             controllers: [AdminCartController],
             providers: [
-                { provide: AdminOrderService, useValue: { getAdminOrderFile } },
+                { provide: AdminOrderService, useValue: { getAdminOrderFile, completeOrder } },
                 { provide: FilesService, useValue: { getFileAsStream } },
             ],
         }).compile();
@@ -49,6 +51,7 @@ describe('AdminCartController.downloadOrderFile', () => {
         file = Object.assign(new PrivateFileEntity(), { id: 13, name: 'Схема 36.pdf' });
         getAdminOrderFile.mockImplementation(async () => file);
         getFileAsStream.mockImplementation(async () => Readable.from([content]));
+        completeOrder.mockResolvedValue({ order: { id: 43, isComplete: false, patterns: [] }, price: { ru: 0, en: 0 } });
     });
 
     afterAll(async () => {
@@ -127,5 +130,28 @@ describe('AdminCartController.downloadOrderFile', () => {
             .expect(HttpStatus.BAD_REQUEST);
 
         expect(response.body).toEqual(error);
+    });
+
+    it('denies anonymous order completion before assigning purchases', async () => {
+        await request(app.getHttpServer()).patch('/api/admin/cart/complete')
+            .send({ email: 'buyer@example.com' }).expect(HttpStatus.UNAUTHORIZED);
+
+        expect(completeOrder).not.toHaveBeenCalled();
+    });
+
+    it('denies order completion by a common user before assigning purchases', async () => {
+        await request(app.getHttpServer()).patch('/api/admin/cart/complete')
+            .set('test-user-role', UserRole.COMMON)
+            .send({ email: 'buyer@example.com' }).expect(HttpStatus.FORBIDDEN);
+
+        expect(completeOrder).not.toHaveBeenCalled();
+    });
+
+    it('allows an administrator to complete an order for an email', async () => {
+        await request(app.getHttpServer()).patch('/api/admin/cart/complete')
+            .set('test-user-role', UserRole.ADMIN)
+            .send({ email: 'buyer@example.com' }).expect(HttpStatus.OK);
+
+        expect(completeOrder).toHaveBeenCalledWith({ email: 'buyer@example.com' });
     });
 });

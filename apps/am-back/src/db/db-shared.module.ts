@@ -14,6 +14,10 @@ import { PatternOrdersService } from "@am-back/db/service/patterns/pattern-order
 import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
 import { AdminOrderService } from '@am-back/db/service/order/admin-order.service';
 import { AdminOrderMailService } from '@am-back/db/service/order/admin-order-mail.service';
+import { EmailLoginService } from '@am-back/db/service/email-login.service';
+import { MailService } from '../mail/mail.service';
+import { AuthEmailService } from './services/auth-email.service';
+import { AuthEmailLimitService } from './services/auth-email-limit.service';
 
 
 const services: any[] = [
@@ -32,6 +36,10 @@ const services: any[] = [
     OrderService,
     AdminOrderService,
     AdminOrderMailService,
+    EmailLoginService,
+    MailService,
+    AuthEmailService,
+    AuthEmailLimitService,
 ];
 
 @Module({

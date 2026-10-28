@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { type EntityManager, Repository } from 'typeorm';
 import { DataSourceService } from '../../data-source.service';
-import { CartDto, InputShortOrderPatternDto } from '../../../modules/orders/dto/orders.dto';
+import { CartDto, InputShortOrderPatternDto, UserOrderDetailsDto } from '../../../modules/orders/dto/orders.dto';
 import { PatternOrdersService } from '@am-back/db/service/patterns/pattern-orders.service';
-import { OrderStatus, UserOrderEntity } from '../../entities/purchases/order.entity';
+import { AdminOrderEntity, OrderStatus, UserOrderEntity } from '../../entities/purchases/order.entity';
 import { UserEntity } from '../../entities/user.entity';
 import { OrderPatternEntity, UserPatternEntity } from '../../entities/patterns/pattern-order.entity';
 import { UserPatternService } from '@am-back/db/service/general/user-pattern.service';
@@ -13,6 +13,9 @@ import { PatternEntity } from '../../entities/patterns/pattern.entity';
 import { PatternsService } from '@am-back/db/service/patterns/patterns.service';
 import { type PatternOrderForPriceModel } from '@ameralds/utils';
 import { getOrderPrice, prepareCartPattern } from '@am-back/db/service/order/order.utils';
+import { UserService } from '../user.service';
+import { ModelState } from '../../abstract/abstract.model';
+import { ApiEntityNames, ApiErrorCodes } from '../../../modules/errors/errors.dto';
 
 
 @Injectable()
@@ -23,7 +26,8 @@ export class OrderService {
         private dataSource: DataSourceService,
         private patternOrdersService: PatternOrdersService,
         private userPatternService: UserPatternService,
-        private patternsService: PatternsService
+        private patternsService: PatternsService,
+        private userService: UserService,
     ) {
         this.userOrderRepository = this.dataSource.getRepository<UserOrderEntity>(UserOrderEntity);
     }
@@ -32,6 +36,70 @@ export class OrderService {
         const order: UserOrderEntity = this.userOrderRepository.create({ user });
 
         return this.userOrderRepository.save(order);
+    }
+
+    public async getCompletedUserOrder(user: UserEntity, id: number): Promise<UserOrderDetailsDto> {
+        const order = await this.userOrderRepository.findOne({
+            where: { id, user: { id: user.id }, status: OrderStatus.SUCCESS, state: ModelState.ACTIVE },
+            relations: { patterns: { pattern: { name: true, images: true }, sizes: { size: true } } },
+            order: { patterns: { id: 'ASC', pattern: { images: { index: 'ASC' } } } },
+        });
+        if (!order) {
+            throw new BadRequestException({ code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.CART });
+        }
+        // Возвращаем только представление заказа, без пользователя, админского заказа и путей приватных файлов.
+        return {
+            id: order.id, createdAt: order.createdAt, updatedAt: order.updatedAt, status: order.status,
+            patterns: (order.patterns ?? []).filter(item => item.state === ModelState.ACTIVE).map(item => ({
+                id: item.id, createdAt: item.createdAt, updatedAt: item.updatedAt,
+                name: item.pattern?.name ? { ru: item.pattern.name.ru, en: item.pattern.name.en } : null,
+                images: (item.pattern?.images ?? []).filter(image => image.state === ModelState.ACTIVE),
+                sizes: (item.sizes ?? []).filter(size => size.state === ModelState.ACTIVE).map(size => ({
+                    id: size.id, createdAt: size.createdAt, updatedAt: size.updatedAt,
+                    size: size.size ? { id: size.size.id, value: size.size.value, createdAt: size.size.createdAt } : null,
+                })),
+                color: item.color,
+            })),
+        };
+    }
+
+    public async createFromAdminOrder(adminOrder: AdminOrderEntity, manager: EntityManager): Promise<UserOrderEntity | null> {
+        if (adminOrder.state !== ModelState.ACTIVE || !adminOrder.isComplete) {
+            throw new BadRequestException({ code: ApiErrorCodes.INVALID, entity: ApiEntityNames.CART });
+        }
+
+        if (adminOrder.email == null || adminOrder.email === '') {
+            return null;
+        }
+
+        // Блокировка пользователя также сериализует дополнение его купленных схем.
+        const user = await this.userService.getOrCreateUserWithoutPassword(adminOrder.email, manager);
+        const repository = manager.getRepository(UserOrderEntity);
+        const existingOrder = await repository.findOne({ where: { sourceAdminOrder: { id: adminOrder.id } } });
+
+        if (existingOrder) {
+            return existingOrder;
+        }
+
+        const order = await repository.save(repository.create({
+            user,
+            status: OrderStatus.SUCCESS,
+            sourceAdminOrder: adminOrder,
+        }));
+        const patternRepository = manager.getRepository(OrderPatternEntity);
+
+        order.patterns = await patternRepository.save((adminOrder.patterns ?? []).map(item => patternRepository.create({
+            order,
+            state: item.state,
+            pattern: item.pattern,
+            sizes: [...(item.sizes ?? [])],
+            color: item.color,
+            requiresPatternPurchase: item.requiresPatternPurchase,
+        })));
+
+        await this.userPatternService.addBoughtPatterns(user, order.patterns, manager);
+
+        return order;
     }
 
     public async getOpenUserOrder(user: UserEntity): Promise<UserOrderEntity> {

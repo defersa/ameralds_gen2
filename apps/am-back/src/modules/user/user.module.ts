@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { UserController } from "./user.controller";
 import { DbSharedModule } from "../../db/db-shared.module";
 import { ThrottlerModule } from '@nestjs/throttler';
-import { AuthThrottleGuard, SessionRequestGuard } from './session-http';
+import { AuthEmailThrottleGuard, AuthThrottleGuard, SessionRequestGuard } from './session-http';
 
 
 @Module({
@@ -13,6 +13,6 @@ import { AuthThrottleGuard, SessionRequestGuard } from './session-http';
     controllers: [
         UserController,
     ],
-    providers: [AuthThrottleGuard, SessionRequestGuard],
+    providers: [AuthThrottleGuard, SessionRequestGuard, AuthEmailThrottleGuard],
 })
 export class UserModule {}

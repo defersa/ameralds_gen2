@@ -3,7 +3,7 @@ import { escapeHtml } from './mail-template';
 
 export const MAIL_LOGO_CID = 'amstore-logo@ameralds';
 
-export function renderMailLayout(title: string, preheader: string, content: string): string {
+export function renderMailLayout(title: string, preheader: string, content: string, footer = 'Письмо сформировано автоматически по вашему заказу.'): string {
     return `<!doctype html>
 <html lang="ru">
 <head>
@@ -44,7 +44,7 @@ export function renderMailLayout(title: string, preheader: string, content: stri
                 </td></tr>
                 <tr><td align="center" style="padding:20px 16px 0;color:#707070;font-size:12px;line-height:18px;">
                     AMSTORE · Схемы и подборы<br>
-                    Письмо сформировано автоматически по вашему заказу.
+                    ${escapeHtml(footer)}
                 </td></tr>
             </table>
         </td></tr>

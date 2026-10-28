@@ -54,13 +54,14 @@ export class TokenService {
         }
     }
 
-    public createSession(userId: number): Promise<SessionTokens> {
-        return this.dataSource.dataSource.transaction(async manager => {
+    public createSession(userId: number, manager?: EntityManager): Promise<SessionTokens> {
+        const create = async (manager: EntityManager) => {
             const user = await manager.getRepository(UserEntity).findOne({
                 where: { id: userId, state: ModelState.ACTIVE }, lock: { mode: 'pessimistic_write' },
             });
             return user ? this.createPair(manager, userId, randomUUID(), new Date(Date.now() + REFRESH_TOKEN_TTL_SECONDS * 1000)) : null;
-        });
+        };
+        return manager ? create(manager) : this.dataSource.dataSource.transaction(create);
     }
 
     private async createPair(manager: EntityManager, userId: number, sessionId: string, refreshExpiredAt: Date): Promise<SessionTokens> {

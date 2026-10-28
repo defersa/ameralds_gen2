@@ -185,4 +185,13 @@ describe('authentication session lifecycle', () => {
         expect(profile).not.toHaveProperty('refresh');
         expect(profile).not.toHaveProperty('state');
     });
+
+    it.each(['Password123!', 'invalid-user-password'])('rejects passwordless accounts even with %s', async password => {
+        user.passwordHash = null;
+
+        await expect(userService.signIn(user.email, password)).rejects.toMatchObject({
+            response: { code: 'INVALID_CREDENTIALS' }, status: 401,
+        });
+        expect(records).toHaveLength(0);
+    });
 });

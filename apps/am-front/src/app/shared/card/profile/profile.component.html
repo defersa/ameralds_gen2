@@ -1,47 +1,28 @@
 <amstore-panel color="accent" [state]="true" [clickable]="false">
-    <amstore-panel-header>Пользователь №{{user().id}}</amstore-panel-header>
-    <div class="amstore-profile-card__main">
-        <div class="amstore-profile-card__main-image">
-            <img src="assets/no-profile-image.png">
-        </div>
-        <div class="amstore-profile-card__main-body" [formGroup]="mainFromGroup">
-            <amstore-forms-input formControlName="username" label="Имя пользователя"/>
-            <amstore-forms-input formControlName="email" label="Почта"/>
+    <amstore-panel-header>
+        <h1>Пользователь №{{ user().id }}</h1>
+    </amstore-panel-header>
 
-            <amstore-button [stroked]="true" color="accent">Сменить пароль</amstore-button>
+    <div class="grid grid-cols-1 gap-7 sm:grid-cols-[200px_minmax(0,1fr)]">
+        <img class="amstore-profile-card__image mx-auto size-50 max-w-full object-cover sm:mx-0"
+             src="assets/no-profile-image.png" alt="Изображение профиля" width="200" height="200">
 
-            <div class="amstore-card-container-line">
-                <h3>Свойства:</h3>
-                <div class="amstore-row">
-                    @if (user().is_staff) {
-                        <amstore-chip color="accent">Админ</amstore-chip>
-                    }
-                    <amstore-chip [color]="user().person.verify ? 'accent' : 'warn'">
-                        {{user().person.verify ? 'Подтвержденный' : 'Не подтвержденный' }}
-                    </amstore-chip>
+        <div class="flex min-w-0 flex-col items-stretch gap-6 pt-2 sm:pr-4">
+            <amstore-input-signal [formField]="profileForm.username" label="Имя пользователя"
+                                  autocomplete="username"/>
+            <amstore-input-signal [formField]="profileForm.email" label="Почта" type="email"
+                                  autocomplete="email"/>
 
-                    <amstore-chip color="primary">
-                        {{user().person.location}}
-                    </amstore-chip>
-                </div>
-            </div>
-
+            <amstore-button class="self-start uppercase" [stroked]="true" color="accent" size="small"
+                            [disabled]="true" role="button" aria-disabled="true" tabindex="-1">
+                Сменить пароль
+            </amstore-button>
         </div>
     </div>
 
-    <div class="amstore-card-container-line">
-        <h3>Дополнительные параметры:</h3>
-
-        <div class="amstore-row">
-            Дата регистрации: {{user().date_joined | date : 'yyyy.MM.dd HH:mm:SS'}}
-        </div>
-    </div>
-
-    <div class="amstore-card-container-line align-items-end">
-        <amstore-button color="warn" (click)="logout()">Выйти</amstore-button>
-    </div>
-
-    <div class="amstore-card-container-line align-items-end">
-        <ng-content/>
+    <div class="mt-12 mb-3 flex justify-end">
+        <amstore-button class="uppercase" color="accent" [disabled]="true" role="button" aria-disabled="true" tabindex="-1">
+            Сохранить
+        </amstore-button>
     </div>
 </amstore-panel>

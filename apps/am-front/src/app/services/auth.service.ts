@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { catchError, defer, finalize, firstValueFrom, from, map, Observable, of, shareReplay, Subject, takeUntil, throwError, timeout } from 'rxjs';
 import { ApiUserProducer, UserTokensDTO } from '@am-front/root/api-v2';
+import { isLocalPath } from '@ameralds/utils';
 
 const LOGGED_OUT_KEY = 'am_logged_out';
 
@@ -44,6 +45,26 @@ export class AuthService {
         this.sessionVersion++;
         this.setAuthToken(tokens.access);
         try { localStorage.removeItem(LOGGED_OUT_KEY); } catch { /* Storage недоступен. */ }
+    }
+
+    public requestEmailLogin(email: string, redirectPath?: string): Observable<void> {
+        return this.userProducer.userControllerRequestEmailLogin({ email, redirectPath });
+    }
+
+    public signInWithEmailLink(token: string): Observable<string> {
+        const version = this.sessionVersion;
+        // Сначала завершаем HTTP-подписку: setToken уведомляет об изменении сессии.
+        return defer(() => from(firstValueFrom(this.withSessionLock(() => version === this.sessionVersion
+            ? this.userProducer.userControllerSignInByEmail({ token }).pipe(takeUntil(this.sessionChanges))
+            : throwError(() => new Error('The session has changed')))))).pipe(
+            map(result => {
+                if (version !== this.sessionVersion) {
+                    throw new Error('The session has changed');
+                }
+                this.setToken(result);
+                return isLocalPath(result.redirectPath) ? result.redirectPath : '/account/profile';
+            }),
+        );
     }
 
     private setAuthToken(token: string): void {

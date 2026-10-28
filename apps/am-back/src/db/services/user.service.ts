@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { DataSourceService } from '../data-source.service';
-import { Raw, Repository } from 'typeorm';
+import { type EntityManager, Raw, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { TokenService, SessionTokens } from './token.service';
 import { UserProfileDto } from '../../modules/user/user.dto';
-import { UserEntity } from '../entities/user.entity';
+import { UserEntity, UserStatus } from '../entities/user.entity';
 import { ModelState } from '../abstract/abstract.model';
 import { ApiErrorCodes } from '../../modules/errors/errors.dto';
 
@@ -23,17 +23,39 @@ export class UserService {
         return this.userRepository.findOne({ where: { email: Raw(alias => 'LOWER(' + alias + ') = :email', { email: email.toLowerCase() }) } });
     }
 
-    public async creatUser(email: string, password: string): Promise<UserEntity> {
-        const passwordHash = await bcrypt.hash(password, 10);
-        const user = this.userRepository.create({ passwordHash, email, username: email.split('@')[0] });
-        try {
-            return await this.userRepository.save(user);
-        } catch (error) {
-            if (error.code === '23505') {
-                throw new BadRequestException({ code: ApiErrorCodes.ALREADY_EXIST });
-            }
-            throw error;
+    public getOrCreateUserWithoutPassword(email: string, manager: EntityManager): Promise<UserEntity> {
+        return this.getOrCreateUser(email, manager, { passwordHash: null });
+    }
+
+    public getOrCreateRegisteredUser(email: string, passwordHash: string, manager: EntityManager): Promise<UserEntity> {
+        return this.getOrCreateUser(email, manager, { passwordHash, status: UserStatus.VERIFIED });
+    }
+
+    private async getOrCreateUser(email: string, manager: EntityManager, credentials: { passwordHash: string | null; status?: UserStatus }): Promise<UserEntity> {
+        if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+            throw new BadRequestException({ code: ApiErrorCodes.INVALID_EMAIL });
         }
+
+        email = email.trim().toLowerCase();
+        const repository = manager.getRepository(UserEntity);
+        const options = {
+            where: { email: Raw(alias => 'LOWER(' + alias + ') = :email', { email }) },
+            lock: { mode: 'pessimistic_write' as const },
+        };
+        const user = await repository.findOne(options);
+
+        if (user) {
+            return user;
+        }
+
+        // Уникальный индекс email и ON CONFLICT защищают от одновременной регистрации.
+        await repository.createQueryBuilder()
+            .insert()
+            .values({ email, username: email.split('@')[0], ...credentials })
+            .orIgnore()
+            .execute();
+
+        return repository.findOneOrFail(options);
     }
 
     public async signIn(email: string, password: string): Promise<SessionTokens> {
@@ -42,7 +64,7 @@ export class UserService {
             select: { id: true, passwordHash: true, state: true },
         });
         const validPassword = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
-        if (!user || !validPassword || user.state !== ModelState.ACTIVE) {
+        if (!user || !user.passwordHash || !validPassword || user.state !== ModelState.ACTIVE) {
             throw new UnauthorizedException({ code: ApiErrorCodes.INVALID_CREDENTIALS });
         }
         const tokens = await this.tokenService.createSession(user.id);

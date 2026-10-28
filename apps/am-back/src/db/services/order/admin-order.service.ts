@@ -15,6 +15,7 @@ import {
     CompleteAdminOrderDto,
 } from '../../../modules/admin/admin.dto';
 import { AdminOrderMailService } from './admin-order-mail.service';
+import { OrderService } from './order.service';
 import {
     getAdminOrderFiles,
     getOrderPrice,
@@ -45,6 +46,7 @@ export class AdminOrderService {
         private dataSource: DataSourceService,
         private patternOrdersService: PatternOrdersService,
         private adminOrderMailService: AdminOrderMailService,
+        private orderService: OrderService,
     ) {
         this.adminOrderRepository =
             this.dataSource.getRepository<AdminOrderEntity>(AdminOrderEntity);
@@ -315,12 +317,17 @@ export class AdminOrderService {
                     order.email = details.email;
                 }
 
+                if (typeof order.email === 'string') {
+                    order.email = order.email.trim().toLowerCase();
+                }
+
                 if (details.vk !== undefined) {
                     order.vk = details.vk;
                 }
 
                 order.isComplete = true;
                 const completedOrder = await repository.save(order);
+                await this.orderService.createFromAdminOrder(completedOrder, manager);
                 const newOrder = await repository.save(
                     repository.create({
                         email: '',

@@ -1,7 +1,7 @@
 import { INestApplication, Module } from '@nestjs/common';
 import { Reflector, RouterModule } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerStorage, ThrottlerStorageService } from '@nestjs/throttler';
 import request from 'supertest';
 import { AuthGuard } from '../../core/guards/auth.guard';
 import { RolesGuard } from '../../core/guards/role.guard';
@@ -9,13 +9,18 @@ import { UserService } from '../../db/services/user.service';
 import { CategoriesService } from '../../db/services/patterns/categories.service';
 import { CategoriesController } from '../categories/categories.controller';
 import { UserController } from './user.controller';
-import { AuthThrottleGuard, SessionRequestGuard } from './session-http';
+import { AuthEmailThrottleGuard, AuthThrottleGuard, SessionRequestGuard } from './session-http';
 import { UserRole } from '../../db/entities/user.entity';
+import { EmailLoginService } from '../../db/services/email-login.service';
+import { AuthEmailService } from '../../db/services/auth-email.service';
+import { AuthEmailLimitService } from '../../db/services/auth-email-limit.service';
 
 @Module({
     imports: [ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }])],
     controllers: [UserController],
-    providers: [AuthThrottleGuard, SessionRequestGuard, { provide: UserService, useValue: {} }],
+    providers: [AuthThrottleGuard, SessionRequestGuard, AuthEmailThrottleGuard,
+        { provide: UserService, useValue: {} }, { provide: EmailLoginService, useValue: {} },
+        { provide: AuthEmailService, useValue: {} }, { provide: AuthEmailLimitService, useValue: {} }],
 })
 class TestUserModule {}
 
@@ -23,6 +28,9 @@ describe('authentication HTTP contract', () => {
     let app: INestApplication;
     const users = { signIn: jest.fn(), refreshToken: jest.fn(), logout: jest.fn(), getUserByEmail: jest.fn(), creatUser: jest.fn(), getUser: jest.fn() };
     const categories = { editCategory: jest.fn() };
+    const emailLogin = { signIn: jest.fn() };
+    const authEmail = { requestLogin: jest.fn(), requestRegistration: jest.fn() };
+    const limits = { consume: jest.fn() };
     const base = '/api/user/user';
 
     beforeAll(async () => {
@@ -30,7 +38,8 @@ describe('authentication HTTP contract', () => {
             imports: [TestUserModule, RouterModule.register([{ path: 'user', module: TestUserModule }])],
             controllers: [CategoriesController],
             providers: [{ provide: CategoriesService, useValue: categories }],
-        }).overrideProvider(UserService).useValue(users).compile();
+        }).overrideProvider(UserService).useValue(users).overrideProvider(EmailLoginService).useValue(emailLogin)
+            .overrideProvider(AuthEmailService).useValue(authEmail).overrideProvider(AuthEmailLimitService).useValue(limits).compile();
         app = module.createNestApplication();
         app.setGlobalPrefix('api');
         app.use((req, _res, next) => {
@@ -44,11 +53,16 @@ describe('authentication HTTP contract', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        app.get<ThrottlerStorageService>(ThrottlerStorage).onApplicationShutdown();
         users.signIn.mockResolvedValue({ access: 'access-value', refresh: 'refresh-value', refreshExpiredAt: new Date(Date.now() + 100_000) });
         users.refreshToken.mockResolvedValue({ access: 'new-access', refresh: 'new-refresh', refreshExpiredAt: new Date(Date.now() + 100_000) });
         users.getUserByEmail.mockResolvedValue(null);
         users.creatUser.mockResolvedValue({ id: 1 });
         categories.editCategory.mockResolvedValue({ id: 1 });
+        authEmail.requestLogin.mockResolvedValue(undefined);
+        authEmail.requestRegistration.mockResolvedValue(undefined);
+        limits.consume.mockResolvedValue(0);
+        emailLogin.signIn.mockResolvedValue({ access: 'email-access', refresh: 'email-refresh', refreshExpiredAt: new Date(Date.now() + 100_000), redirectPath: '/account/orders/42' });
     });
 
     afterAll(async () => { await app.close(); });
@@ -98,13 +112,39 @@ describe('authentication HTTP contract', () => {
         expect(response.headers['set-cookie'][0]).toContain('am_refresh=;');
     });
 
-    it.each(['/register', '/sign-in', '/refresh', '/logout'])('rejects CSRF attempts to %s', async path => {
+    it.each(['/register', '/sign-in', '/refresh', '/logout', '/email-login/request', '/email-login/consume'])('rejects CSRF attempts to %s', async path => {
         await request(app.getHttpServer()).post(base + path).send({}).expect(403);
         await request(app.getHttpServer()).post(base + path).set('X-CSRF-Protection', '1').set('Sec-Fetch-Site', 'cross-site').send({}).expect(403);
         expect(users.signIn).not.toHaveBeenCalled();
         expect(users.refreshToken).not.toHaveBeenCalled();
         expect(users.logout).not.toHaveBeenCalled();
         expect(users.creatUser).not.toHaveBeenCalled();
+        expect(authEmail.requestLogin).not.toHaveBeenCalled();
+        expect(authEmail.requestRegistration).not.toHaveBeenCalled();
+        expect(emailLogin.signIn).not.toHaveBeenCalled();
+    });
+
+    it('requests an email link using the normalized email and returns no account information', async () => {
+        const response = await request(app.getHttpServer()).post(base + '/email-login/request')
+            .set('X-CSRF-Protection', '1').send({ email: ' Buyer@Example.com ', redirectPath: '/account/orders/42' }).expect(204);
+        expect(response.text).toBe('');
+        expect(authEmail.requestLogin).toHaveBeenCalledWith('buyer@example.com', '/account/orders/42');
+        expect(limits.consume).toHaveBeenCalledWith('buyer@example.com', expect.any(String));
+    });
+
+    it.each([{}, { email: 'bad' }, { email: [] }])('rejects an invalid email link request %j', async body => {
+        await request(app.getHttpServer()).post(base + '/email-login/request')
+            .set('X-CSRF-Protection', '1').send(body).expect(400);
+        expect(authEmail.requestLogin).not.toHaveBeenCalled();
+    });
+
+    it('exchanges a link for a session cookie and access token without exposing refresh in JSON', async () => {
+        const response = await request(app.getHttpServer()).post(base + '/email-login/consume')
+            .set('X-CSRF-Protection', '1').send({ token: 'opaque-token' }).expect(200);
+        expect(response.body).toEqual({ access: 'email-access', redirectPath: '/account/orders/42' });
+        expect(response.headers['cache-control']).toBe('no-store');
+        expect(response.headers['set-cookie'][0]).toContain('am_refresh=email-refresh;');
+        expect(response.headers['set-cookie'][0]).toContain('HttpOnly');
     });
 
     it.each([{}, { email: [], password: {} }, { email: 'invalid', password: '123' }, { email: 'u@example.com', password: 'x'.repeat(1025) }])(
@@ -114,13 +154,38 @@ describe('authentication HTTP contract', () => {
         },
     );
 
-    it('accepts consecutive registrations with the same valid password', async () => {
+    it('accepts consecutive registrations without returning user IDs or creating accounts synchronously', async () => {
         for (let index = 0; index < 2; index++) {
             await request(app.getHttpServer()).post(base + '/register').set('X-CSRF-Protection', '1')
-                .send({ email: 'u' + index + '@example.com', password: 'Password123!', role: 'admin' }).expect(201);
+                .send({ email: 'u' + index + '@example.com', password: 'Password123!', role: 'admin' }).expect(204);
         }
-        expect(users.creatUser).toHaveBeenCalledTimes(2);
-        expect(users.creatUser).toHaveBeenLastCalledWith('u1@example.com', 'Password123!');
+        expect(authEmail.requestRegistration).toHaveBeenCalledTimes(2);
+        expect(authEmail.requestRegistration).toHaveBeenLastCalledWith('u1@example.com', 'Password123!');
+        expect(users.getUserByEmail).not.toHaveBeenCalled();
+        expect(users.creatUser).not.toHaveBeenCalled();
+    });
+
+    it.each(['/register', '/email-login/request'])('returns an identical empty response for all account states at %s', async path => {
+        const responses = [];
+        for (const account of [null, { state: 'active' }, { state: 'inactive' }]) {
+            users.getUserByEmail.mockResolvedValue(account);
+            const response = await request(app.getHttpServer()).post(base + path).set('X-CSRF-Protection', '1')
+                .send({ email: 'Buyer@Example.com', password: 'Password123!' }).expect(204);
+            responses.push({ status: response.status, body: response.text });
+        }
+        expect(responses).toEqual(Array(3).fill({ status: 204, body: '' }));
+        expect(users.getUserByEmail).not.toHaveBeenCalled();
+    });
+
+    it.each(['/register', '/email-login/request'])('applies the shared email/IP limit at %s without accessing accounts', async path => {
+        limits.consume.mockResolvedValue(60);
+        const response = await request(app.getHttpServer()).post(base + path).set('X-CSRF-Protection', '1')
+            .send({ email: ' Buyer@Example.com ', password: 'Password123!' }).expect(429);
+        expect(response.body).toEqual({ code: 'TOO_MANY_REQUESTS' });
+        expect(response.headers['retry-after']).toBe('60');
+        expect(limits.consume).toHaveBeenCalledWith('buyer@example.com', expect.any(String));
+        expect(authEmail.requestLogin).not.toHaveBeenCalled();
+        expect(authEmail.requestRegistration).not.toHaveBeenCalled();
     });
 
     it('preserves sign-in compatibility for existing long passwords while rejecting them for registration', async () => {

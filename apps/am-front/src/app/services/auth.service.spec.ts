@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { firstValueFrom } from 'rxjs';
 import { AuthInterceptor } from '../auth.interceptor';
 import { provideApiClient } from '../api-client.providers';
 
@@ -175,6 +176,55 @@ describe('browser authentication session', () => {
         login();
         auth.refreshAccessToken().subscribe();
         const pending = requests.expectOne(base + '/refresh');
+        auth.logout();
+        expect(pending.cancelled).toBe(true);
+        expect(auth.auth()).toBe(false);
+    });
+
+    it('requests email login without a bearer token and with CSRF protection', () => {
+        login();
+        auth.requestEmailLogin('buyer@example.com', '/account/orders/17').subscribe();
+        const request = requests.expectOne(base + '/email-login/request');
+        expect(request.request.headers.get('X-CSRF-Protection')).toBe('1');
+        expect(request.request.headers.has('Authorization')).toBe(false);
+        expect(request.request.body).toEqual({ email: 'buyer@example.com', redirectPath: '/account/orders/17' });
+        request.flush(null);
+    });
+
+    it('authenticates from a login link, clears the logout marker and returns the saved destination', async () => {
+        auth = TestBed.inject(AuthService);
+        localStorage.setItem('am_logged_out', '1');
+        const destination = firstValueFrom(auth.signInWithEmailLink('opaque-token'));
+        const request = requests.expectOne(base + '/email-login/consume');
+        expect(request.request.headers.get('X-CSRF-Protection')).toBe('1');
+        expect(request.request.body).toEqual({ token: 'opaque-token' });
+        request.flush({ access: newToken, redirectPath: '/account/orders/17' });
+        await expect(destination).resolves.toBe('/account/orders/17');
+        expect(auth.auth()).toBe(true);
+        expect(auth.token()).toBe(newToken);
+        expect(localStorage.getItem('am_logged_out')).toBeNull();
+    });
+
+    it('preserves an existing session when a login link is invalid and never retries it using refresh', () => {
+        login();
+        auth.signInWithEmailLink('invalid').subscribe({ error: () => undefined });
+        requests.expectOne(base + '/email-login/consume').flush({ code: 'EXPIRED' }, { status: 401, statusText: 'Unauthorized' });
+        expect(auth.auth()).toBe(true);
+        expect(auth.token()).toBe(oldToken);
+        requests.expectNone(base + '/refresh');
+    });
+
+    it('falls back to the profile for an unsafe server destination', async () => {
+        auth = TestBed.inject(AuthService);
+        const destination = firstValueFrom(auth.signInWithEmailLink('opaque-token'));
+        requests.expectOne(base + '/email-login/consume').flush({ access: newToken, redirectPath: '//external.example' });
+        await expect(destination).resolves.toBe('/account/profile');
+    });
+
+    it('cancels email login on logout rather than restoring the session from a late response', () => {
+        login();
+        auth.signInWithEmailLink('opaque-token').subscribe({ error: () => undefined });
+        const pending = requests.expectOne(base + '/email-login/consume');
         auth.logout();
         expect(pending.cancelled).toBe(true);
         expect(auth.auth()).toBe(false);

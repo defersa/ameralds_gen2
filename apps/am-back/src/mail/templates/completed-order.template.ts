@@ -18,6 +18,7 @@ export interface CompletedOrderMailData {
     completedAt?: Date;
     items: CompletedOrderMailItem[];
     total: number;
+    orderUrl?: string;
 }
 
 function renderProduct(item: CompletedOrderMailItem): string {
@@ -68,7 +69,8 @@ export function renderCompletedOrderMail(data: CompletedOrderMailData): MailTemp
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${products || '<tr><td style="padding-bottom:16px;color:#707070;font-size:14px;line-height:22px;">В заказе нет схем.</td></tr>'}</table>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #cadccb;">
             <tr><td style="padding-top:20px;color:#38473a;font-size:18px;line-height:28px;">Итого</td><td align="right" style="padding-top:20px;color:#38473a;font-size:24px;line-height:28px;font-weight:bold;">${escapeHtml(formatRubles(data.total))}</td></tr>
-        </table>`;
+        </table>
+        ${data.orderUrl ? `<p style="margin:24px 0 12px;"><a href="${escapeHtml(data.orderUrl)}" style="display:inline-block;padding:12px 24px;background:#38473a;border-radius:6px;color:#ffffff;text-decoration:none;">Открыть заказ</a></p><p style="margin:0;color:#707070;font-size:13px;line-height:20px;">Ссылка автоматически выполнит вход в ваш аккаунт. Она действует 7 дней и может быть использована один раз.</p>` : ''}`;
     const text = [
         'AMSTORE',
         subject,
@@ -87,6 +89,7 @@ export function renderCompletedOrderMail(data: CompletedOrderMailData): MailTemp
         ].filter((line) => line !== null).join('\n')),
         data.items.length ? null : 'В заказе нет схем.',
         `Итого: ${formatRubles(data.total)}`,
+        data.orderUrl ? `\nОткрыть заказ и войти в аккаунт: ${data.orderUrl}\nСсылка действует 7 дней и может быть использована один раз.` : null,
     ].filter((line) => line !== null).join('\n');
 
     return {

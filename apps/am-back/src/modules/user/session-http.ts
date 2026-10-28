@@ -5,6 +5,8 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import type { CookieOptions, Request, Response } from 'express';
 import { ApiErrorCodes, ErrorsDto } from '../errors/errors.dto';
 import { SessionTokens } from '../../db/services/token.service';
+import { AuthEmailLimitService } from '../../db/services/auth-email-limit.service';
+import { EmailAddressPipe } from './email-address.pipe';
 
 export const REFRESH_COOKIE_NAME = 'am_refresh';
 const COOKIE_PATH = '/api/user/user';
@@ -28,11 +30,31 @@ export class AuthThrottleGuard extends ThrottlerGuard {
     }
 }
 
+@Injectable()
+export class AuthEmailThrottleGuard implements CanActivate {
+    constructor(private limits: AuthEmailLimitService) {}
+
+    public async canActivate(context: ExecutionContext): Promise<boolean> {
+        const http = context.switchToHttp();
+        const request = http.getRequest<Request>();
+        const email = new EmailAddressPipe().transform(request.body?.email);
+        // Express учитывает forwarded-заголовки только от явно доверенных TRUST_PROXY.
+        const retryAfter = await this.limits.consume(email, request.ip || request.socket.remoteAddress || 'unknown');
+        if (retryAfter > 0) {
+            http.getResponse<Response>().setHeader('Retry-After', String(retryAfter));
+            throw new HttpException({ code: ApiErrorCodes.TOO_MANY_REQUESTS }, HttpStatus.TOO_MANY_REQUESTS);
+        }
+        return true;
+    }
+}
+
 export const SessionMutation = () => applyDecorators(
     UseGuards(SessionRequestGuard, AuthThrottleGuard),
     ApiHeader({ name: 'X-CSRF-Protection', required: true, schema: { type: 'string', enum: ['1'] } }),
     ApiTooManyRequestsResponse({ type: ErrorsDto }),
 );
+
+export const AuthEmailMutation = () => applyDecorators(SessionMutation(), UseGuards(AuthEmailThrottleGuard));
 
 export const RefreshCookieAuth = () => ApiCookieAuth(REFRESH_COOKIE_NAME);
 

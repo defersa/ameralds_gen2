@@ -11,6 +11,7 @@ import { ApiEntityNames, ApiErrorCodes } from '../../../modules/errors/errors.dt
 import { PatternOrdersService } from '../patterns/pattern-orders.service';
 import { AdminOrderMailService } from './admin-order-mail.service';
 import { AdminOrderService } from './admin-order.service';
+import { OrderService } from './order.service';
 
 
 describe('AdminOrderService.getAdminOrderById', () => {
@@ -69,6 +70,7 @@ describe('AdminOrderService.getAdminOrderById', () => {
             { getRepository: jest.fn().mockReturnValue({ findOne }) } as unknown as DataSourceService,
             {} as PatternOrdersService,
             {} as AdminOrderMailService,
+            {} as OrderService,
         );
     });
 
@@ -195,6 +197,7 @@ describe('AdminOrderService.getAdminOrderFile', () => {
             { getRepository: jest.fn().mockReturnValue({ findOne }) } as unknown as DataSourceService,
             {} as PatternOrdersService,
             {} as AdminOrderMailService,
+            {} as OrderService,
         );
     });
 
@@ -282,6 +285,8 @@ describe('AdminOrderService.completeOrder', () => {
         save: jest.Mock;
     };
     let sendCompletedOrder: jest.Mock;
+    let createFromAdminOrder: jest.Mock;
+    let manager: EntityManager;
 
     beforeEach(() => {
         committed = false;
@@ -305,7 +310,7 @@ describe('AdminOrderService.completeOrder', () => {
                 return entity;
             }),
         };
-        const manager = {
+        manager = {
             getRepository: jest.fn().mockReturnValue(repository),
         } as unknown as EntityManager;
         const dataSource = {
@@ -321,10 +326,16 @@ describe('AdminOrderService.completeOrder', () => {
         sendCompletedOrder = jest.fn().mockImplementation(async () => {
             expect(committed).toBe(true);
         });
+        createFromAdminOrder = jest.fn().mockImplementation(async (completedOrder, transactionManager) => {
+            expect(committed).toBe(false);
+            expect(completedOrder.isComplete).toBe(true);
+            expect(transactionManager).toBe(manager);
+        });
         service = new AdminOrderService(
             dataSource,
             {} as PatternOrdersService,
             { sendCompletedOrder } as unknown as AdminOrderMailService,
+            { createFromAdminOrder } as unknown as OrderService,
         );
     });
 
@@ -359,6 +370,15 @@ describe('AdminOrderService.completeOrder', () => {
         });
         expect(sendCompletedOrder).toHaveBeenCalledTimes(1);
         expect(sendCompletedOrder).toHaveBeenCalledWith(order);
+        expect(createFromAdminOrder).toHaveBeenCalledTimes(1);
+        expect(createFromAdminOrder).toHaveBeenCalledWith(order, manager);
+    });
+
+    it('normalizes the email before copying the order and sending mail', async () => {
+        await service.completeOrder({ email: ' Buyer@EXAMPLE.com ' });
+
+        expect(order.email).toBe('buyer@example.com');
+        expect(createFromAdminOrder).toHaveBeenCalledWith(expect.objectContaining({ email: 'buyer@example.com' }), manager);
     });
 
     it('keeps existing contacts when no contacts are provided', async () => {
@@ -380,7 +400,18 @@ describe('AdminOrderService.completeOrder', () => {
         });
         expect(repository.save).not.toHaveBeenCalled();
         expect(sendCompletedOrder).not.toHaveBeenCalled();
+        expect(createFromAdminOrder).not.toHaveBeenCalled();
         expect(committed).toBe(false);
+    });
+
+    it('does not commit or send mail if assigning the purchase fails', async () => {
+        const error = new Error('Cannot add the purchased patterns');
+        createFromAdminOrder.mockRejectedValue(error);
+
+        await expect(service.completeOrder()).rejects.toThrow(error);
+        expect(committed).toBe(false);
+        expect(repository.create).not.toHaveBeenCalled();
+        expect(sendCompletedOrder).not.toHaveBeenCalled();
     });
 
     it('does not send mail if creating the new cart fails', async () => {
@@ -418,6 +449,7 @@ describe('AdminOrderService.clearCart', () => {
             { getRepository: jest.fn().mockReturnValue(repository) } as unknown as DataSourceService,
             { removeOrderPatter } as unknown as PatternOrdersService,
             {} as AdminOrderMailService,
+            {} as OrderService,
         );
         const clearing = service.clearCart();
         await removalStarted;
@@ -463,6 +495,7 @@ describe('AdminOrderService.resendOrderEmail', () => {
             { getRepository: jest.fn().mockReturnValue(repository) } as unknown as DataSourceService,
             {} as PatternOrdersService,
             { sendCompletedOrder } as unknown as AdminOrderMailService,
+            {} as OrderService,
         );
     });
 

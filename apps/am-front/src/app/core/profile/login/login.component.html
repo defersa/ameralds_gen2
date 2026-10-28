@@ -1,5 +1,5 @@
 <div mat-dialog-title class="amstore-dialog-login__title !pt-4">
-    <h2>Войти</h2>
+    <h2>{{ mode() === 'email' ? 'Войти через почту' : 'Войти' }}</h2>
 
     <button class="amstore-dialog-login__close" type="button" aria-label="Закрыть" (click)="close()">
         <amstore-icon iconName="cross" [size]="20" [isBlack]="true"/>
@@ -7,6 +7,9 @@
 </div>
 
 <mat-dialog-content class="amstore-dialog-login__content">
+    @if (mode() === 'email') {
+        <p class="amstore-text-secondary">Укажите почту аккаунта — отправим ссылку для входа без пароля.</p>
+    }
     <form class="amstore-dialog-login" [formGroup]="authForm">
         <amstore-forms-input color="primary"
                              type="email"
@@ -16,21 +19,30 @@
                              autocomplete="email"
                              [required]="true" />
 
-        <amstore-forms-input-password color="primary"
+        @if (mode() === 'password') {
+            <amstore-forms-input-password color="primary"
                                       label="Пароль"
                                       formControlName="password"
                                       name="password"
                                       type="password"
                                       autocomplete="password"
                                       [required]="true" />
+        }
     </form>
 
-    @if (error) {
-        <span class="amstore-dialog-login__error">{{ error }}</span>
+    @if (requested()) {
+        <p role="status">Проверьте почту. Если для указанного адреса доступен вход, на него придёт письмо со ссылкой. Ссылка действует 7 дней.</p>
+    }
+    @if (error()) {
+        <p class="amstore-dialog-login__error" role="alert">{{ error() }}</p>
     }
 </mat-dialog-content>
 
-<mat-dialog-actions align="end" class="amstore-dialog-login__actions">
-    <amstore-button (click)="login()" color="primary">Забыли пароль?</amstore-button>
-    <amstore-button (click)="login()" color="accent">Войти</amstore-button>
+<mat-dialog-actions align="end" class="amstore-dialog-login__actions !flex-col !items-stretch sm:!flex-row sm:!items-center">
+    <amstore-button [disabled]="pending()" (click)="switchMode(mode() === 'email' ? 'password' : 'email')" color="primary">
+        {{ mode() === 'email' ? 'Войти с паролем' : 'Войти через почту' }}
+    </amstore-button>
+    <amstore-button [disabled]="pending()" (click)="login()" color="accent">
+        {{ pending() ? 'Подождите…' : mode() === 'email' ? (requested() ? 'Отправить ещё раз' : 'Получить ссылку') : 'Войти' }}
+    </amstore-button>
 </mat-dialog-actions>

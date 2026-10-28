@@ -1,17 +1,17 @@
-import { Component, inject } from "@angular/core";
-import { FormControl, ReactiveFormsModule, UntypedFormGroup } from "@angular/forms";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, DestroyRef, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule, UntypedFormGroup, Validators } from "@angular/forms";
 import { CustomValidatorFns } from "@am-front/cdk/forms/custom-validators-fn";
 import { ProfileService } from "@am-front/services/profile.service";
 import { DialogService } from "@am-front/core/dialog/dialog.service";
 import { Router } from "@angular/router";
-import { UserCredentialsDto } from "@am-front/root/api-v2";
 import { AmstorePanelBasicComponent } from "@am-front/cdk/panel/panel-basic/amstore-panel-basic.component";
 import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
 import { AmstoreInputPasswordComponent } from "@am-front/cdk/forms/input-password/input-password.component";
 import { AmstoreCheckboxComponent } from "@am-front/cdk/forms/checkbox/checkbox.component";
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
-import { switchMap } from "rxjs/operators";
-import { from } from 'rxjs';
+import { finalize } from "rxjs/operators";
 import { SnackService } from '@am-front/services/snackbar.service';
 
 
@@ -33,16 +33,18 @@ export class AmstoreRegistrationComponent {
     private _dialogService: DialogService = inject(DialogService);
     private _router: Router = inject(Router);
     private _snackService: SnackService = inject(SnackService);
+    private readonly destroyRef = inject(DestroyRef);
 
     public regForm: UntypedFormGroup;
     public isAccept: FormControl = new FormControl(false);
+    public readonly pending = signal(false);
 
     constructor() {
         const passwordControl: FormControl = new FormControl(null, [
             CustomValidatorFns.getPasswordComplexity,
         ]);
         this.regForm = new UntypedFormGroup({
-            email: new FormControl(null, [CustomValidatorFns.isEmail]),
+            email: new FormControl(null, [CustomValidatorFns.isEmail, Validators.maxLength(254)]),
             password: passwordControl,
             passwordRepeat: new FormControl(null, [
                 CustomValidatorFns.getEqualPassword(passwordControl),
@@ -53,28 +55,39 @@ export class AmstoreRegistrationComponent {
     }
 
     public sendUser(): void {
+        if (this.pending() || !this.isAccept.value) return;
         if (this.regForm.invalid) {
             this.regForm.markAllAsTouched();
 
             return;
         }
 
+        this.pending.set(true);
+        const { email, password } = this.regForm.value;
         this._profileService
-            .createUser(this.regForm.value as UserCredentialsDto)
-            .pipe(switchMap(() => from(this._router.navigate(['/']))))
+            .createUser({ email: email.trim().toLowerCase(), password })
+            .pipe(
+                finalize(() => this.pending.set(false)),
+                takeUntilDestroyed(this.destroyRef),
+            )
             .subscribe({
                 next: () => {
-                    this._dialogService.openInfoDialog({
-                        maxWidth: '400px',
+                    const showInstructions = () => this._dialogService.openInfoDialog({
+                        minWidth: '0', width: '440px', maxWidth: 'calc(100vw - 32px)',
                         data: {
-                            title: 'Успешно',
-                            smallTitle: 'Профиль успешно создан.',
-                            text: 'Теперь вы можете войти, используя email и пароль.',
+                            title: 'Проверьте почту',
+                            smallTitle: 'Запрос принят.',
+                            text: 'Если для указанного адреса доступна регистрация или вход, на него придёт письмо с дальнейшими действиями. Ссылка действует 7 дней.',
                         },
                     });
+                    // Переход уничтожает форму: показ общего диалога не должен
+                    // отменяться takeUntilDestroyed вместе с подпиской формы.
+                    void this._router.navigate(['/']).then(showInstructions, showInstructions);
                 },
-                error: (error: Error) => {
-                    this._snackService.open(error.message);
+                error: (error: HttpErrorResponse) => {
+                    this._snackService.open(error.status === 429
+                        ? 'Слишком много попыток. Попробуйте позже'
+                        : 'Не удалось принять запрос. Проверьте данные и попробуйте позже');
                 },
             });
     }

@@ -11,7 +11,7 @@ export function AuthInterceptor(request: HttpRequest<unknown>, next: HttpHandler
     const auth = inject(AuthService);
     const token = auth.token();
     const sessionRevision = auth.sessionRevision;
-    const sessionRequest = /^\/api\/user\/user\/(sign-in|register|refresh|logout)$/.test(url.pathname);
+    const sessionRequest = /^\/api\/user\/user\/(sign-in|register|refresh|logout|email-login\/(request|consume))$/.test(url.pathname);
     let authenticated = request.clone({ withCredentials: true });
     if (sessionRequest && request.method === 'POST') {
         authenticated = authenticated.clone({ setHeaders: { 'X-CSRF-Protection': '1' } });

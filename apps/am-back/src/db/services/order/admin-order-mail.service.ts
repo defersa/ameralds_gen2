@@ -1,25 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import type { Transporter } from 'nodemailer';
 import type { Attachment } from 'nodemailer/lib/mailer';
 import { extname } from 'node:path';
-import { process } from '@am-back/core/declare/process';
-import { AdminOrderEntity } from '../../entities/purchases/order.entity';
+import { AdminOrderEntity, OrderStatus, UserOrderEntity } from '../../entities/purchases/order.entity';
 import { DataSourceService } from '../../data-source.service';
 import { ModelState } from '../../abstract/abstract.model';
 import { getAdminOrderFiles } from './order.utils';
 import { getPatternPrice } from '@ameralds/utils';
 import { getMailLogo, getMailProductImage } from '../../../mail/mail-assets';
 import { CompletedOrderMailItem, renderCompletedOrderMail } from '../../../mail/templates/completed-order.template';
+import { EmailLoginService } from '../email-login.service';
+import { MailService } from '../../../mail/mail.service';
 
 
 @Injectable()
 export class AdminOrderMailService {
-    private transporter?: Transporter;
-
-    constructor(private readonly dataSource: DataSourceService) {}
+    constructor(
+        private readonly dataSource: DataSourceService,
+        private readonly emailLoginService: EmailLoginService,
+        private readonly mailService: MailService,
+    ) {}
 
     public async sendCompletedOrder(order: AdminOrderEntity): Promise<void> {
-        if (process.env.NODE_ENV !== 'dev') {
+        if (!this.mailService.configured) {
             return;
         }
 
@@ -76,6 +78,13 @@ export class AdminOrderMailService {
                 imageCid: attachment ? imageCid : undefined,
             };
         }));
+        const personalOrder = await this.dataSource.getRepository(UserOrderEntity).findOne({
+            where: { sourceAdminOrder: { id: order.id }, status: OrderStatus.SUCCESS, state: ModelState.ACTIVE, user: { state: ModelState.ACTIVE } },
+            relations: { user: true },
+        });
+        const orderUrl = personalOrder?.user?.email?.toLowerCase() === recipient.toLowerCase()
+            ? await this.emailLoginService.createLink(personalOrder.user.id, `/account/orders/${personalOrder.id}`)
+            : undefined;
         const template = renderCompletedOrderMail({
             id: order.id,
             email: recipient,
@@ -83,20 +92,10 @@ export class AdminOrderMailService {
             completedAt: completedOrder.updatedAt ?? completedOrder.createdAt,
             items,
             total: items.reduce((sum, item) => sum + item.price, 0),
+            orderUrl,
         });
 
-        if (!this.transporter) {
-            const { createTransport } = await import('nodemailer');
-
-            this.transporter = createTransport({
-                host: '127.0.0.1',
-                port: 1025,
-                secure: false,
-            });
-        }
-
-        await this.transporter.sendMail({
-            from: 'Ameralds <no-reply@ameralds.test>',
+        await this.mailService.send({
             to: recipient,
             ...template,
             attachments,

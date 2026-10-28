@@ -167,7 +167,7 @@ export class AdminOrdersPaginatedFilterDto {
 
 export class CompleteAdminOrderDto {
     @ApiProperty({
-        description: 'Email to save on the completed admin order',
+        description: 'Email of the customer who receives a completed personal order and purchased patterns; a passwordless account is created if needed',
         type: 'string',
         required: false,
     })

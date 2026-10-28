@@ -17,6 +17,9 @@ import { PatternSizeEntity } from './entities/patterns/pattern-size.entity';
 import { OrderPatternEntity, UserPatternEntity } from './entities/patterns/pattern-order.entity';
 import { AdminOrderEntity, UserOrderEntity } from './entities/purchases/order.entity';
 import { UserPaymentEntity } from './entities/purchases/payment.entity';
+import { EmailLoginLinkEntity } from './entities/tokens/email-login-link.entity';
+import { AuthEmailRequestEntity } from './entities/tokens/auth-email-request.entity';
+import { AuthEmailLimitEntity } from './entities/tokens/auth-email-limit.entity';
 
 
 @Module({
@@ -33,6 +36,9 @@ import { UserPaymentEntity } from './entities/purchases/payment.entity';
                 TokenAccessEntity,
                 TokenEntity,
                 TokenRefreshEntity,
+                EmailLoginLinkEntity,
+                AuthEmailRequestEntity,
+                AuthEmailLimitEntity,
                 ImageEntity,
                 UserEntity,
                 CategoryEntity,

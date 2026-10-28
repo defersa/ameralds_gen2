@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany } from "typeorm";
+import { Column, Entity, Index, OneToMany } from "typeorm";
 import { BaseModel } from "../abstract/abstract.model";
 import { TokenAccessEntity } from "./tokens/token-access.entity";
 import { TokenRefreshEntity } from "./tokens/token-refresh.entity";
@@ -17,6 +17,7 @@ export enum UserRole {
 }
 
 @Entity()
+@Index('IDX_user_email_case_insensitive', { synchronize: false })
 export class UserEntity extends BaseModel {
     @OneToMany(() => TokenAccessEntity, (token: TokenAccessEntity) => token.user)
     public access: TokenAccessEntity[];
@@ -30,8 +31,8 @@ export class UserEntity extends BaseModel {
     @Column({ unique: true })
     public email: string;
 
-    @Column({ select: false })
-    public passwordHash: string;
+    @Column({ type: 'varchar', select: false, nullable: true })
+    public passwordHash: string | null;
 
     @Column({
         type: 'enum',

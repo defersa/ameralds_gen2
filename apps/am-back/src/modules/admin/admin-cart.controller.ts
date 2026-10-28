@@ -91,15 +91,15 @@ export class AdminCartController {
 
     @Patch('complete')
     @ApiBody({ type: CompleteAdminOrderDto, required: false })
-    @ApiOkResponse({ description: 'Admin order completed and a new cart opened.', type: AdminOrderResponseDto })
-    @ApiBadRequestResponse({ description: 'Admin cart does not exist.', type: ErrorsDto })
+    @ApiOkResponse({ description: 'Admin order completed, copied to the email owner with purchased patterns, and a new cart opened. A passwordless account is created if needed.', type: AdminOrderResponseDto })
+    @ApiBadRequestResponse({ description: 'Admin cart does not exist or the email is invalid.', type: ErrorsDto })
     public async completeOrder(@Body() details: CompleteAdminOrderDto): Promise<AdminOrderResponseDto> {
         return this.adminOrderService.completeOrder(details);
     }
 
     @Post(':id/resend-email')
     @HttpCode(HttpStatus.NO_CONTENT)
-    @ApiNoContentResponse({ description: 'Completed admin order email resent using the configured mail service (dev only).' })
+    @ApiNoContentResponse({ description: 'Completed admin order email resent using the configured mail service.' })
     @ApiBadRequestResponse({ description: 'Admin order does not exist, is incomplete, has no email or its ID is invalid.', type: ErrorsDto })
     public async resendOrderEmail(@Param('id', ParseIntPipe) id: number): Promise<void> {
         await this.adminOrderService.resendOrderEmail(id);

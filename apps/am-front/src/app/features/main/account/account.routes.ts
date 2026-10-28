@@ -53,6 +53,10 @@ export const AccountRoutes: Routes = [
         ]
     },
     {
+        path: 'orders/:id',
+        loadComponent: () => import('./pages/orders/order-details.component').then(m => m.OrderDetailsComponent),
+    },
+    {
         path: 'orders',
         component: OrdersComponent,
     },

@@ -21,7 +21,7 @@ export class UserCredentialsDto {
 }
 
 export class UserRegistrationCredentialsDto extends UserCredentialsDto {
-    @ApiProperty({ description: 'New password, at most 72 UTF-8 bytes', type: 'string', minLength: 8, maxLength: 72 })
+    @ApiProperty({ description: 'New password, at most 72 UTF-8 bytes. Applied only when a new account is confirmed by email; existing credentials are never changed.', type: 'string', minLength: 8, maxLength: 72 })
     public override password: string;
 }
 
@@ -32,6 +32,24 @@ export class UserTokensDTO {
     })
     public access: string;
 
+}
+
+export class EmailLoginRequestDto {
+    @ApiProperty({ description: 'Account email', type: String, maxLength: 254 })
+    public email: string;
+
+    @ApiProperty({ description: 'Local path to open after authentication', type: String, required: false, default: '/account/profile', maxLength: 2048 })
+    public redirectPath?: string;
+}
+
+export class EmailLoginTokenDto {
+    @ApiProperty({ description: 'Opaque login or registration confirmation token, valid for one use within 7 days', type: String, minLength: 43, maxLength: 43 })
+    public token: string;
+}
+
+export class EmailLoginResponseDto extends UserTokensDTO {
+    @ApiProperty({ description: 'Local destination saved when issuing the login link', type: String })
+    public redirectPath: string;
 }
 
 export class UserProfilePatternEntityDto extends BaseEntityDto {}

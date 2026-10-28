@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BaseEntityDto, NumberEntityDto } from "../../../common/common.dto";
+import { BaseEntityDto, LabelEntityDto, NumberEntityDto } from "../../../common/common.dto";
 import { PatternEntityDto, PatternSizeDto } from "../../patterns/patterns.dto";
 import { SizeDto } from "../../sizes/sizes.dto";
 import { OrderStatus } from '../../../db/entities/purchases/order.entity';
+import { ImageDto } from '../../images/images.dto';
 
 
 export class PatternWithPriceDto extends BaseEntityDto {
@@ -183,4 +184,26 @@ export class CartDto {
         type: CartOrderDto,
     })
     public cart: CartOrderDto;
+}
+
+export class PurchasedOrderPatternDto extends BaseEntityDto {
+    @ApiProperty({ description: 'Purchased pattern name, or null if unavailable', type: LabelEntityDto, nullable: true })
+    public name: LabelEntityDto | null;
+
+    @ApiProperty({ description: 'Pattern images', type: ImageDto, isArray: true })
+    public images: ImageDto[];
+
+    @ApiProperty({ description: 'Purchased sizes', type: CartOrderPatternSizeDto, isArray: true })
+    public sizes: CartOrderPatternSizeDto[];
+
+    @ApiProperty({ description: 'Whether color selection was purchased', type: Boolean })
+    public color: boolean;
+}
+
+export class UserOrderDetailsDto extends BaseEntityDto {
+    @ApiProperty({ description: 'Completed order status', enum: OrderStatus, enumName: 'EnumOrderStatus' })
+    public status: OrderStatus;
+
+    @ApiProperty({ description: 'Purchased patterns', type: PurchasedOrderPatternDto, isArray: true })
+    public patterns: PurchasedOrderPatternDto[];
 }

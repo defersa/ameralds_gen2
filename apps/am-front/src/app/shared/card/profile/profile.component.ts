@@ -1,67 +1,39 @@
-import { Component, effect, inject, input, Input, InputSignal, ViewEncapsulation } from "@angular/core";
-import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from "@angular/forms";
-import { AuthService } from "@am-front/services/auth.service";
-import { IUser } from "@am-front/interface/profile.interface";
-import {
-    AmstorePanelExpandComponent,
-    AmstorePanelHeaderComponent
-} from "@am-front/cdk/panel/panel-expand/panel-expand.component";
-import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
-import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
-import { AmstoreChipComponent } from "@am-front/cdk/chip/chip.component";
-import { DatePipe } from "@angular/common";
-
+import { ChangeDetectionStrategy, Component, effect, input, signal, ViewEncapsulation } from '@angular/core';
+import { form, FormField, readonly } from '@angular/forms/signals';
+import { UserProfileDto } from '@am-front/root/api-v2';
+import { AmstorePanelExpandComponent, AmstorePanelHeaderComponent } from '@am-front/cdk/panel/panel-expand/panel-expand.component';
+import { AmstoreInputSignalComponent } from '@am-front/cdk/signal-forms';
+import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
 
 @Component({
-    selector: "amstore-profile-card",
-    templateUrl: "./profile.component.html",
-    styleUrls: ["./profile.component.scss"],
+    selector: 'amstore-profile-card',
+    templateUrl: './profile.component.html',
+    styleUrls: ['./profile.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     encapsulation: ViewEncapsulation.None,
     imports: [
         AmstorePanelExpandComponent,
         AmstorePanelHeaderComponent,
-        AmstoreInputComponent,
-        ReactiveFormsModule,
+        AmstoreInputSignalComponent,
+        FormField,
         AmstoreButtonComponent,
-        AmstoreChipComponent,
-        DatePipe
     ],
-    host: {
-        class: "amstore-profile-card amstore-card-container"
-    }
+    host: { class: 'amstore-profile-card block w-full' },
 })
 export class AmstoreProfileCardComponent {
-    public user: InputSignal<IUser> = input(USER_MOCK);
+    public readonly user = input.required<UserProfileDto>();
 
-    private _auth: AuthService = inject(AuthService)
+    private readonly profileValues = signal({ username: '', email: '' });
 
-    public mainFromGroup: UntypedFormGroup = new UntypedFormGroup({
-        username: new UntypedFormControl({ value: '', disabled: true }, [Validators.required]),
-        email: new UntypedFormControl({ value: '', disabled: true }, [Validators.required])
+    protected readonly profileForm = form(this.profileValues, (path) => {
+        readonly(path.username);
+        readonly(path.email);
     });
 
     constructor() {
         effect(() => {
-            this.mainFromGroup.setValue({
-                username: this.user().username,
-                email: this.user().email
-            });
+            const { username, email } = this.user();
+            this.profileValues.set({ username, email });
         });
-    }
-
-    public logout(): void {
-        this._auth.logout();
-    }
-}
-
-const USER_MOCK: IUser = {
-    id: 0,
-    username: '',
-    email: '',
-    date_joined: '',
-    is_staff: false,
-    person: {
-        verify: false,
-        location: 'ru'
     }
 }

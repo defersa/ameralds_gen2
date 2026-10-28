@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { RequestOptions, CartDto, InputShortOrderPatternDto, NumberEntityDto } from "../models";
+import { RequestOptions, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderDetailsDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiOrdersProducer {
@@ -188,6 +188,32 @@ export class ApiOrdersProducer {
 
         return this.httpClient.request('post', url, {
             body: requestBody,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    userOrdersControllerGetOrder(id: number, observe?: 'body', options?: RequestOptions<'json'>): Observable<UserOrderDetailsDto>;
+    userOrdersControllerGetOrder(id: number, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<UserOrderDetailsDto>>;
+    userOrdersControllerGetOrder(id: number, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<UserOrderDetailsDto>>;
+    userOrdersControllerGetOrder(id: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders/${id}`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('get', url, {
             observe,
             headers,
             reportProgress: options?.reportProgress,

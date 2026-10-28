@@ -8,7 +8,7 @@ import { ReCAPTCHA } from '@am-front/interface/recapcha';
 import { environment } from '../../environments/environment';
 import { AuthRequestPayload, IAuthResponse } from '@am-front/interface/profile.interface';
 import { IResultRequest } from '@am-front/interface/request.interface';
-import { EnumUserRole, SuccessCreateDto, UserCredentialsDto, ApiUserProducer, UserProfileDto, UserTokensDTO, UserProfilePatternDto } from '@am-front/root/api-v2';
+import { EnumUserRole, UserCredentialsDto, UserRegistrationCredentialsDto, ApiUserProducer, UserProfileDto, UserTokensDTO, UserProfilePatternDto } from '@am-front/root/api-v2';
 
 declare const grecaptcha: ReCAPTCHA;
 
@@ -87,7 +87,7 @@ export class ProfileService {
         return this.userService.userControllerSignIn(body);
     }
 
-    public createUser(data: UserCredentialsDto): Observable<SuccessCreateDto> {
+    public createUser(data: UserRegistrationCredentialsDto): Observable<void> {
         return this.userService.userControllerRegister(data);
     }
 

@@ -35,8 +35,8 @@
     </form>
 
     <div class="row justify-content-end">
-        <amstore-button class="col" size="large" [disabled]="!isAccept.value" (click)="sendUser()">
-            Зарегестрироваться
+        <amstore-button class="col" size="large" [disabled]="!isAccept.value || pending()" (click)="sendUser()">
+            {{ pending() ? 'Подождите…' : 'Зарегистрироваться' }}
         </amstore-button>
     </div>
 

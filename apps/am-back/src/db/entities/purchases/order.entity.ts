@@ -38,6 +38,10 @@ export class UserOrderEntity extends BaseModel {
     @JoinColumn()
     public payment: UserPaymentEntity;
 
+    @OneToOne(() => AdminOrderEntity, { onDelete: 'SET NULL', nullable: true })
+    @JoinColumn({ foreignKeyConstraintName: 'FK_user_order_source_admin_order' })
+    public sourceAdminOrder: AdminOrderEntity;
+
     @Column({
         type: 'enum',
         enum: OrderStatus,

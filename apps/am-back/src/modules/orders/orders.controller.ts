@@ -3,7 +3,7 @@ import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiTags } from "@nestjs/
 import { ErrorsDto } from "../errors/errors.dto";
 import { OrderService } from "@am-back/db/service/order/order.service";
 import type { RequestModel } from "@am-back/models/request.model";
-import { CartDto, InputShortOrderPatternDto } from './dto/orders.dto';
+import { CartDto, InputShortOrderPatternDto, UserOrderDetailsDto } from './dto/orders.dto';
 import { NumberEntityDto } from '../../common/common.dto';
 import { Auth } from '@am-back/core/guards/auth.guard';
 
@@ -95,5 +95,19 @@ export class LocalCartController {
         @Body() patterns: InputShortOrderPatternDto[],
     ): Promise<NumberEntityDto> {
         return this.orderService.getLocalPrice(patterns);
+    }
+}
+
+@Controller('orders')
+@ApiTags('orders')
+@Auth()
+export class UserOrdersController {
+    constructor(private readonly orderService: OrderService) {}
+
+    @Get(':id')
+    @ApiOkResponse({ description: 'Completed personal order belonging to the authenticated user.', type: UserOrderDetailsDto })
+    @ApiBadRequestResponse({ description: 'Order is missing, incomplete, inactive or belongs to another user.', type: ErrorsDto })
+    public getOrder(@Req() request: RequestModel, @Param('id', ParseIntPipe) id: number): Promise<UserOrderDetailsDto> {
+        return this.orderService.getCompletedUserOrder(request.user, id);
     }
 }

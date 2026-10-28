@@ -1,8 +1,26 @@
-<!--@if (user$ | async; as user) {-->
-<!--    <amstore-profile-card [user]="user">-->
-<!--        @if (!user.person.verify) {-->
-<!--            <amstore-button (click)="sendVerify()">Отправить письмо с подтверждением</amstore-button>-->
-<!--        }-->
-<!--    </amstore-profile-card>-->
-<!--}-->
+@if (auth()) {
+    @if (user(); as profile) {
+        <amstore-profile-card [user]="profile"/>
+    } @else {
+        <amstore-panel color="accent" [state]="true" [clickable]="false">
+            <amstore-panel-header>
+                <h1 class="!m-0 !text-xl">Профиль пользователя</h1>
+            </amstore-panel-header>
 
+            <div class="flex min-h-50 flex-col items-center justify-center gap-4 text-center"
+                 role="status" [attr.aria-busy]="loading()">
+                @if (loading()) {
+                    <p class="amstore-text-secondary">Загрузка профиля…</p>
+                } @else {
+                    <p>Не удалось загрузить профиль.</p>
+                    <amstore-button color="accent" [stroked]="true" role="button" tabindex="0"
+                                    (click)="loadProfile()"
+                                    (keydown.enter)="loadProfile()"
+                                    (keydown.space)="$event.preventDefault(); loadProfile()">
+                        Повторить загрузку
+                    </amstore-button>
+                }
+            </div>
+        </amstore-panel>
+    }
+}
