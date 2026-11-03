@@ -20,6 +20,7 @@ import { UserPaymentEntity } from './entities/purchases/payment.entity';
 import { EmailLoginLinkEntity } from './entities/tokens/email-login-link.entity';
 import { AuthEmailRequestEntity } from './entities/tokens/auth-email-request.entity';
 import { AuthEmailLimitEntity } from './entities/tokens/auth-email-limit.entity';
+import { AppSettingEntity } from './entities/app-setting.entity';
 
 
 @Module({
@@ -33,6 +34,7 @@ import { AuthEmailLimitEntity } from './entities/tokens/auth-email-limit.entity'
             database: process.env.DB_DATABASE,
             autoLoadEntities: true,
             entities: [
+                AppSettingEntity,
                 TokenAccessEntity,
                 TokenEntity,
                 TokenRefreshEntity,

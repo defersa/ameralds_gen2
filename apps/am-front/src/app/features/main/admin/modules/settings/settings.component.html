@@ -1,0 +1,89 @@
+<section class="flex min-w-0 flex-col gap-4" aria-labelledby="settings-heading">
+    <header class="flex flex-wrap items-center justify-between gap-4">
+        <h1 id="settings-heading">Настройки</h1>
+        @if (canAccess()) {
+            <button amstore-button-round color="primary" type="button" (click)="openForm()"
+                    [disabled]="pageRequest.loading() || !current()">
+                <amstore-icon iconName="setting" [contrast]="true" [size]="20"/>
+                Создать новые
+            </button>
+        }
+    </header>
+
+    @if (!canAccess()) {
+        <p role="alert">Настройки доступны только администратору.</p>
+    } @else {
+        @if (savedVersion(); as version) {
+            <p role="status">Настройки сохранены. Версия {{ version }} сразу стала активной.</p>
+        }
+
+        @if (pageRequest.loading()) {
+            <p role="status">Загружаем настройки…</p>
+        } @else if (pageRequest.status() === 'error') {
+            <div class="flex flex-wrap items-center gap-4" role="alert">
+                <p>Не удалось загрузить настройки.</p>
+
+                <button amstore-button-round type="button" (click)="refresh()">Повторить</button>
+            </div>
+        } @else if (current(); as active) {
+            <div class="settings-summary flex flex-col gap-2 p-4">
+                <h2>Активная версия {{ active.version }}</h2>
+
+                <p>
+                    Срок оплаты заказа, дней:
+                    <strong>
+                        {{ active.effective.orders.paymentExpirationDays }}
+                    </strong>
+                </p>
+
+                <p>
+                    {{ active.createdAt | date:'dd.MM.yyyy HH:mm:ss' }} · {{ active.createdBy?.username || active.createdBy?.email || 'Инициализация' }}
+                </p>
+            </div>
+        }
+
+        @if (pageRequest.status() === 'success') {
+            <h2>История версий</h2>
+            @if (history(); as versions) {
+                @if (versions.items.length) {
+                    <div class="overflow-x-auto">
+                        <table class="settings-table w-full text-left">
+                            <caption class="sr-only">История настроек, новые версии сверху</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Версия</th>
+                                    <th scope="col">Дата создания</th>
+                                    <th scope="col">Автор</th>
+                                    <th scope="col">Срок оплаты, дней</th>
+                                    <th scope="col">Просмотр</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @for (item of versions.items; track item.version) {
+                                    <tr>
+                                        <th scope="row">
+                                            <div class="flex flex-row gap-2 items-center">
+                                                <span class="amstore-text-regular">{{ item.version }}</span>
+                                                @if (item.version === versions.activeVersion) {
+                                                    <span class="amstore-text-caption amstore-text-primary">Активная</span>
+                                                }
+                                            </div>
+                                        </th>
+                                        <td>{{ item.createdAt | date:'dd.MM.yyyy HH:mm:ss' }}</td>
+                                        <td class="break-words">{{ item.createdBy?.username || item.createdBy?.email || 'Инициализация' }}</td>
+                                        <td>{{ item.effective.orders.paymentExpirationDays }}</td>
+                                        <td><button amstore-button-round type="button" (click)="openVersion(item)" [attr.aria-label]="'Посмотреть версию ' + item.version">Посмотреть</button></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else {
+                    <p>На этой странице нет версий настроек.</p>
+                }
+                <amstore-paginator [page]="versions.page" [pageCount]="versions.count" (goToPageEvent)="goToPage($event)"/>
+            }
+        }
+    }
+</section>

@@ -6,6 +6,11 @@ export const ADMIN_ROUTES_SECTION: MenuSection = {
     color: 'special',
     list: [
         {
+            label: 'Настройки',
+            path: ['/', 'admin', 'settings'],
+            icon: 'setting',
+        },
+        {
             label: 'Размеры',
             path: ['/', 'admin', 'sizes'],
             icon: 'pattern',
@@ -32,6 +37,10 @@ export const ADMIN_ROUTES_SECTION: MenuSection = {
 
 
 export const AdminRoutes: Routes = [
+    {
+        path: 'settings',
+        loadComponent: () => import('./modules/settings/settings.component').then(m => m.SettingsComponent),
+    },
     {
         path: '',
         redirectTo: 'patterns',

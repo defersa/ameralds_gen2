@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>Новая версия настроек</h2>
+<form class="flex min-h-0 flex-col" (submit)="save($event)" novalidate>
+    <mat-dialog-content class="!flex flex-col gap-4">
+        <p>Новые сроки применяются к новым заказам. Уже оформленные заказы сохранят свой срок оплаты.</p>
+        <p>Активная версия {{ current().version }}. Срок оплаты: {{ current().effective.orders.paymentExpirationDays }} дн.</p>
+
+        <amstore-input-signal type="number"
+                              label="Срок оплаты заказа, дней"
+                              hint="Целое число от 1 до 365"
+                              [formField]="settingsForm.paymentExpirationDays"/>
+
+
+        @if (createRequest.status() === 'error') {
+            {{ createRequest.errors()?.message || 'Не удалось сохранить настройки. Проверьте соединение и повторите попытку.'}}
+        }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="!gap-4">
+        <button amstore-button-round type="button" [disabled]="createRequest.loading()" (click)="close()">Отмена</button>
+        <button amstore-button-round color="primary" type="submit" [disabled]="createRequest.loading() || settingsForm().invalid()">
+            {{ createRequest.loading() ? 'Сохраняем…' : 'Сохранить новую версию' }}
+        </button>
+    </mat-dialog-actions>
+</form>

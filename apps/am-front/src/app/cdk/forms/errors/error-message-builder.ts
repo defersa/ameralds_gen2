@@ -8,6 +8,9 @@ const ErrorTemplates: Record<string, TransformFunc> = {
     email: () => 'Email не корректен',
     vkUrl: () => 'Ссылка должна начинаться с https://vk.ru/',
     contactRequired: () => 'Заполните хотя бы одно из полей',
+    min: (value: { min: number }) => `Значение должно быть не меньше ${value.min}`,
+    max: (value: { max: number }) => `Значение должно быть не больше ${value.max}`,
+    integer: () => 'Введите целое число',
     minValue: (value: { current: number; expected: number; }) => `Текущее значение ${value.current} меньше чем минимально ожидаемое ${value.expected}`,
     notUniq: (value: unknown) => `Значение должно быть отлично от существующих!`,
     auth: () => '',
@@ -40,7 +43,7 @@ export function getControlErrors(errors: FormErrors | null): string | null {
                 return preparedErrors[key];
             }
 
-            return transformFunc ? transformFunc(preparedErrors[key]) : 'Has no template for error ' + key
+            return preparedErrors[key]?.message ?? (transformFunc ? transformFunc(preparedErrors[key]) : 'Has no template for error ' + key)
         })
         .join(', ');
 }

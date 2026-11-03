@@ -1,12 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, catchError, finalize, from, Observable, of, shareReplay, switchMap, tap } from 'rxjs';
-import { getAction, HttpAuthActions, RestSuffixFragments } from '../utils/action-builder';
+import { BehaviorSubject, catchError, EMPTY, finalize, from, Observable, of, shareReplay, switchMap, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { ReCAPTCHA } from '@am-front/interface/recapcha';
-import { environment } from '../../environments/environment';
-import { AuthRequestPayload, IAuthResponse } from '@am-front/interface/profile.interface';
 import { IResultRequest } from '@am-front/interface/request.interface';
 import { EnumUserRole, UserCredentialsDto, UserRegistrationCredentialsDto, ApiUserProducer, UserProfileDto, UserTokensDTO, UserProfilePatternDto } from '@am-front/root/api-v2';
 
@@ -77,12 +74,6 @@ export class ProfileService {
         return request;
     }
 
-    public authWithRecaptchaToken(value: AuthRequestPayload): Observable<IAuthResponse> {
-        return from(grecaptcha.execute(environment.recaptcha.siteKey, { action: 'submit' })).pipe(
-            switchMap(token => this.httpClient.post<IAuthResponse>(getAction(HttpAuthActions.TokenAuth, RestSuffixFragments.Auth), { token, ...value })),
-        );
-    }
-
     public authUser(body: UserCredentialsDto): Observable<UserTokensDTO> {
         return this.userService.userControllerSignIn(body);
     }
@@ -91,11 +82,7 @@ export class ProfileService {
         return this.userService.userControllerRegister(data);
     }
 
-    public sendVerify(): Observable<unknown> {
-        return this.httpClient.get<unknown>(getAction(HttpAuthActions.SendVerifyToken, RestSuffixFragments.Auth));
-    }
-
     public verifyProfile(data: { user: string; token: string }): Observable<IResultRequest> {
-        return this.httpClient.post<IResultRequest>(getAction(HttpAuthActions.Verify, RestSuffixFragments.Auth), data);
+        return EMPTY;
     }
 }

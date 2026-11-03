@@ -35,10 +35,10 @@ export class DialogService {
         this.dialog.open(AmstoreConfirmDialogComponent);
     }
 
-    public openCustomDialog<T, D = unknown>(component: ComponentType<T>, config: MatDialogConfig<D>): void {
-        const panelClass: string[] = Array.isArray(config.panelClass) ? config.panelClass : [config.panelClass || ''];
+    public openCustomDialog<T, D = unknown, R = unknown>(component: ComponentType<T>, config: MatDialogConfig<D>): MatDialogRef<T, R> {
+        const panelClass = Array.isArray(config.panelClass) ? config.panelClass : [config.panelClass || ''];
 
-        this.dialog.open<T, D>(component, {
+        return this.dialog.open<T, D, R>(component, {
             minWidth: '400px',
             ...config,
             panelClass: ["amstore-dialog-login-panel", ...panelClass]

@@ -9,6 +9,7 @@
 */
 export { ApiAdminProducer } from "./admin.service";
 export { ApiAppProducer } from "./app.service";
+export { ApiAppSettingsProducer } from "./appSettings.service";
 export { ApiCategoriesProducer } from "./categories.service";
 export { ApiFilesProducer } from "./files.service";
 export { ApiImagesProducer } from "./images.service";

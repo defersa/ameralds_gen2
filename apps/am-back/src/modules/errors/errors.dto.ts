@@ -15,6 +15,7 @@ export enum ApiErrorCodes {
 
     NOT_UNIQUE = 'NOT_UNIQUE',
     INVALID = 'INVALID',
+    VERSION_CONFLICT = 'VERSION_CONFLICT',
 }
 
 
@@ -25,6 +26,7 @@ export enum ApiEntityNames {
     PATTERN_SIZE = 'patternSize',
     FILE = 'file',
     CART = 'cart',
+    APP_SETTINGS = 'appSettings',
 }
 
 export class ErrorsDto {

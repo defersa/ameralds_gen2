@@ -18,6 +18,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { FilesModule } from "./modules/files/files.module";
 import { OrdersModule } from "./modules/orders/orders.module";
 import { AdminModule } from "./modules/admin/admin.module";
+import { AppSettingsModule } from './modules/app-settings/app-settings.module';
 
 
 @Module({
@@ -41,6 +42,7 @@ import { AdminModule } from "./modules/admin/admin.module";
         FilesModule,
         OrdersModule,
         AdminModule,
+        AppSettingsModule,
         DbSharedModule,
     ],
     controllers: [AppController],

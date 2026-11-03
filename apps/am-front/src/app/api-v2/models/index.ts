@@ -27,7 +27,8 @@ export enum EnumApiErrorCodes {
     UNAUTHORIZED = "UNAUTHORIZED",
     TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS",
     NOT_UNIQUE = "NOT_UNIQUE",
-    INVALID = "INVALID"
+    INVALID = "INVALID",
+    VERSION_CONFLICT = "VERSION_CONFLICT"
 }
 
 /** Error entity name */
@@ -37,7 +38,8 @@ export enum EnumApiEntityNames {
     Pattern = "pattern",
     PatternSize = "patternSize",
     File = "file",
-    Cart = "cart"
+    Cart = "cart",
+    AppSettings = "appSettings"
 }
 
 export interface ErrorsDto {
@@ -345,6 +347,7 @@ export interface FullPatternEntityDto {
 export enum EnumOrderStatus {
     Cancel = "cancel",
     Open = "open",
+    PendingPayment = "pending_payment",
     Success = "success"
 }
 
@@ -578,6 +581,50 @@ export interface CompleteAdminOrderDto {
     email?: string;
     /** VK to save on the completed admin order */
     vk?: string;
+}
+
+export interface AppSettingsAuthorDto {
+    id: number;
+    username: string | null;
+    email: string;
+}
+
+export interface OrderSettingsDto {
+    /** Срок оплаты заказа, дней */
+    paymentExpirationDays: number;
+}
+
+export interface AppSettingsValuesDto {
+    orders: OrderSettingsDto;
+}
+
+export interface AppSettingsVersionDto {
+    version: number;
+    createdAt: Date;
+    createdBy: AppSettingsAuthorDto;
+    /** Исходный immutable snapshot, включая неизвестные и deprecated поля */
+    snapshot: Record<string, unknown>;
+    /** Эффективные значения с defaults для отсутствующих полей */
+    effective: AppSettingsValuesDto;
+}
+
+export interface AppSettingsHistoryDto {
+    /** Current page */
+    page: number;
+    /** Count of pages */
+    count: number;
+    items: Array<AppSettingsVersionDto>;
+    /** Общее количество версий */
+    total: number;
+    /** Максимальная версия в момент чтения истории */
+    activeVersion: number | null;
+}
+
+export interface CreateAppSettingsDto {
+    /** Версия, на основе которой администратор начал редактирование */
+    expectedVersion: number;
+    /** Только разрешённые изменения; неизвестные поля не принимаются */
+    changes: AppSettingsValuesDto;
 }
 
 /** Request Options for Angular HttpClient requests */

@@ -9,6 +9,8 @@ import { AmstoreButtonBaseDirective } from '../base.abstract.directive';
     standalone: true,
     host: {
         class: 'amstore-button-round',
+        '[attr.disabled]': 'disabled() ? "" : null',
+        '[attr.aria-disabled]': 'disabled()',
         '[class.left-side]': 'roundSide() === "left"',
         '[class.right-side]': 'roundSide() === "right"',
         '[class.both-side]': 'roundSide() === "both"',

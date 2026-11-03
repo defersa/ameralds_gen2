@@ -1,0 +1,17 @@
+@use "theming-var";
+@use "spacing";
+
+.settings-summary {
+    border: 1px solid theming-var.get-amstore-color(gray, light);
+}
+
+.settings-table {
+    th, td {
+        padding: spacing.get-spacing(2);
+        border-bottom: 1px solid theming-var.get-amstore-color(gray, light);
+    }
+
+    tbody tr:hover {
+        background: theming-var.get-amstore-color(gray, slight);
+    }
+}

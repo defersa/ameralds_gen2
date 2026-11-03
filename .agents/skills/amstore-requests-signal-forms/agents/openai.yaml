@@ -1,0 +1,4 @@
+interface:
+  display_name: "Amstore: запросы и Signal Forms"
+  short_description: "Единый подход к запросам и Signal Forms в Amstore"
+  default_prompt: "Используй $amstore-requests-signal-forms для создания или проверки запросов и Signal Forms по примеру SettingsCreateDialogComponent."

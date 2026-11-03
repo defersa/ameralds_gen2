@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, type Provider } from "@nestjs/common";
 import { DataSourceService } from "./data-source.service";
 import { TokenService } from "@am-back/db/service/token.service";
 import { UserService } from "@am-back/db/service/user.service";
@@ -18,10 +18,14 @@ import { EmailLoginService } from '@am-back/db/service/email-login.service';
 import { MailService } from '../mail/mail.service';
 import { AuthEmailService } from './services/auth-email.service';
 import { AuthEmailLimitService } from './services/auth-email-limit.service';
+import { AppSettingsService } from './services/app-settings/app-settings.service';
+import { OrderExpirationService } from './services/order/order-expiration.service';
 
 
-const services: any[] = [
+const services: Provider[] = [
     DataSourceService,
+    AppSettingsService,
+    OrderExpirationService,
     TokenService,
     UserService,
     ImagesService,
