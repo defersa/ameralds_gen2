@@ -1,113 +1,191 @@
-import { BadRequestException, ConflictException, Injectable, type OnModuleInit } from '@nestjs/common';
-import type { EntityManager } from 'typeorm';
-import { DataSourceService } from '../../data-source.service';
-import { AppSettingEntity } from '../../entities/app-setting.entity';
-import { ApiEntityNames, ApiErrorCodes } from '../../../modules/errors/errors.dto';
+import { ApiEntityNames, ApiErrorCodes, DEFAULT_PAGE_SIZE, INT32_MAX, MIN_POSITIVE_INTEGER } from "@ameralds/utils";
+import type { AppSettingsHistoryDto, AppSettingsVersionDto } from "@am-back/modules/app-settings/app-settings.dto";
+import { BadRequestException, ConflictException, Injectable, type OnModuleInit } from "@nestjs/common";
+import { DataSource, type EntityManager } from "typeorm";
+import { toAppSettingsVersion } from "./app-settings.mapper";
 import {
-    APP_SETTINGS_REGISTRY, AppSettingKey, AppSettingValue, AppSettingsChanges, DEFAULT_APP_SETTINGS,
-    InvalidAppSettingsChangesError, applyAppSettingsChanges, effectiveSetting, readStoredSetting, validateStoredAppSettings,
-} from './app-settings.schema';
+	APP_SETTINGS_REGISTRY,
+	DEFAULT_APP_SETTINGS,
+	InvalidAppSettingsChangesError,
+	applyAppSettingsChanges,
+	effectiveSetting,
+	readStoredSetting,
+	type AppSettingKey,
+	type AppSettingValue,
+	type AppSettingsChanges,
+	type StoredAppSettings,
+} from "./app-settings.schema";
+import { AppSettingsRepository } from "./repositories/app-settings.repository";
+
 
 @Injectable()
 export class AppSettingsService implements OnModuleInit {
-    constructor(private readonly source: DataSourceService) {}
+	/** Подключает репозиторий версий настроек и источник транзакций. */
+	constructor(
+		private readonly versions: AppSettingsRepository,
+		private readonly dataSource: DataSource,
+	) {}
 
-    public async onModuleInit(): Promise<void> {
-        await this.current();
-    }
+	/** При запуске модуля проверяет текущие настройки и создаёт начальную версию при её отсутствии. */
+	public async onModuleInit(): Promise<void> {
+		await this.current();
+	}
 
-    /** Без кэша: новое значение сразу видно всем backend-инстансам. */
-    public async current(manager = this.source.dataSource.manager): Promise<AppSettingEntity> {
-        const current = await this.findCurrent(manager);
-        if (current) return current;
-        if (manager.queryRunner?.isTransactionActive) {
-            await this.lock(manager);
-            return await this.findCurrent(manager) ?? this.initialize(manager);
-        }
-        return this.source.dataSource.transaction('READ COMMITTED', async transaction => {
-            await this.lock(transaction);
-            return await this.findCurrent(transaction) ?? this.initialize(transaction);
-        });
-    }
+	/**
+	 * Возвращает последнюю версию настроек; при пустом хранилище инициализирует её под блокировкой в
+	 * текущей или новой транзакции.
+	 */
+	public async current(manager?: EntityManager): Promise<AppSettingsVersionDto> {
+		const current = await this.versions.findCurrent(manager);
 
-    public async getRaw<K extends AppSettingKey>(key: K): Promise<AppSettingValue<K> | undefined> {
-        return readStoredSetting((await this.current()).snapshot, key);
-    }
+		if (current) {
+			return toAppSettingsVersion(current);
+		}
 
-    public async get<K extends AppSettingKey>(key: K): Promise<AppSettingValue<K>> {
-        return effectiveSetting(readStoredSetting((await this.current()).snapshot, key), APP_SETTINGS_REGISTRY[key]);
-    }
+		if (manager?.queryRunner?.isTransactionActive) {
+			return this.initialize(manager);
+		}
 
-    public async version(version: number): Promise<AppSettingEntity> {
-        this.validatePageOrVersion(version);
-        const result = await this.source.getRepository(AppSettingEntity).findOne({
-            where: { version }, relations: { createdBy: true },
-            select: { version: true, snapshot: true, createdAt: true, createdById: true, createdBy: { id: true, username: true, email: true } },
-        });
-        if (!result) throw new BadRequestException({ code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.APP_SETTINGS });
-        validateStoredAppSettings(result.snapshot);
-        return result;
-    }
+		return this.dataSource.transaction("READ COMMITTED", (transaction) => this.initialize(transaction));
+	}
 
-    public async history(page: number): Promise<{ items: AppSettingEntity[]; page: number; count: number; total: number; activeVersion: number | null }> {
-        this.validatePageOrVersion(page);
-        const take = 10;
-        // Один snapshot БД для строк, total и маркировки активной версии.
-        return this.source.dataSource.transaction('REPEATABLE READ', async manager => {
-            const repository = manager.getRepository(AppSettingEntity);
-            const [items, total] = await repository.findAndCount({
-                order: { version: 'DESC' }, take, skip: (page - 1) * take,
-                relations: { createdBy: true },
-                select: { version: true, snapshot: true, createdAt: true, createdById: true, createdBy: { id: true, username: true, email: true } },
-            });
-            for (const item of items) validateStoredAppSettings(item.snapshot);
-            const active = await this.findCurrent(manager);
-            return { items, page, count: Math.ceil(total / take), total, activeVersion: active?.version ?? null };
-        });
-    }
+	/**
+	 * Возвращает указанную положительную int32-версию настроек; для отсутствующей версии возвращает
+	 * NOT_EXIST.
+	 */
+	public async version(version: number): Promise<AppSettingsVersionDto> {
+		this.validatePositiveInt32(version);
 
-    private validatePageOrVersion(value: number): void {
-        if (!Number.isSafeInteger(value) || value < 1 || value > 2147483647) {
-            throw new BadRequestException({ code: ApiErrorCodes.INVALID, entity: ApiEntityNames.APP_SETTINGS });
-        }
-    }
+		const result = await this.versions.findVersion(version);
 
-    /** Вызывать из admin-only API (AMS-6); createdById берётся из проверенного RequestModel.user. */
-    public async createVersion(expectedVersion: number, changes: AppSettingsChanges, createdById: number): Promise<AppSettingEntity> {
-        if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1 || !Number.isSafeInteger(createdById) || createdById < 1) {
-            throw new BadRequestException({ code: ApiErrorCodes.INVALID, entity: ApiEntityNames.APP_SETTINGS });
-        }
-        return this.source.dataSource.transaction('READ COMMITTED', async manager => {
-            // Блокировка существует и при пустой таблице; общая для инициализации и всех писателей.
-            await this.lock(manager);
-            const previous = await this.findCurrent(manager) ?? await this.initialize(manager);
-            if (previous.version !== expectedVersion) {
-                throw new ConflictException({ code: ApiErrorCodes.VERSION_CONFLICT, entity: ApiEntityNames.APP_SETTINGS });
-            }
-            let snapshot;
-            try {
-                snapshot = applyAppSettingsChanges(previous.snapshot, changes);
-            } catch (error) {
-                if (!(error instanceof InvalidAppSettingsChangesError)) throw error;
-                throw new BadRequestException({ code: ApiErrorCodes.INVALID, entity: ApiEntityNames.APP_SETTINGS });
-            }
-            return manager.getRepository(AppSettingEntity).save({ version: previous.version + 1, snapshot, createdById });
-        });
-    }
+		if (!result) {
+			throw new BadRequestException({
+				code: ApiErrorCodes.NOT_EXIST,
+				entity: ApiEntityNames.APP_SETTINGS,
+			});
+		}
 
-    private async findCurrent(manager: EntityManager): Promise<AppSettingEntity | null> {
-        const current = await manager.getRepository(AppSettingEntity).findOne({ where: {}, order: { version: 'DESC' } });
-        if (current) validateStoredAppSettings(current.snapshot);
-        return current;
-    }
+		return toAppSettingsVersion(result);
+	}
 
-    private async initialize(manager: EntityManager): Promise<AppSettingEntity> {
-        return manager.getRepository(AppSettingEntity).save({
-            version: 1, snapshot: structuredClone(DEFAULT_APP_SETTINGS), createdById: null,
-        });
-    }
+	/**
+	 * Читает страницу истории и номер активной версии в одной транзакции REPEATABLE READ, чтобы ответ
+	 * отражал единый снимок данных.
+	 */
+	public async history(page: number): Promise<AppSettingsHistoryDto> {
+		this.validatePositiveInt32(page);
 
-    private async lock(manager: EntityManager): Promise<void> {
-        await manager.query('SELECT pg_advisory_xact_lock($1, $2)', [0x414d5354, 1]);
-    }
+		const take = DEFAULT_PAGE_SIZE;
+
+		return this.dataSource.transaction("REPEATABLE READ", async (manager) => {
+			const [items, total] = await this.versions.findHistoryPage(page, take, manager);
+			const active = await this.versions.findCurrent(manager);
+
+			if (active) {
+				toAppSettingsVersion(active);
+			}
+
+			return {
+				items: items
+					.map(toAppSettingsVersion),
+				page,
+				count: Math.ceil(total / take),
+				total,
+				activeVersion: active?.version ?? null,
+			};
+		});
+	}
+
+	/**
+	 * Возвращает сохранённое значение текущей настройки без defaults; для отсутствующего ключа возвращает
+	 * undefined.
+	 */
+	public async getRaw<K extends AppSettingKey>(key: K): Promise<AppSettingValue<K> | undefined> {
+		return readStoredSetting((await this.current()).snapshot, key);
+	}
+
+	/** Возвращает действующее значение текущей настройки с проверкой типа и подстановкой defaults. */
+	public async get<K extends AppSettingKey>(key: K): Promise<AppSettingValue<K>> {
+		return effectiveSetting(readStoredSetting((await this.current()).snapshot, key), APP_SETTINGS_REGISTRY[key]);
+	}
+
+	/**
+	 * Создаёт новую версию настроек в транзакции под общей блокировкой. При несовпадении expectedVersion
+	 * возвращает VERSION_CONFLICT; сохраняет автора изменений.
+	 */
+	public async createVersion(
+		expectedVersion: number,
+		changes: AppSettingsChanges,
+		createdById: number,
+	): Promise<AppSettingsVersionDto> {
+		this.validatePositiveInt32(expectedVersion);
+		this.validatePositiveInt32(createdById);
+		return this.dataSource.transaction("READ COMMITTED", async (manager) => {
+			await this.versions.lockVersions(manager);
+
+			const previous = await this.current(manager);
+
+			if (previous.version !== expectedVersion) {
+				throw new ConflictException({
+					code: ApiErrorCodes.VERSION_CONFLICT,
+					entity: ApiEntityNames.APP_SETTINGS,
+				});
+			}
+
+			return toAppSettingsVersion(
+				await this.versions.insertVersion(
+					previous.version + 1,
+					this.applyChanges(previous.snapshot, changes),
+					createdById,
+					manager,
+				),
+			);
+		});
+	}
+
+	/**
+	 * Под общей блокировкой повторно проверяет хранилище и при необходимости создаёт версию 1 с defaults.
+	 * Требует транзакционный manager.
+	 */
+	private async initialize(manager: EntityManager): Promise<AppSettingsVersionDto> {
+		await this.versions.lockVersions(manager);
+
+		const current =
+			(await this.versions.findCurrent(manager)) ??
+			(await this.versions.insertVersion(1, structuredClone(DEFAULT_APP_SETTINGS), null, manager));
+
+		return toAppSettingsVersion(current);
+	}
+
+	/**
+	 * Применяет разрешённые изменения snapshot и преобразует ошибку их валидации в стандартную ошибку
+	 * INVALID для настроек.
+	 */
+	private applyChanges(snapshot: StoredAppSettings, changes: AppSettingsChanges): StoredAppSettings {
+		try {
+			return applyAppSettingsChanges(snapshot, changes);
+		} catch (error) {
+			if (!(error instanceof InvalidAppSettingsChangesError)) {
+				throw error;
+			}
+
+			throw new BadRequestException({
+				code: ApiErrorCodes.INVALID,
+				entity: ApiEntityNames.APP_SETTINGS,
+			});
+		}
+	}
+
+	/**
+	 * Проверяет, что значение является положительным целым int32; при нарушении возвращает INVALID для
+	 * настроек.
+	 */
+	private validatePositiveInt32(value: number): void {
+		if (!Number.isSafeInteger(value) || value < MIN_POSITIVE_INTEGER || value > INT32_MAX) {
+			throw new BadRequestException({
+				code: ApiErrorCodes.INVALID,
+				entity: ApiEntityNames.APP_SETTINGS,
+			});
+		}
+	}
 }

@@ -1,119 +1,139 @@
+import { ApiEntityNames, ApiErrorCodes, DEFAULT_PAGE_SIZE, FIRST_PAGE } from "@ameralds/utils";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { DataSourceService } from "../../data-source.service";
 import { ModelState } from "../../abstract/abstract.model";
 import { SizesPaginatedPageDto } from "../../../modules/sizes/sizes.dto";
-import { ApiEntityNames, ApiErrorCodes } from "../../../modules/errors/errors.dto";
 import { defaultActiveEntity } from "@am-back/db/service/utils/default.config";
-import { SizeEntity } from '../../entities/patterns/size.entity';
+import { SizeEntity } from "../../entities/patterns/size.entity";
 
 
 @Injectable()
 export class SizesService {
-    private sizesRepository: Repository<SizeEntity>;
+	private sizesRepository: Repository<SizeEntity>;
 
-    constructor(
-        private dataSource: DataSourceService,
-    ) {
-        this.sizesRepository = this.dataSource.getRepository<SizeEntity>(SizeEntity);
-    }
+	/** Подключает репозиторий размеров каталога. */
+	constructor(private dataSource: DataSourceService) {
+		this.sizesRepository = this.dataSource.getRepository<SizeEntity>(SizeEntity);
+	}
 
-    public async createSize(value: number): Promise<SizeEntity> {
-        await this.checkUnique(value);
+	/** Создаёт размер после проверки уникальности среди активных размеров. */
+	public async createSize(value: number): Promise<SizeEntity> {
+		await this.checkUnique(value);
 
-        const size: SizeEntity = this.sizesRepository.create({ value });
+		const size: SizeEntity = this.sizesRepository.create({ value });
 
-        return this.sizesRepository.save(size);
-    }
+		return this.sizesRepository.save(size);
+	}
 
-    public async editSize(id: number, value: number): Promise<SizeEntity> {
-        await this.checkUnique(value);
+	/** Проверяет уникальность значения и обновляет активный размер; при отсутствии размера возвращает null. */
+	public async editSize(id: number, value: number): Promise<SizeEntity> {
+		await this.checkUnique(value);
 
-        const size: SizeEntity = await this.sizesRepository.findOne({
-            where: {
-                id,
-                ...defaultActiveEntity.where,
-            },
-        });
+		const size: SizeEntity = await this.sizesRepository.findOne({
+			where: {
+				id,
+				...defaultActiveEntity.where,
+			},
+		});
 
-        if (!size) {
-            return null;
-        }
+		if (!size) {
+			return null;
+		}
 
-        size.value = value;
+		size.value = value;
 
-        return this.sizesRepository.save(size);
-    }
+		return this.sizesRepository.save(size);
+	}
 
-    public async removeSize(id: number): Promise<SizeEntity> {
-        const size: SizeEntity = await this.sizesRepository.findOne({
-            where: {
-                id,
-                ...defaultActiveEntity.where,
-            },
-        });
+	/** Помечает активный размер неактивным; при отсутствии возвращает null. */
+	public async removeSize(id: number): Promise<SizeEntity> {
+		const size: SizeEntity = await this.sizesRepository.findOne({
+			where: {
+				id,
+				...defaultActiveEntity.where,
+			},
+		});
 
-        if (!size) {
-            return null;
-        }
+		if (!size) {
+			return null;
+		}
 
-        size.state = ModelState.INACTIVE;
+		size.state = ModelState.INACTIVE;
 
-        return this.sizesRepository.save(size);
-    }
+		return this.sizesRepository.save(size);
+	}
 
-    public async paginatedSizes(page: number): Promise<SizesPaginatedPageDto> {
-        const take: number = 10;
-        const skip: number = take * (page - 1);
-        const count: number = Math.ceil(await this.sizesRepository.count(defaultActiveEntity) / take);
+	/** Возвращает страницу активных размеров и общее число страниц. */
+	public async paginatedSizes(page: number): Promise<SizesPaginatedPageDto> {
+		const take = DEFAULT_PAGE_SIZE;
+		const skip = take * (page - FIRST_PAGE);
+		const count: number = Math.ceil((await this.sizesRepository.count(defaultActiveEntity)) / take);
 
-        const sizes: SizeEntity[] = await this.sizesRepository.find({
-            where: defaultActiveEntity.where,
-            take,
-            skip,
-        });
+		const sizes: SizeEntity[] = await this.sizesRepository
+			.find({
+				where: defaultActiveEntity.where,
+				take,
+				skip,
+			});
 
-        return {
-            page,
-            count,
-            items: sizes,
-        };
-    }
+		return {
+			page,
+			count,
+			items: sizes,
+		};
+	}
 
-    public async getSize(id: number): Promise<SizeEntity> {
-        const size: SizeEntity = await this.sizesRepository.findOne({
-            where: {
-                id,
-                ...defaultActiveEntity.where,
-            },
-        });
+	/** Возвращает активный размер по идентификатору; при отсутствии возвращает NOT_EXIST для размера. */
+	public async getSize(id: number): Promise<SizeEntity> {
+		const size: SizeEntity = await this.sizesRepository.findOne({
+			where: {
+				id,
+				...defaultActiveEntity.where,
+			},
+		});
 
-        if (!size) {
-            throw new HttpException({ code: ApiErrorCodes.NOT_EXIST, entity: ApiEntityNames.SIZE }, HttpStatus.BAD_REQUEST);
-        }
+		if (!size) {
+			throw new HttpException(
+				{
+					code: ApiErrorCodes.NOT_EXIST,
+					entity: ApiEntityNames.SIZE,
+				},
+				HttpStatus.BAD_REQUEST,
+			);
+		}
 
-        return size;
-    }
+		return size;
+	}
 
-    public async getAllSizes(): Promise<SizeEntity[]> {
-        return this.sizesRepository.find({
-            where: defaultActiveEntity.where,
-            order: {
-                value: 'ASC',
-            },
-        });
-    }
+	/** Возвращает все активные размеры по возрастанию значения. */
+	public async getAllSizes(): Promise<SizeEntity[]> {
+		return this.sizesRepository
+			.find({
+				where: defaultActiveEntity.where,
+				order: {
+					value: "ASC",
+				},
+			});
+	}
 
-    private async checkUnique(value: number): Promise<void> {
-        const sameSize: SizeEntity = await this.sizesRepository.findOne({
-            where: {
-                value,
-                ...defaultActiveEntity.where,
-            },
-        });
+	/** Отклоняет значение, уже используемое активным размером, стандартной ошибкой NOT_UNIQUE. */
+	private async checkUnique(value: number): Promise<void> {
+		const sameSize: SizeEntity = await this.sizesRepository.findOne({
+			where: {
+				value,
+				...defaultActiveEntity.where,
+			},
+		});
 
-        if (sameSize) {
-            throw new HttpException({ code: ApiErrorCodes.NOT_UNIQUE, entity: ApiEntityNames.SIZE }, HttpStatus.BAD_REQUEST);
-        }
-    }
+		if (sameSize) {
+			throw new HttpException(
+				{
+					code: ApiErrorCodes.NOT_UNIQUE,
+					entity: ApiEntityNames.SIZE,
+				},
+				HttpStatus.BAD_REQUEST,
+			);
+		}
+	}
 }

@@ -1,3 +1,4 @@
+import { ApiErrorCodes, DEFAULT_PAGE_SIZE, FIRST_PAGE } from "@ameralds/utils";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { Brackets, In, Repository, SelectQueryBuilder } from "typeorm";
 import { CommonEntitiesService } from "@am-back/db/service/common-entities.service";
@@ -7,328 +8,442 @@ import { DataSourceService } from "../../data-source.service";
 import { CategoriesService } from "@am-back/db/service/patterns/categories.service";
 import { PatternsSizeService } from "@am-back/db/service/patterns/pattern-sizes.service";
 import {
-    CreatePatternDto,
-    PatternEntityDto,
-    PatternSizeDto,
-    PatternsPaginatedPageDto,
+	CreatePatternDto,
+	PatternEntityDto,
+	PatternSizeDto,
+	PatternsPaginatedPageDto,
 } from "../../../modules/patterns/patterns.dto";
 import { ModelState } from "../../abstract/abstract.model";
-import { ApiErrorCodes } from "../../../modules/errors/errors.dto";
 import { instanceToPlain } from "class-transformer";
-import { PatternEntity } from '../../entities/patterns/pattern.entity';
-import { LabelLangEntity } from '../../entities/common/label-lang.entity';
-import { TextLangEntity } from '../../entities/common/text-lang.entity';
-import { NumberLangEntity } from '../../entities/common/number-lang.entity';
-import { CategoryEntity } from '../../entities/patterns/category.entity';
-import { ImageEntity } from '../../entities/image/image.entity';
-import { FileEntity } from '../../entities/files/file.entity';
-import { PatternSizeEntity } from '../../entities/patterns/pattern-size.entity';
-
+import { PatternEntity } from "../../entities/patterns/pattern.entity";
+import { LabelLangEntity } from "../../entities/common/label-lang.entity";
+import { TextLangEntity } from "../../entities/common/text-lang.entity";
+import { NumberLangEntity } from "../../entities/common/number-lang.entity";
+import { CategoryEntity } from "../../entities/patterns/category.entity";
+import { ImageEntity } from "../../entities/image/image.entity";
+import { FileEntity } from "../../entities/files/file.entity";
+import { PatternSizeEntity } from "../../entities/patterns/pattern-size.entity";
 
 
 export interface PatternsPaginatedFilters {
-    sizes: number[];
-    categories: number[];
-    query: string;
+	sizes: number[];
+	categories: number[];
+	query: string;
 }
 
 type PatternIdRow = {
-    id: number | string;
-}
+	id: number | string;
+};
 
 @Injectable()
 export class PatternsService {
-    private patternsRepository: Repository<PatternEntity>;
+	private patternsRepository: Repository<PatternEntity>;
 
-    constructor(
-        private dataSource: DataSourceService,
-        private commonEntitiesService: CommonEntitiesService,
-        private categoriesService: CategoriesService,
-        private imagesService: ImagesService,
-        private filesService: FilesService,
-        private patternSizeService: PatternsSizeService,
-    ) {
-        this.patternsRepository = this.dataSource.getRepository<PatternEntity>(PatternEntity);
-    }
+	/**
+	 * Подключает репозиторий схем и сервисы локализованных данных, категорий, изображений, файлов и
+	 * размеров.
+	 */
+	constructor(
+		private dataSource: DataSourceService,
+		private commonEntitiesService: CommonEntitiesService,
+		private categoriesService: CategoriesService,
+		private imagesService: ImagesService,
+		private filesService: FilesService,
+		private patternSizeService: PatternsSizeService,
+	) {
+		this.patternsRepository = this.dataSource.getRepository<PatternEntity>(PatternEntity);
+	}
 
-    public async createPattern(data: CreatePatternDto): Promise<PatternEntity> {
-        const name: LabelLangEntity = await this.commonEntitiesService.createLabel(data.name.ru, data.name.en);
-        const description: TextLangEntity = await this.commonEntitiesService.createText(data.description.ru, data.description.en);
-        const basePrice: NumberLangEntity = await this.commonEntitiesService.createNumber(data.basePrice.ru, data.basePrice.en);
-        const additionalPrice: NumberLangEntity = await this.commonEntitiesService.createNumber(data.additionalPrice.ru, data.additionalPrice.en);
-        const colorPrice: NumberLangEntity = await this.commonEntitiesService.createNumber(data.colorPrice.ru, data.colorPrice.en);
-        const categories: CategoryEntity[] = await this.categoriesService.getCategoriesByIds(data.categories);
-        const images: ImageEntity[] = await this.imagesService.getImagesByIds(data.images);
-        const color: FileEntity = data.color ? await this.filesService.getPrivateFile(data.color) : null;
-        const sizes: PatternSizeEntity[] = await Promise.all(data.sizes
-            .map(async (size: PatternSizeDto) => await this.patternSizeService.createPatternSize(size)));
+	/**
+	 * Создаёт схему с локализованными описаниями и ценами, категориями, изображениями и размерами; отмечает
+	 * файлы используемыми.
+	 */
+	public async createPattern(data: CreatePatternDto): Promise<PatternEntity> {
+		const name: LabelLangEntity = await this.commonEntitiesService.createLabel(data.name.ru, data.name.en);
 
-        await this.imagesService.setUsageStatus(images, true);
-        await this.filesService.setUsageStatus(color, true);
+		const description: TextLangEntity = await this.commonEntitiesService.createText(
+			data.description.ru,
+			data.description.en,
+		);
 
-        const pattern: PatternEntity = this.patternsRepository.create({
-            name,
-            description,
-            basePrice,
-            additionalPrice,
-            colorPrice,
-            categories,
-            hidden: data.hidden ?? false,
-            images,
-            color,
-            sizes,
-        });
+		const basePrice: NumberLangEntity = await this.commonEntitiesService.createNumber(
+			data.basePrice.ru,
+			data.basePrice.en,
+		);
 
-        await this.imagesService.updateIndex(pattern.images, data.images);
-        await this.patternsRepository.save(pattern);
+		const additionalPrice: NumberLangEntity = await this.commonEntitiesService.createNumber(
+			data.additionalPrice.ru,
+			data.additionalPrice.en,
+		);
 
-        return pattern;
-    }
+		const colorPrice: NumberLangEntity = await this.commonEntitiesService.createNumber(
+			data.colorPrice.ru,
+			data.colorPrice.en,
+		);
 
-    public async editPattern(id: number, data: CreatePatternDto): Promise<PatternEntity> {
-        const pattern: PatternEntity = await this.patternsRepository.findOne({
-            where: {
-                id,
-                state: ModelState.ACTIVE,
-            },
-            relations: {
-                name: true,
-                description: true,
-            },
-        });
+		const categories: CategoryEntity[] = await this.categoriesService.getCategoriesByIds(data.categories);
+		const images: ImageEntity[] = await this.imagesService.getImagesByIds(data.images);
+		const color: FileEntity = data.color ? await this.filesService.getPrivateFile(data.color) : null;
 
-        if (!pattern) {
-            throw new HttpException({ code: ApiErrorCodes.NOT_EXIST }, HttpStatus.BAD_REQUEST);
-        }
+		const sizes: PatternSizeEntity[] = await Promise.all(
+			data.sizes
+				.map(async (size: PatternSizeDto) => await this.patternSizeService.createPatternSize(size)),
+		);
 
-        await Promise.all((pattern.sizes || []).map(async (size: PatternSizeEntity) => await this.patternSizeService.removePatternSize(size)));
-        await this.imagesService.setUsageStatus(pattern.images, false);
-        await this.filesService.setUsageStatus(pattern.color, false);
+		await this.imagesService.setUsageStatus(images, true);
+		await this.filesService.setUsageStatus(color, true);
 
-        const previousName: LabelLangEntity = pattern.name;
-        const previousDescription: LabelLangEntity = pattern.description;
-        const previousBasePrice: NumberLangEntity = pattern.basePrice;
-        const previousAdditionalPrice: NumberLangEntity = pattern.additionalPrice;
-        const previousColorPrice: NumberLangEntity = pattern.colorPrice;
+		const pattern: PatternEntity = this.patternsRepository.create({
+			name,
+			description,
+			basePrice,
+			additionalPrice,
+			colorPrice,
+			categories,
+			hidden: data.hidden ?? false,
+			images,
+			color,
+			sizes,
+		});
 
-        pattern.name = await this.commonEntitiesService.createLabel(data.name.ru, data.name.en);
-        pattern.description = await this.commonEntitiesService.createText(data.description.ru, data.description.en);
-        pattern.basePrice = await this.commonEntitiesService.createNumber(data.basePrice.ru, data.basePrice.en);
-        pattern.additionalPrice = await this.commonEntitiesService.createNumber(data.additionalPrice.ru, data.additionalPrice.en);
-        pattern.colorPrice = await this.commonEntitiesService.createNumber(data.colorPrice.ru, data.colorPrice.en);
-        pattern.categories = await this.categoriesService.getCategoriesByIds(data.categories);
-        pattern.images = await this.imagesService.getImagesByIds(data.images);
-        pattern.color = data.color ? await this.filesService.getPrivateFile(data.color) : null;
-        pattern.sizes = await Promise.all((data.sizes || []).map(async (size: PatternSizeDto) => {
-            const id: number = size.id;
+		await this.imagesService.updateIndex(pattern.images, data.images);
+		await this.patternsRepository.save(pattern);
 
-            return id ? this.patternSizeService.editPatternSize(id, size) : this.patternSizeService.createPatternSize(size);
-        }));
+		return pattern;
+	}
 
-        await this.filesService.setUsageStatus(pattern.color, true);
-        await this.imagesService.setUsageStatus(pattern.images, true);
-        await this.imagesService.updateIndex(pattern.images, data.images);
-        await this.patternsRepository.save(pattern);
+	/**
+	 * Обновляет активную схему и связанные данные, освобождая прежние файлы и локализованные записи; при
+	 * отсутствии схемы возвращает NOT_EXIST.
+	 */
+	public async editPattern(id: number, data: CreatePatternDto): Promise<PatternEntity> {
+		const pattern: PatternEntity = await this.patternsRepository.findOne({
+			where: {
+				id,
+				state: ModelState.ACTIVE,
+			},
+			relations: {
+				name: true,
+				description: true,
+			},
+		});
 
-        await this.commonEntitiesService.removeLabel(previousName);
-        await this.commonEntitiesService.removeText(previousDescription);
-        await this.commonEntitiesService.removeNumber(previousBasePrice);
-        await this.commonEntitiesService.removeNumber(previousAdditionalPrice);
-        await this.commonEntitiesService.removeNumber(previousColorPrice);
+		if (!pattern) {
+			throw new HttpException(
+				{
+					code: ApiErrorCodes.NOT_EXIST,
+				},
+				HttpStatus.BAD_REQUEST,
+			);
+		}
 
-        return pattern;
-    }
+		await Promise.all(
+			(pattern.sizes || [])
+				.map(
+					async (size: PatternSizeEntity) => await this.patternSizeService.removePatternSize(size),
+				),
+		);
+		await this.imagesService.setUsageStatus(pattern.images, false);
+		await this.filesService.setUsageStatus(pattern.color, false);
 
-    public async paginatedPatterns(page: number, filters: PatternsPaginatedFilters): Promise<PatternsPaginatedPageDto> {
-        const take = 10;
-        const skip: number = take * (page - 1);
-        const [ids, total]: [number[], number] = await Promise.all([
-            this.getPaginatedPatternIds(filters, take, skip),
-            this.getFilteredPatternsQuery(filters).getCount(),
-        ]);
-        const patterns: PatternEntity[] = await this.getPatternsPageByIds(ids);
-        const count: number = Math.ceil(total / take);
+		const previousName: LabelLangEntity = pattern.name;
+		const previousDescription: LabelLangEntity = pattern.description;
+		const previousBasePrice: NumberLangEntity = pattern.basePrice;
+		const previousAdditionalPrice: NumberLangEntity = pattern.additionalPrice;
+		const previousColorPrice: NumberLangEntity = pattern.colorPrice;
 
-        return {
-            page,
-            count,
-            items: this.processPatterns(patterns),
-        };
-    }
+		pattern.name = await this.commonEntitiesService.createLabel(data.name.ru, data.name.en);
+		pattern.description = await this.commonEntitiesService.createText(data.description.ru, data.description.en);
+		pattern.basePrice = await this.commonEntitiesService.createNumber(data.basePrice.ru, data.basePrice.en);
+		pattern.additionalPrice = await this.commonEntitiesService.createNumber(
+			data.additionalPrice.ru,
+			data.additionalPrice.en,
+		);
+		pattern.colorPrice = await this.commonEntitiesService.createNumber(data.colorPrice.ru, data.colorPrice.en);
+		pattern.categories = await this.categoriesService.getCategoriesByIds(data.categories);
+		pattern.images = await this.imagesService.getImagesByIds(data.images);
+		pattern.color = data.color ? await this.filesService.getPrivateFile(data.color) : null;
+		pattern.sizes = await Promise.all(
+			(data.sizes || [])
+				.map(async (size: PatternSizeDto) => {
+					const id: number = size.id;
 
-    public async patternsById(ids: number[]): Promise<Record<number, PatternEntityDto>> {
-        const patterns: PatternEntity[] = await this.patternsRepository.find({
-            where: {
-                id: In(ids),
-                state: ModelState.ACTIVE,
-                hidden: false,
-            },
-            relations: {
-                name: true,
-                description: true,
-                basePrice: true,
-                additionalPrice: true,
-                colorPrice: true,
-                images: true,
-                color: true,
-                sizes: {
-                    size: true,
-                },
-            },
-            order: {
-                images: {
-                    index: "ASC",
-                },
-            },
-            select: {
-                sizes: {
-                    id: true,
-                },
-            },
-            loadRelationIds: {
-                relations: ["categories"],
-            },
-        });
+					return id
+						? this.patternSizeService.editPatternSize(id, size)
+						: this.patternSizeService.createPatternSize(size);
+				}),
+		);
 
-       const plainPatterns: PatternEntityDto[] = this.processPatterns(patterns);
+		await this.filesService.setUsageStatus(pattern.color, true);
+		await this.imagesService.setUsageStatus(pattern.images, true);
+		await this.imagesService.updateIndex(pattern.images, data.images);
+		await this.patternsRepository.save(pattern);
 
-        return Object.fromEntries(plainPatterns.map((item: PatternEntityDto) => [item.id, item]));
-    }
+		await this.commonEntitiesService.removeLabel(previousName);
+		await this.commonEntitiesService.removeText(previousDescription);
+		await this.commonEntitiesService.removeNumber(previousBasePrice);
+		await this.commonEntitiesService.removeNumber(previousAdditionalPrice);
+		await this.commonEntitiesService.removeNumber(previousColorPrice);
 
-    public async getPattern(id: number): Promise<PatternEntity> {
-        const pattern: PatternEntity = await this.patternsRepository.findOne({
-            where: {
-                id,
-                state: ModelState.ACTIVE,
-            },
-            relations: {
-                name: true,
-                description: true,
-                basePrice: true,
-                additionalPrice: true,
-                colorPrice: true,
-                images: true,
-                color: true,
-                sizes: {
-                    cbb: true,
-                    pdf: true,
-                    png: true,
-                    size: true,
-                },
-            },
-            order: {
-                images: {
-                    index: "ASC",
-                },
-            },
-            loadRelationIds: { relations: ["categories"] },
-        });
+		return pattern;
+	}
 
-        if (!pattern) {
-            throw new HttpException({ code: ApiErrorCodes.NOT_EXIST }, HttpStatus.BAD_REQUEST);
-        }
+	/**
+	 * Возвращает страницу доступных схем по фильтрам с отдельной пагинацией идентификаторов, чтобы связи не
+	 * меняли размер страницы.
+	 */
+	public async paginatedPatterns(page: number, filters: PatternsPaginatedFilters): Promise<PatternsPaginatedPageDto> {
+		const take = DEFAULT_PAGE_SIZE;
+		const skip = take * (page - FIRST_PAGE);
 
-        return pattern;
-    }
+		// Выбираем идентификаторы страницы и общее количество по одним фильтрам; связи каталога не должны искажать пагинацию.
+		const [ids, total]: [number[], number] = await Promise.all([
+			this.getPaginatedPatternIds(filters, take, skip),
+			this.getFilteredPatternsQuery(filters).getCount(),
+		]);
 
-    private processPatterns(patterns: PatternEntity[]): PatternEntityDto[] {
-        return patterns
-            .map((pattern: PatternEntity) => instanceToPlain(pattern))
-            .map((pattern: PatternEntity) =>
-                ({
-                    ...pattern,
-                    sizes: pattern.sizes.map((size: PatternSizeEntity) => ({ ...size, size: size.size.id })),
-                })) as unknown as PatternEntityDto[];
-    }
+		const patterns: PatternEntity[] = await this.getPatternsPageByIds(ids);
+		const count: number = Math.ceil(total / take);
 
-    private async getPaginatedPatternIds(filters: PatternsPaginatedFilters, take: number, skip: number): Promise<number[]> {
-        const rows: PatternIdRow[] = await this.getFilteredPatternsQuery(filters)
-            .select('pattern.id', 'id')
-            .addSelect('pattern.createdAt', 'createdAt')
-            .distinct(true)
-            .orderBy('pattern.createdAt', 'DESC')
-            .addOrderBy('pattern.id', 'DESC')
-            .limit(take)
-            .offset(skip)
-            .getRawMany<PatternIdRow>();
+		return {
+			page,
+			count,
+			items: this.processPatterns(patterns),
+		};
+	}
 
-        return rows.map((row: PatternIdRow) => Number(row.id));
-    }
+	/**
+	 * Возвращает словарь активных нескрытых схем по идентификаторам с данными для представления и расчёта
+	 * цены.
+	 */
+	public async patternsById(ids: number[]): Promise<Record<number, PatternEntityDto>> {
+		const patterns: PatternEntity[] = await this.patternsRepository
+			.find({
+				where: {
+					id: In(ids),
+					state: ModelState.ACTIVE,
+					hidden: false,
+				},
+				relations: {
+					name: true,
+					description: true,
+					basePrice: true,
+					additionalPrice: true,
+					colorPrice: true,
+					images: true,
+					color: true,
+					sizes: {
+						size: true,
+					},
+				},
+				order: {
+					images: {
+						index: "ASC",
+					},
+				},
+				select: {
+					sizes: {
+						id: true,
+					},
+				},
+				loadRelationIds: {
+					relations: ["categories"],
+				},
+			});
 
-    private async getPatternsPageByIds(ids: number[]): Promise<PatternEntity[]> {
-        if (!ids.length) {
-            return [];
-        }
+		const plainPatterns: PatternEntityDto[] = this.processPatterns(patterns);
 
-        const patterns: PatternEntity[] = await this.patternsRepository.find({
-            where: {
-                id: In(ids),
-                state: ModelState.ACTIVE,
-                hidden: false,
-            },
-            relations: {
-                name: true,
-                description: true,
-                basePrice: true,
-                additionalPrice: true,
-                colorPrice: true,
-                images: true,
-                color: true,
-                sizes: {
-                    size: true,
-                },
-            },
-            order: {
-                images: {
-                    index: "ASC",
-                },
-            },
-            select: {
-                sizes: {
-                    id: true,
-                },
-            },
-            loadRelationIds: { relations: ["categories"] },
-        });
-        const patternsById: Map<number, PatternEntity> = new Map(
-            patterns.map((pattern: PatternEntity) => [pattern.id, pattern]),
-        );
+		return Object.fromEntries(plainPatterns
+			.map((item: PatternEntityDto) => [item.id, item]));
+	}
 
-        return ids
-            .map((id: number) => patternsById.get(id))
-            .filter((pattern: PatternEntity | undefined): pattern is PatternEntity => Boolean(pattern));
-    }
+	/**
+	 * Загружает активную схему со связанными ценами, изображениями, размерами и файлами; при отсутствии
+	 * возвращает NOT_EXIST.
+	 */
+	public async getPattern(id: number): Promise<PatternEntity> {
+		const pattern: PatternEntity = await this.patternsRepository.findOne({
+			where: {
+				id,
+				state: ModelState.ACTIVE,
+			},
+			relations: {
+				name: true,
+				description: true,
+				basePrice: true,
+				additionalPrice: true,
+				colorPrice: true,
+				images: true,
+				color: true,
+				sizes: {
+					cbb: true,
+					pdf: true,
+					png: true,
+					size: true,
+				},
+			},
+			order: {
+				images: {
+					index: "ASC",
+				},
+			},
+			loadRelationIds: {
+				relations: ["categories"],
+			},
+		});
 
-    private getFilteredPatternsQuery(filters: PatternsPaginatedFilters): SelectQueryBuilder<PatternEntity> {
-        const queryBuilder: SelectQueryBuilder<PatternEntity> = this.patternsRepository
-            .createQueryBuilder('pattern')
-            .leftJoin('pattern.name', 'name')
-            .leftJoin('pattern.description', 'description')
-            .where('pattern.state = :state', { state: ModelState.ACTIVE })
-            .andWhere('pattern.hidden = :hidden', { hidden: false });
+		if (!pattern) {
+			throw new HttpException(
+				{
+					code: ApiErrorCodes.NOT_EXIST,
+				},
+				HttpStatus.BAD_REQUEST,
+			);
+		}
 
-        if (filters.categories.length) {
-            queryBuilder
-                .innerJoin('pattern.categories', 'categoryFilter')
-                .andWhere('categoryFilter.id IN (:...categories)', { categories: filters.categories });
-        }
+		return pattern;
+	}
 
-        if (filters.sizes.length) {
-            queryBuilder
-                .innerJoin('pattern.sizes', 'sizeFilter')
-                .innerJoin('sizeFilter.size', 'selectedSize')
-                .andWhere('selectedSize.id IN (:...sizes)', { sizes: filters.sizes });
-        }
+	/**
+	 * Преобразует сущности схем в представление API и заменяет вложенную сущность размера его
+	 * идентификатором.
+	 */
+	private processPatterns(patterns: PatternEntity[]): PatternEntityDto[] {
+		return patterns
+			.map((pattern: PatternEntity) => instanceToPlain(pattern))
+			.map((pattern: PatternEntity) => ({
+				...pattern,
+				sizes: pattern.sizes
+					.map((size: PatternSizeEntity) => ({
+						...size,
+						size: size.size.id,
+					})),
+			})) as unknown as PatternEntityDto[];
+	}
 
-        if (filters.query.trim()) {
-            queryBuilder.andWhere(new Brackets((qb: SelectQueryBuilder<PatternEntity>) => {
-                qb.where('name.ru ILIKE :query', { query: `%${filters.query.trim()}%` })
-                    .orWhere('name.en ILIKE :query')
-                    .orWhere('description.ru ILIKE :query')
-                    .orWhere('description.en ILIKE :query');
-            }));
-        }
+	/**
+	 * Выбирает уникальные идентификаторы доступных схем по фильтрам с устойчивой сортировкой по дате и id
+	 * по убыванию.
+	 */
+	private async getPaginatedPatternIds(
+		filters: PatternsPaginatedFilters,
+		take: number,
+		skip: number,
+	): Promise<number[]> {
+		// Ограничиваем страницу уникальных схем до загрузки связей; сортировка по createdAt и id делает порядок устойчивым.
+		const rows: PatternIdRow[] = await this.getFilteredPatternsQuery(filters)
+			.select("pattern.id", "id")
+			.addSelect("pattern.createdAt", "createdAt")
+			.distinct(true)
+			.orderBy("pattern.createdAt", "DESC")
+			.addOrderBy("pattern.id", "DESC")
+			.limit(take)
+			.offset(skip)
+			.getRawMany<PatternIdRow>();
 
-        return queryBuilder;
-    }
+		return rows
+			.map((row: PatternIdRow) => Number(row.id));
+	}
+
+	/** Загружает активные нескрытые схемы для страницы и восстанавливает порядок переданных идентификаторов. */
+	private async getPatternsPageByIds(ids: number[]): Promise<PatternEntity[]> {
+		if (!ids.length) {
+			return [];
+		}
+
+		const patterns: PatternEntity[] = await this.patternsRepository
+			.find({
+				where: {
+					id: In(ids),
+					state: ModelState.ACTIVE,
+					hidden: false,
+				},
+				relations: {
+					name: true,
+					description: true,
+					basePrice: true,
+					additionalPrice: true,
+					colorPrice: true,
+					images: true,
+					color: true,
+					sizes: {
+						size: true,
+					},
+				},
+				order: {
+					images: {
+						index: "ASC",
+					},
+				},
+				select: {
+					sizes: {
+						id: true,
+					},
+				},
+				loadRelationIds: {
+					relations: ["categories"],
+				},
+			});
+
+		const patternsById: Map<number, PatternEntity> = new Map(
+			patterns
+				.map((pattern: PatternEntity) => [pattern.id, pattern]),
+		);
+
+		return ids
+			.map((id: number) => patternsById.get(id))
+			.filter((pattern: PatternEntity | undefined): pattern is PatternEntity => Boolean(pattern));
+	}
+
+	/**
+	 * Строит базовый запрос активных нескрытых схем с фильтрами по категориям, размерам и
+	 * регистронезависимому тексту названия и описания.
+	 */
+	private getFilteredPatternsQuery(filters: PatternsPaginatedFilters): SelectQueryBuilder<PatternEntity> {
+		// Начинаем выборку активных нескрытых схем, присоединяя локализованные названия и описания для
+		// текстового поиска.
+		const queryBuilder: SelectQueryBuilder<PatternEntity> = this.patternsRepository
+			.createQueryBuilder("pattern")
+			.leftJoin("pattern.name", "name")
+			.leftJoin("pattern.description", "description")
+			.where("pattern.state = :state", {
+				state: ModelState.ACTIVE,
+			})
+			.andWhere("pattern.hidden = :hidden", { hidden: false });
+
+		if (filters.categories.length) {
+			// Оставляем схемы хотя бы из одной выбранной категории через параметризованный список идентификаторов.
+			queryBuilder
+				.innerJoin("pattern.categories", "categoryFilter")
+				.andWhere("categoryFilter.id IN (:...categories)", {
+					categories: filters.categories,
+				});
+		}
+
+		if (filters.sizes.length) {
+			// Фильтруем схемы по выбранным размерам каталога через связи размеров схем.
+			queryBuilder
+				.innerJoin("pattern.sizes", "sizeFilter")
+				.innerJoin("sizeFilter.size", "selectedSize")
+				.andWhere("selectedSize.id IN (:...sizes)", {
+					sizes: filters.sizes,
+				});
+		}
+
+		if (filters.query.trim()) {
+			// Объединяем поиск ILIKE по ru/en названия и описания в скобки, сохраняя остальные фильтры через AND.
+			queryBuilder.andWhere(
+				new Brackets((qb: SelectQueryBuilder<PatternEntity>) => {
+					qb.where("name.ru ILIKE :query", {
+						query: `%${filters.query.trim()}%`,
+					})
+						.orWhere("name.en ILIKE :query")
+						.orWhere("description.ru ILIKE :query")
+						.orWhere("description.en ILIKE :query");
+				}),
+			);
+		}
+
+		return queryBuilder;
+	}
 }

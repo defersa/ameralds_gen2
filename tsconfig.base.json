@@ -24,6 +24,10 @@
         "ignoreDeprecations": "6.0",
         "baseUrl": ".",
         "paths": {
+            "@am-back/db/*": ["apps/am-back/src/db/*"],
+            "@am-back/modules/*": ["apps/am-back/src/modules/*"],
+            "@am-back/common/*": ["apps/am-back/src/common/*"],
+            "@am-back/mail/*": ["apps/am-back/src/mail/*"],
             "@am-front/root/*": [
                 "apps/am-front/src/app/*"
             ],

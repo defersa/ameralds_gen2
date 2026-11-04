@@ -348,7 +348,9 @@ export enum EnumOrderStatus {
     Cancel = "cancel",
     Open = "open",
     PendingPayment = "pending_payment",
-    Success = "success"
+    Success = "success",
+    PartiallyRefunded = "partially_refunded",
+    Refunded = "refunded"
 }
 
 export interface CartOrderPatternEntityDto {
@@ -414,6 +416,46 @@ export interface InputShortOrderPatternDto {
     requiresPatternPurchase: boolean;
 }
 
+export interface OrderDiscountSnapshotDto {
+    type: string;
+    name: string;
+    /** Discount in integer minor currency units */
+    amount: number;
+    sourceId?: string;
+}
+
+export interface OrderSnapshotNameDto {
+    ru: string;
+    en: string | null;
+}
+
+export interface OrderSnapshotSizeDto {
+    patternSizeId: number;
+    sizeId: number | null;
+    value: number | null;
+}
+
+export interface OrderPriceComponentSnapshotDto {
+    type: 'base' | 'size' | 'color';
+    quantity: number;
+    unitAmount: number;
+    totalAmount: number;
+}
+
+export interface OrderPatternSnapshotDto {
+    patternId: number;
+    name: OrderSnapshotNameDto | null;
+    sizes: Array<OrderSnapshotSizeDto>;
+    color: boolean;
+    requiresPatternPurchase: boolean;
+    currency: 'RUB' | 'USD';
+    subtotalAmount: number;
+    discountAmount: number;
+    totalAmount: number;
+    discounts: Array<OrderDiscountSnapshotDto>;
+    components: Array<OrderPriceComponentSnapshotDto>;
+}
+
 export interface PurchasedOrderPatternDto {
     /** Id of entity */
     id: number;
@@ -421,8 +463,10 @@ export interface PurchasedOrderPatternDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Immutable purchase snapshot; null for legacy purchases */
+    snapshot: OrderPatternSnapshotDto | null;
     /** Purchased pattern name, or null if unavailable */
-    name: LabelEntityDto;
+    name: LabelEntityDto | null;
     /** Pattern images */
     images: Array<ImageDto>;
     /** Purchased sizes */
@@ -438,6 +482,18 @@ export interface UserOrderDetailsDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Subtotal in minor units; null when historical price is unknown */
+    subtotalAmount: number | null;
+    /** Discount in minor units */
+    discountAmount: number;
+    /** Total in minor units; null when historical price is unknown */
+    totalAmount: number | null;
+    currency: 'RUB' | 'USD' | null;
+    discounts: Array<OrderDiscountSnapshotDto>;
+    paymentExpiresAt: Date | null;
+    paidAt: Date | null;
+    cancelledAt: Date | null;
+    cancelReason: string | null;
     /** Completed order status */
     status: EnumOrderStatus;
     /** Purchased patterns */
@@ -513,7 +569,7 @@ export interface AdminOrderResponseDto {
 
 export interface AdminOrderPatternNameDto {
     /** Name of the ordered pattern */
-    name: LabelEntityDto;
+    name: LabelEntityDto | null;
 }
 
 export interface AdminOrderListDto {
@@ -556,7 +612,7 @@ export interface AdminOrderDetailsPatternDto {
     /** Whether base pattern purchase should be included */
     requiresPatternPurchase: boolean;
     /** Full ordered pattern, or null if it has been deleted */
-    pattern: FullPatternEntityDto;
+    pattern: FullPatternEntityDto | null;
 }
 
 export interface AdminOrderDetailsDto {
@@ -601,7 +657,7 @@ export interface AppSettingsValuesDto {
 export interface AppSettingsVersionDto {
     version: number;
     createdAt: Date;
-    createdBy: AppSettingsAuthorDto;
+    createdBy: AppSettingsAuthorDto | null;
     /** Исходный immutable snapshot, включая неизвестные и deprecated поля */
     snapshot: Record<string, unknown>;
     /** Эффективные значения с defaults для отсутствующих полей */

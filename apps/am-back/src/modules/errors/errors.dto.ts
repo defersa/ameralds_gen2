@@ -1,46 +1,19 @@
+import { ApiEntityNames, ApiErrorCodes } from "@ameralds/utils";
 import { ApiProperty } from "@nestjs/swagger";
 
 
-export enum ApiErrorCodes {
-    ALREADY_EXIST = 'ALREADY_EXIST',
-    INVALID_PASSWORD = 'INVALID_PASSWORD',
-    INVALID_EMAIL = 'INVALID_EMAIL',
-
-    NOT_EXIST = 'NOT_EXIST',
-    INCORRECT_PASSWORD = 'INCORRECT_PASSWORD',
-    EXPIRED = 'EXPIRED',
-    INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
-    UNAUTHORIZED = 'UNAUTHORIZED',
-    TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
-
-    NOT_UNIQUE = 'NOT_UNIQUE',
-    INVALID = 'INVALID',
-    VERSION_CONFLICT = 'VERSION_CONFLICT',
-}
-
-
-export enum ApiEntityNames {
-    CATEGORY = 'category',
-    SIZE = 'size',
-    PATTERN = 'pattern',
-    PATTERN_SIZE = 'patternSize',
-    FILE = 'file',
-    CART = 'cart',
-    APP_SETTINGS = 'appSettings',
-}
-
 export class ErrorsDto {
-    @ApiProperty({
-        description: 'Code of error',
-        enum: ApiErrorCodes,
-        enumName: 'EnumApiErrorCodes',
-    })
-    public code: ApiErrorCodes;
+	@ApiProperty({
+		description: "Code of error",
+		enum: ApiErrorCodes,
+		enumName: "EnumApiErrorCodes",
+	})
+	public code: ApiErrorCodes;
 
-    @ApiProperty({
-        description: 'Error entity name',
-        enum: ApiEntityNames,
-        enumName: 'EnumApiEntityNames',
-    })
-    public entity?: ApiEntityNames;
+	@ApiProperty({
+		description: "Error entity name",
+		enum: ApiEntityNames,
+		enumName: "EnumApiEntityNames",
+	})
+	public entity?: ApiEntityNames;
 }

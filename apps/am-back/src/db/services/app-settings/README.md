@@ -25,6 +25,20 @@ defaults, сохраняя deprecated-поля. Чтение и whitelist изм
 default не меняет старые JSON и не гарантирует воспроизведение их эффективных
 значений: бизнес-результат фиксировать в заказе.
 
+## Структура
+
+`AppSettingsDomainModule` экспортирует один `AppSettingsService`: инициализацию,
+чтение текущей конфигурации, версии и истории, создание следующей версии.
+
+- `app-settings.service.ts` — правила версионирования и границы транзакций;
+- `repositories/app-settings.repository.ts` — запросы, безопасная выборка автора и advisory lock;
+- `app-settings.schema.ts` — registry, defaults и проверка snapshot;
+- `app-settings.mapper.ts` — преобразование версии в DTO.
+
+Создание версии использует READ COMMITTED и общую advisory lock, история —
+REPEATABLE READ. Все запросы внутри транзакции получают тот же EntityManager.
+Репозиторий остаётся приватным, сущности не покидают модуль.
+
 ## Границы связанных задач
 
 Административная страница `/admin/settings` и API реализованы в
@@ -49,12 +63,14 @@ REPEATABLE READ snapshot БД для списка и метаданных. PATCH
 
 Checkout реализуется в [AMS-9](https://linear.app/amstore/issue/AMS-9). После
 проверки состава и фиксации стоимости он должен вызвать
-`OrderExpirationService.startPaymentWindow(orderId, userId, manager)` в той же
+`OrderCheckoutService.startPaymentWindow(orderId, userId, manager)` в той же
 транзакции. Метод блокирует заказ, проверяет пользователя/состояние, фиксирует
 `paymentExpiresAt` и `appSettingsVersion`, переводит OPEN в PENDING_PAYMENT.
 Повтор для того же pending не продлевает срок. Один день равен 24 часам, время
 берётся из PostgreSQL. Изменение срока/версии после оформления запрещено БД.
-Административные покупки продолжают создаваться сразу со статусом SUCCESS.
+Административные покупки продолжают завершаться со статусом PAID (`success`).
+Денежный и товарный snapshot фиксируется перед переходом в pending;
+модель и порядок вызовов описаны в [документации заказов](../order/README.md).
 
 Cron каждую минуту атомарно отменяет только просроченные активные pending-заказы
 без `sourceAdminOrder`. Операция идемпотентна между инстансами. Legacy-статусы

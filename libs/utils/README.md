@@ -1,11 +1,18 @@
 # utils
 
-This library was generated with [Nx](https://nx.dev).
+Общий TypeScript-код фронтенда и бэкенда без зависимостей от Angular, NestJS и TypeORM.
 
-## Building
+Константы находятся в `src/lib/constants` и доступны через `@ameralds/utils`:
 
-Run `nx build utils` to build the library.
+- `api-errors.ts` — `ApiErrorCodes` и `ApiEntityNames`;
+- `numeric-limits.ts` — границы целых чисел;
+- `pagination.ts` — первая страница, размер страницы и предел номера страницы;
+- `time.ts` — единицы времени.
 
-## Running unit tests
+```ts
+import { ApiErrorCodes, DEFAULT_PAGE_SIZE, FIRST_PAGE } from "@ameralds/utils";
+```
 
-Run `nx test utils` to execute the unit tests via [Jest](https://jestjs.io).
+Значения, специфичные для одной предметной области, остаются в её модуле.
+
+Сборка: `npx nx build utils`. Тесты: `npx nx test utils`.

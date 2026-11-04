@@ -1,6 +1,6 @@
 @if (pageCount()) {
-    <button [disabled]="page() === 1"
-            (click)="goToPage(1)">
+    <button [disabled]="page() === firstPage"
+            (click)="goToPage(firstPage)">
         <amstore-icon iconName="left-arrow" [size]="20"/>
     </button>
 

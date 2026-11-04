@@ -1,55 +1,11 @@
-import { Module, type Provider } from "@nestjs/common";
-import { DataSourceService } from "./data-source.service";
-import { TokenService } from "@am-back/db/service/token.service";
-import { UserService } from "@am-back/db/service/user.service";
-import { ImagesService } from '@am-back/db/service/images.service';
-import { CommonEntitiesService } from "@am-back/db/service/common-entities.service";
-import { SizesService } from "@am-back/db/service/patterns/sizes.service";
-import { CategoriesService } from "@am-back/db/service/patterns/categories.service";
-import { PatternsSizeService } from "@am-back/db/service/patterns/pattern-sizes.service";
-import { PatternsService } from "@am-back/db/service/patterns/patterns.service";
-import { FilesService } from "@am-back/db/service/files.service";
-import { OrderService } from "@am-back/db/service/order/order.service";
-import { PatternOrdersService } from "@am-back/db/service/patterns/pattern-orders.service";
-import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
-import { AdminOrderService } from '@am-back/db/service/order/admin-order.service';
-import { AdminOrderMailService } from '@am-back/db/service/order/admin-order-mail.service';
-import { EmailLoginService } from '@am-back/db/service/email-login.service';
-import { MailService } from '../mail/mail.service';
-import { AuthEmailService } from './services/auth-email.service';
-import { AuthEmailLimitService } from './services/auth-email-limit.service';
-import { AppSettingsService } from './services/app-settings/app-settings.service';
-import { OrderExpirationService } from './services/order/order-expiration.service';
+import { DbInfrastructureModule } from "@am-back/db/db-infrastructure.module";
+import { AppSettingsDomainModule } from "@am-back/db/service/app-settings/app-settings.module";
+import { Module } from "@nestjs/common";
+import { OrderDomainModule } from "./services/order/order.module";
 
-
-const services: Provider[] = [
-    DataSourceService,
-    AppSettingsService,
-    OrderExpirationService,
-    TokenService,
-    UserService,
-    ImagesService,
-    CommonEntitiesService,
-    CategoriesService,
-    SizesService,
-    PatternsSizeService,
-    PatternsService,
-    FilesService,
-    PatternOrdersService,
-    UserPatternService,
-    OrderService,
-    AdminOrderService,
-    AdminOrderMailService,
-    EmailLoginService,
-    MailService,
-    AuthEmailService,
-    AuthEmailLimitService,
-];
 
 @Module({
-    providers: services,
-    exports: services,
+	imports: [DbInfrastructureModule, AppSettingsDomainModule, OrderDomainModule],
+	exports: [DbInfrastructureModule, AppSettingsDomainModule, OrderDomainModule],
 })
-export class DbSharedModule {
-
-}
+export class DbSharedModule {}
