@@ -315,6 +315,79 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 		});
 	});
 
+	it("normalizes merge against rights committed by a concurrent grant under the owner lock", async () => {
+		await apply();
+
+		let locked: () => void;
+		let release: () => void;
+
+		const acquired = new Promise<void>((resolve) => { locked = resolve; });
+		const gate = new Promise<void>((resolve) => { release = resolve; });
+
+		const grant = db.transaction(async (manager) => {
+			await orderRepository.lockOwner(user.id, manager);
+			locked();
+			await gate;
+			await manager.getRepository(UserPatternEntity).save({ user, pattern, sizes: [size], color: true });
+		});
+
+		await acquired;
+
+		let attempting: () => void;
+
+		const attempted = new Promise<void>((resolve) => { attempting = resolve; });
+		const original = orderRepository.lockOwner.bind(orderRepository);
+
+		const spy = jest.spyOn(orderRepository, "lockOwner").mockImplementation(async (id, manager) => {
+			attempting();
+			await original(id, manager);
+		});
+
+		const merging = carts.mergeLocalCartWithUserCart(user.id, [{
+			pattern: pattern.id,
+			sizes: [size.size.id],
+			color: true,
+			requiresPatternPurchase: false,
+		}]);
+
+		await attempted;
+		release();
+		await grant;
+
+		try {
+			const result = await merging;
+
+			expect(result.cart.patterns).toEqual([]);
+			expect(result.correctedPatternIds).toEqual([pattern.id]);
+		} finally {
+			spy.mockRestore();
+		}
+	});
+
+	it("permits color-only merge with active sizes and permits buying revoked rights again", async () => {
+		await apply();
+
+		const rights = await db.getRepository(UserPatternEntity).save({ user, pattern, sizes: [size], color: false });
+
+		const color = await carts.mergeLocalCartWithUserCart(user.id, [{
+			pattern: pattern.id, sizes: [], color: true, requiresPatternPurchase: true,
+		}]);
+
+		expect(color.cart.patterns[0]).toMatchObject({ sizes: [], color: true, requiresPatternPurchase: false });
+		await db.getRepository(UserPatternEntity).update(rights.id, { state: ModelState.INACTIVE });
+
+		const refreshed = await carts.getUserCart(user.id);
+
+		expect(refreshed.cart.patterns).toEqual([]);
+
+		const repurchase = await carts.addToUserCart(user.id, {
+			pattern: pattern.id, sizes: [size.size.id], color: true, requiresPatternPurchase: false,
+		});
+
+		expect(repurchase.cart.patterns[0]).toMatchObject({ color: true, requiresPatternPurchase: true });
+		expect(repurchase.cart.patterns[0].sizes).toHaveLength(1);
+	});
+
 	it("enforces one active OPEN under concurrent creation, permits anonymous carts and multiple pending orders", async () => {
 		await apply();
 

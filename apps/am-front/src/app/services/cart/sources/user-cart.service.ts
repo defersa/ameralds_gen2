@@ -1,10 +1,9 @@
-import { DestroyRef, effect, inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { effect, inject, Injectable, signal, untracked, WritableSignal } from '@angular/core';
 import {
     NumberEntityDto,
     ApiOrdersProducer,
     CartDto,
 } from '@am-front/root/api-v2';
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
     CartItemModel,
     convertOrderPatternEntityToCartItem,
@@ -12,7 +11,9 @@ import {
 } from '@am-front/services/cart/order.misc';
 import { AuthService } from '@am-front/services/auth.service';
 import { AbstractCartService } from '@am-front/services/cart/sources/abstract-cart.service';
-import { map, Observable, tap } from 'rxjs';
+import { EMPTY, map, Observable, tap } from 'rxjs';
+import { SnackService } from '@am-front/services/snackbar.service';
+import { createRequestWrapper } from '@am-front/utils/request-wrapper';
 
 
 @Injectable({
@@ -21,11 +22,16 @@ import { map, Observable, tap } from 'rxjs';
 export class UserCartService extends AbstractCartService {
     private authService: AuthService = inject(AuthService);
     private orderProducer: ApiOrdersProducer = inject(ApiOrdersProducer);
-    private destroyRef: DestroyRef = inject(DestroyRef);
 
     public readonly cart: WritableSignal<CartItemModel[]> = signal(null);
     public readonly price: WritableSignal<NumberEntityDto> = signal(null);
 
+    private readonly snack = inject(SnackService);
+    private readonly loadRequest = createRequestWrapper(this.orderProducer.ordersControllerCart.bind(this.orderProducer));
+    private readonly removeRequest = createRequestWrapper(this.orderProducer.ordersControllerRemoveItemFromCart.bind(this.orderProducer));
+    private readonly mergeRequest = createRequestWrapper(this.orderProducer.ordersControllerMergeLocalCart.bind(this.orderProducer));
+
+    /** Загружает корзину после входа и очищает состояние при выходе; сообщает об ошибках синхронизации. */
     constructor() {
         super();
 
@@ -37,19 +43,34 @@ export class UserCartService extends AbstractCartService {
                 return;
             }
 
-            this.getActualCart()
+            untracked(() => this.getActualCart());
+        });
+
+        effect(() => {
+            if (this.loadRequest.errors() || this.removeRequest.errors() || this.mergeRequest.errors()) {
+                this.snack.warn('Не удалось обновить корзину. Попробуйте ещё раз.');
+            }
         });
     }
 
+    /** Загружает актуальную нормализованную корзину авторизованного пользователя. */
     public getActualCart(): void {
+        if (!this.authService.auth() || this.loadRequest.loading()) {
+            return;
+        }
+
         this.price.set(null);
 
-        this.orderProducer.ordersControllerCart()
-            .pipe(takeUntilDestroyed(this.destroyRef))
+        this.loadRequest.request()
             .subscribe((order: CartDto) => this.updateCartAndPrice(order));
     }
 
+    /** Отправляет выбор на сервер и принимает нормализованную корзину; без входа запрос не выполняется. */
     public addProduct(pattern: CartItemModel): Observable<void> {
+        if (!this.authService.auth()) {
+            return EMPTY;
+        }
+
         return this.orderProducer.ordersControllerAddItemToCart(pattern)
             .pipe(
                 tap((order: CartDto) => this.updateCartAndPrice(order)),
@@ -57,13 +78,22 @@ export class UserCartService extends AbstractCartService {
             );
     }
 
+    /** Удаляет схему из личной корзины, блокируя повторный запрос до завершения предыдущего. */
     public removeProduct(id: number): void {
-        this.orderProducer.ordersControllerRemoveItemFromCart(id)
-            .pipe(takeUntilDestroyed(this.destroyRef))
+        if (!this.authService.auth() || this.removeRequest.loading()) {
+            return;
+        }
+
+        this.removeRequest.request(id)
             .subscribe((order: CartDto) => this.updateCartAndPrice(order));
     }
 
+    /** Очищает серверную корзину авторизованного пользователя и принимает новый состав. */
     public clearCart(): Observable<void> {
+        if (!this.authService.auth()) {
+            return EMPTY;
+        }
+
         return this.orderProducer.ordersControllerClearAll()
             .pipe(
                 tap((order: CartDto) => this.updateCartAndPrice(order)),
@@ -71,16 +101,29 @@ export class UserCartService extends AbstractCartService {
             );
     }
 
-    public mergeLocalCart(patterns: CartItemModel[]): void {
-        this.orderProducer.ordersControllerMergeLocalCart(patterns)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((order: CartDto) => this.updateCartAndPrice(order));
+    /** Сливает локальный выбор с личной корзиной; успешный ответ содержит только новые права. */
+    public mergeLocalCart(patterns: CartItemModel[]): Observable<void> {
+        if (!this.authService.auth() || this.mergeRequest.loading()) {
+            return EMPTY;
+        }
+
+        return this.mergeRequest.request(patterns)
+            .pipe(
+                tap((order: CartDto) => this.updateCartAndPrice(order)),
+                map(() => undefined),
+            );
     }
 
+    /** Принимает серверный состав и сообщает об исключённых покупках, в том числе полностью купленных. */
     private updateCartAndPrice(cart: CartDto): void {
+        if (cart.correctedPatternIds?.length) {
+            this.snack.open('Корзина обновлена: уже купленные размеры и цвет, а также недоступные варианты исключены. Полностью купленные позиции удалены.');
+        }
+
         this.price.set(cart.price);
         this.cart.set(
-            cart.cart.patterns.map(convertOrderPatternEntityToCartItem),
+            cart.cart.patterns
+                .map(convertOrderPatternEntityToCartItem),
         );
     }
 }

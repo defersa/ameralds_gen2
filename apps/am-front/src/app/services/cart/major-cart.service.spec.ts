@@ -129,3 +129,34 @@ describe('MajorCartService.replaceCart', () => {
         expect(producer.adminCartControllerAddItemToOrder).not.toHaveBeenCalled();
     });
 });
+
+describe('MajorCartService local merge', () => {
+    it('keeps the local choice until the server confirms merge', () => {
+        const auth = signal(false);
+        const merged = new Subject<void>();
+        const local = {
+            cart: signal([{ pattern: 7, sizes: [1], color: true, requiresPatternPurchase: true }]),
+            clearCart: jest.fn().mockReturnValue(of(undefined)),
+        };
+        const user = { mergeLocalCart: jest.fn().mockReturnValue(merged) };
+
+        TestBed.configureTestingModule({ providers: [
+            { provide: AuthService, useValue: { auth } },
+            { provide: ProfileService, useValue: { isAdmin: signal(false) } },
+            { provide: ApiAdminProducer, useValue: {} },
+            { provide: LocalCartService, useValue: local },
+            { provide: UserCartService, useValue: user },
+            { provide: SnackService, useValue: { warn: jest.fn() } },
+        ] });
+        TestBed.inject(MajorCartService);
+        TestBed.tick();
+        auth.set(true);
+        TestBed.tick();
+
+        expect(user.mergeLocalCart).toHaveBeenCalledWith(local.cart());
+        expect(local.clearCart).not.toHaveBeenCalled();
+        merged.next();
+        merged.complete();
+        expect(local.clearCart).toHaveBeenCalledTimes(1);
+    });
+});

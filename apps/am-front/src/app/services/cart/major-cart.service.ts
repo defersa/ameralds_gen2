@@ -111,6 +111,7 @@ export class MajorCartService {
         });
     }
 
+    /** Переносит гостевой выбор после входа и очищает локальную копию только при успешном merge. */
     private initLocalCartListener(): void {
         let previous: CartType;
 
@@ -121,10 +122,10 @@ export class MajorCartService {
                 const localCart: CartItemModel[] = this.localCartService.cart();
 
                 if (current === 'user' && localCart.length > 0) {
-                    this.userCartService.mergeLocalCart(localCart);
+                    this.userCartService.mergeLocalCart(localCart)
+                        .pipe(takeUntilDestroyed(this.destroyRef))
+                        .subscribe(() => this.localCartService.clearCart().subscribe());
                 }
-
-                this.localCartService.clearCart().subscribe();
             }
 
             previous = this.currentCartName();

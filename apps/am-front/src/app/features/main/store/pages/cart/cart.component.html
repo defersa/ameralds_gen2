@@ -37,6 +37,10 @@
 
 <h2 class="pb-4">Список паттернов</h2>
 
+@if (patternsRequest.errors()) {
+    <p role="alert">Не удалось загрузить схемы корзины. Обновите страницу, чтобы повторить загрузку.</p>
+}
+
 <div class="flex flex-col">
     @if (items()) {
         @for (item of items(); track item.pattern.id) {

@@ -31,6 +31,7 @@ export class UserPatternService {
 				patternId: item.pattern.id,
 				color: item.color,
 				sizeIds: item.sizes
+					.filter((size) => size.state === ModelState.ACTIVE && size.size?.state === ModelState.ACTIVE)
 					.flatMap((size) => (size.size ? [size.size.id] : [])),
 			}));
 	}

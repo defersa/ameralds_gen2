@@ -1,5 +1,5 @@
 import type { NumberEntityDto } from "@am-back/common/common.dto";
-import type { OrderPatternEntity } from "@am-back/db/entities/patterns/pattern-order.entity";
+import { ModelState } from "@am-back/db/abstract/abstract.model";
 import type { UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
 import type { OwnedPatternSelection } from "@am-back/db/service/general/pattern-purchase";
 import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
@@ -12,7 +12,8 @@ import { toUserCart } from "../mappers/cart.mapper";
 import { getOrderPrice } from "../pricing/order-price";
 import { OrderPatternRepository } from "../repositories/order-pattern.repository";
 import { UserOrderRepository } from "../repositories/user-order.repository";
-import { prepareCartPattern, selectOrderPattern } from "./cart-selection";
+import { prepareCartPattern } from "./cart-selection";
+import { normalizeUserSelection } from "./normalize-user-selection";
 
 
 @Injectable()
@@ -29,9 +30,9 @@ export class UserCartService {
 		private readonly dataSource: DataSource,
 	) {}
 
-	/** Возвращает представление открытой корзины пользователя, обеспечивая её существование в транзакции. */
+	/** Возвращает OPEN-корзину, сверяя состав с действующими правами и каталогом в транзакции. */
 	public async getUserCart(userId: number): Promise<CartDto> {
-		return this.withCart(userId, (cart) => Promise.resolve(this.response(cart)));
+		return this.withCart(userId, async () => undefined);
 	}
 
 	/**
@@ -55,41 +56,10 @@ export class UserCartService {
 		);
 	}
 
-	/**
-	 * Заменяет выбор схемы в корзине пользователя с учётом уже купленных размеров и цвета; операция
-	 * выполняется в транзакции под блокировкой корзины.
-	 */
+	/** Заменяет выбор схемы, исключая приобретённые права; пустой результат удаляет прежнюю позицию. */
 	public async addToUserCart(userId: number, input: InputShortOrderPatternDto): Promise<CartDto> {
-		return this.withCart(userId, async (cart, manager) => {
-			const bought = await this.purchases.getBoughtSelections(userId, manager);
-			const prepared = this.prepareInput(input, bought);
-
-			if (!prepared) {
-				invalidOrder();
-			}
-
-			const previous = cart.patterns
-				.filter((item) => item.pattern?.id === input.pattern);
-
-			await this.items.deleteItems(
-				previous
-					.map((item) => item.id),
-				manager,
-			);
-
-			const item = await selectOrderPattern(
-				this.items,
-				prepared,
-				{
-					orderId: cart.id,
-				},
-				manager,
-			);
-
-			cart.patterns = [...cart.patterns
-				.filter((item) => !previous
-					.includes(item)), item];
-			return this.response(cart);
+		return this.withCart(userId, async (cart, manager, bought, corrected) => {
+			await this.replaceSelection(cart, input, bought, corrected, manager);
 		});
 	}
 
@@ -110,52 +80,27 @@ export class UserCartService {
 			cart.patterns = cart.patterns
 				.filter((item) => !previous
 					.includes(item));
-			return this.response(cart);
 		});
 	}
 
-	/**
-	 * Заменяет совпадающие позиции корзины допустимым локальным выбором с учётом приобретённых прав; все
-	 * изменения выполняет в одной транзакции.
-	 */
+	/** Объединяет повторяющиеся локальные позиции и заменяет выбор с учётом действующих прав. */
 	public async mergeLocalCartWithUserCart(userId: number, inputs: InputShortOrderPatternDto[]): Promise<CartDto> {
-		return this.withCart(userId, async (cart, manager) => {
-			const bought = await this.purchases.getBoughtSelections(userId, manager);
+		return this.withCart(userId, async (cart, manager, bought, corrected) => {
+			const merged = new Map<number, InputShortOrderPatternDto>();
 
-			const prepared = inputs
-				.map((input) => this.prepareInput(input, bought))
-				.filter((input): input is InputShortOrderPatternDto => input !== null && input.sizes.length > 0);
+			for (const input of inputs) {
+				const previous = merged.get(input.pattern);
 
-			const replaced = cart.patterns
-				.filter((item) =>
-					prepared
-						.some((input) => input.pattern === item.pattern?.id),
-				);
+				merged.set(input.pattern, {
+					...input,
+					sizes: [...new Set([...(previous?.sizes ?? []), ...(input.sizes ?? [])])],
+					color: Boolean(previous?.color || input.color),
+				});
+			}
 
-			await this.items.deleteItems(
-				replaced
-					.map((item) => item.id),
-				manager,
-			);
-
-			const added: OrderPatternEntity[] = [];
-
-			for (const input of prepared)
-				added
-					.push(
-						await selectOrderPattern(
-							this.items,
-							input,
-							{
-								orderId: cart.id,
-							},
-							manager,
-						),
-					);
-			cart.patterns = [...cart.patterns
-				.filter((item) => !replaced
-					.includes(item)), ...added];
-			return this.response(cart);
+			for (const input of merged.values()) {
+				await this.replaceSelection(cart, input, bought, corrected, manager);
+			}
 		});
 	}
 
@@ -168,19 +113,24 @@ export class UserCartService {
 				manager,
 			);
 			cart.patterns = [];
-			return this.response(cart);
 		});
 	}
 
 	/**
-	 * Обеспечивает существование OPEN-корзины пользователя и блокирует её строку до выполнения операции в
-	 * одной транзакции.
+	 * Блокирует пользователя перед корзиной, как при выдаче прав. Все операции, включая чтение,
+	 * восстанавливают актуальный состав OPEN-корзины в той же транзакции.
 	 */
-	private async withCart<T>(
+	private async withCart(
 		userId: number,
-		work: (cart: UserOrderEntity, manager: EntityManager) => Promise<T>,
-	): Promise<T> {
+		work: (
+			cart: UserOrderEntity,
+			manager: EntityManager,
+			bought: OwnedPatternSelection[],
+			corrected: Set<number>,
+		) => Promise<void>,
+	): Promise<CartDto> {
 		return this.dataSource.transaction(async (manager) => {
+			await this.orders.lockOwner(userId, manager);
 			await this.orders.ensureOpenCart(userId, manager);
 
 			const cart = await this.orders.findOpenCart(userId, manager, true);
@@ -189,41 +139,98 @@ export class UserCartService {
 				invalidOrder();
 			}
 
-			return work(cart, manager);
+			const bought = await this.purchases.getBoughtSelections(userId, manager);
+			const corrected = new Set<number>();
+
+			for (const item of [...cart.patterns]) {
+				if (!item.pattern || item.state !== ModelState.ACTIVE) {
+					await this.items.deleteItems([item.id], manager);
+					cart.patterns = cart.patterns
+						.filter((current) => current !== item);
+					continue;
+				}
+
+				await this.replaceSelection(cart, {
+					pattern: item.pattern.id,
+					sizes: (item.sizes ?? [])
+						.flatMap((size) => size.size ? [size.size.id] : []),
+					color: item.color,
+					requiresPatternPurchase: item.requiresPatternPurchase,
+				}, bought, corrected, manager);
+			}
+
+			await work(cart, manager, bought, corrected);
+
+			return this.response(cart, corrected);
 		});
 	}
 
-	/** Формирует DTO корзины и её стоимость по текущим ценам, считая отсутствие позиций пустым списком. */
-	private response(cart: UserOrderEntity): CartDto {
+	/** Формирует актуальную корзину, серверную цену и идентификаторы скорректированных схем. */
+	private response(cart: UserOrderEntity, corrected = new Set<number>()): CartDto {
 		return {
 			cart: toUserCart(cart),
 			price: getOrderPrice(cart.patterns ?? []),
+			correctedPatternIds: [...corrected],
 		};
 	}
 
 	/**
-	 * Исключает ранее купленные размеры и повторную покупку цвета из выбора; для новой схемы использует
-	 * обычную подготовку позиции.
+	 * Проверяет каталог и права, сохраняет только новый выбор или удаляет пустую позицию.
+	 * Флаг покупки схемы вычисляется сервером; клиентские цены и признаки владения не используются.
 	 */
-	private prepareInput(
+	private async replaceSelection(
+		cart: UserOrderEntity,
 		input: InputShortOrderPatternDto,
 		bought: OwnedPatternSelection[],
-	): InputShortOrderPatternDto | null {
-		const previous = bought
-			.find((item) => item.patternId === input.pattern);
+		corrected: Set<number>,
+		manager: EntityManager,
+	): Promise<void> {
+		const pattern = await this.items.findSelectedPattern(input.pattern, manager);
+		const available = pattern && !pattern.hidden
+			? await this.items.findSelectedSizes(input.pattern, input.sizes ?? [], manager)
+			: [];
 
-		if (!previous) {
-			return prepareCartPattern(input);
+		const validIds = available
+			.filter((size) => size.state === ModelState.ACTIVE && size.size?.state === ModelState.ACTIVE)
+			.map((size) => size.size.id);
+
+		const prepared = normalizeUserSelection({
+			...input,
+			sizes: validIds,
+			color: Boolean(pattern && !pattern.hidden && input.color),
+		}, bought);
+
+		if (!prepared || prepared.color !== input.color || prepared.sizes.length !== input.sizes?.length ||
+			prepared.sizes
+				.some((id) => !input.sizes
+					.includes(id))) {
+			corrected.add(input.pattern);
 		}
 
-		const sizes = new Set(previous.sizeIds);
+		const previous = cart.patterns
+			.filter((item) => item.pattern?.id === input.pattern);
 
-		return {
-			pattern: input.pattern,
-			requiresPatternPurchase: true,
-			color: previous.color ? false : input.color,
-			sizes: (input.sizes ?? [])
-				.filter((size) => !sizes.has(size)),
-		};
+		if (prepared && previous.length === 1 &&
+			previous[0].color === prepared.color && previous[0].requiresPatternPurchase === prepared.requiresPatternPurchase &&
+			previous[0].sizes.length === prepared.sizes.length && previous[0].sizes
+				.every((size) => prepared.sizes
+					.includes(size.size?.id))) {
+			return;
+		}
+
+		await this.items.deleteItems(previous
+			.map((item) => item.id), manager);
+		cart.patterns = cart.patterns
+			.filter((item) => !previous
+				.includes(item));
+
+		if (prepared && pattern) {
+			const sizes = available
+				.filter((size) => prepared.sizes
+					.includes(size.size?.id));
+
+			cart.patterns
+				.push(await this.items.insertSelection(prepared, { orderId: cart.id }, pattern, sizes, manager));
+		}
 	}
 }

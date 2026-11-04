@@ -1,3 +1,4 @@
+import { UserEntity } from "@am-back/db/entities/user.entity";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import type { OrderCurrency, OrderDiscountSnapshot } from "@am-back/db/entities/purchases/order-snapshot.model";
 import { OrderStatus, UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
@@ -11,6 +12,15 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 	/** Инициализирует TypeORM-репозиторий пользовательских заказов менеджером источника данных. */
 	constructor(dataSource: DataSource) {
 		super(UserOrderEntity, dataSource.createEntityManager());
+	}
+
+	/** Блокирует владельца до чтения прав и корзины; требует транзакцию и согласован с выдачей покупок. */
+	public async lockOwner(userId: number, manager: EntityManager): Promise<void> {
+		// Сериализуем изменения корзины и выдачу прав общей блокировкой строки пользователя.
+		await manager.getRepository(UserEntity).findOneOrFail({
+			where: { id: userId },
+			lock: { mode: "pessimistic_write" },
+		});
 	}
 
 	/** Загружает только активный оплаченный заказ указанного владельца с данными для личного просмотра. */

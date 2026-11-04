@@ -128,6 +128,7 @@ export class PatternCartService {
         });
     }
 
+    /** Обновляет выбор из корзины и действующих прав; цвет доступен отдельно владельцу любого размера. */
     public updateFormValue(
         pattern: FullPatternEntityDto,
         cart: CartItemModel,
@@ -143,22 +144,23 @@ export class PatternCartService {
             color: {
                 exists: Boolean(pattern.color),
                 own: Boolean(bought?.color),
-                value: Boolean(cart?.color),
+                value: Boolean(cart?.color && !bought?.color),
             },
             base: {
-                own: Boolean(bought),
+                own: boughtSizes.length > 0,
                 value: Boolean(cart?.requiresPatternPurchase),
             },
-            sizes: pattern.sizes.map((size: FullPatternSizeDto) => {
-                const id: number = size.size.id;
+            sizes: pattern.sizes
+                .map((size: FullPatternSizeDto) => {
+                    const id: number = size.size.id;
 
-                return {
-                    id: size.size.id,
-                    label: size.size.value,
-                    own: boughtSizes.includes(id),
-                    value: cartSizes.includes(id),
-                };
-            }),
+                    return {
+                        id: size.size.id,
+                        label: size.size.value,
+                        own: boughtSizes.includes(id),
+                        value: cartSizes.includes(id) && !boughtSizes.includes(id),
+                    };
+                }),
         });
     }
 }

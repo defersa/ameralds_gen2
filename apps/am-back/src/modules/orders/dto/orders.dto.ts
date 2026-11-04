@@ -282,6 +282,13 @@ export class CartOrderDto extends BaseEntityDto {
 
 export class CartDto {
 	@ApiProperty({
+		description: "Pattern IDs whose selection was corrected or removed after checking current rights and catalogue",
+		type: "integer",
+		isArray: true,
+	})
+	public correctedPatternIds: number[];
+
+	@ApiProperty({
 		description: "Cart total price",
 		type: NumberEntityDto,
 	})

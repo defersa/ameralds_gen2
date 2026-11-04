@@ -1,18 +1,17 @@
 import {
     Component,
     computed,
-    DestroyRef,
     effect,
-    EffectRef,
     inject,
     signal,
     Signal,
     WritableSignal
 } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { createRequestWrapper } from '@am-front/utils/request-wrapper';
 import { PatternsService } from "@am-front/services/patterns.service";
 import { IdRecord } from "@am-front/interface/common.interface";
 import { NumberEntityDto, PatternEntityDto } from '@am-front/root/api-v2';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from "@angular/router";
 import { MajorCartService } from '@am-front/services/cart/major-cart.service';
 import { CartItemModel } from '@am-front/services/cart/order.misc';
@@ -27,7 +26,6 @@ import { MatIcon } from '@angular/material/icon';
 import { DecimalPipe } from '@angular/common';
 import { Currency, LangService } from '@am-front/services/lang.service';
 import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
-import { MatDialogActions } from '@angular/material/dialog';
 import {
     PatternPreviewActionsComponent
 } from '@am-front/shared/details/pattern-preview-actions/pattern-preview-actions.component';
@@ -54,7 +52,6 @@ interface CartItem {
         MatIcon,
         DecimalPipe,
         AmstoreButtonComponent,
-        MatDialogActions,
         PatternPreviewActionsComponent,
         PatternRemovedPreviewActionsComponent
     ]
@@ -66,22 +63,24 @@ export class CartComponent {
     private readonly patternService: PatternsService = inject(PatternsService);
     private readonly router: Router = inject(Router);
     private readonly langService: LangService = inject(LangService);
-    private readonly destroyRef: DestroyRef = inject(DestroyRef);
 
     public readonly auth: Signal<boolean> = this.authService.auth;
     public readonly isAdmin: Signal<boolean> = this.profileService.isAdmin;
     public readonly currency: Signal<Currency> = this.langService.currency;
+
+    public readonly patternsRequest = createRequestWrapper(this.patternService.getPatternsByIds.bind(this.patternService));
 
     public removed: WritableSignal<CartItem[]> = signal([]);
     public items: Signal<CartItem[]> = computed(() => {
         const patterns: IdRecord<PatternEntityDto> = this.initPatterns();
         const cart: CartItemModel[] = this.cartService.cart();
 
-        if (!patterns) {
+        if (!patterns || !cart) {
             return null;
         }
 
         return cart
+            .filter((item) => Boolean(patterns[item.pattern]))
             .map((cart: CartItemModel) =>  ({
                 cart,
                 pattern: patterns[cart.pattern],
@@ -93,16 +92,18 @@ export class CartComponent {
 
     private initPatterns: WritableSignal<IdRecord<PatternEntityDto>> = signal(null);
 
+    /** Перезагружает карточки при нормализации и merge, отменяя загрузку предыдущего состава. */
     constructor() {
-        const effectRef: EffectRef = effect(() => {
+        effect((onCleanup) => {
             const cart: CartItemModel[] = this.cartService.cart();
 
             if (!cart) {
                 return;
             }
 
-            this.getInitPatterns(cart);
-            effectRef.destroy();
+            const subscription = this.getInitPatterns(cart);
+
+            onCleanup(() => subscription.unsubscribe());
         });
     }
 
@@ -131,11 +132,10 @@ export class CartComponent {
         this.cartService.clearCart();
     }
 
-    private getInitPatterns(cart: CartItemModel[]): void {
-        this.patternService.getPatternsByIds(cart.map((pattern: CartItemModel) => pattern.pattern))
-            .pipe(
-                takeUntilDestroyed(this.destroyRef),
-            )
+    /** Загружает карточки актуального состава; подписка отменяется при следующем изменении корзины. */
+    private getInitPatterns(cart: CartItemModel[]): Subscription {
+        return this.patternsRequest.request(cart
+            .map((pattern) => pattern.pattern))
             .subscribe((patterns: Record<string, PatternEntityDto>) => this.initPatterns.set(patterns));
     }
 }

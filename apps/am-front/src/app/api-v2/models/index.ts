@@ -399,6 +399,8 @@ export interface CartOrderDto {
 }
 
 export interface CartDto {
+    /** Pattern IDs whose selection was corrected or removed after checking current rights and catalogue */
+    correctedPatternIds: Array<number>;
     /** Cart total price */
     price: NumberEntityDto;
     /** Current user order */
