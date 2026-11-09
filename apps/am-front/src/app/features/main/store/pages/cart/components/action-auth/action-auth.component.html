@@ -1,1 +1,93 @@
+<div class="my-4 flex flex-col gap-3" aria-live="polite">
+    @if (result(); as order) {
+        <h3>
+            Заказ №{{ order.id }} оформлен
+        </h3>
 
+        <p>
+            Статус: {{ order.status === 'pending_payment' ? 'Ожидает оплаты' : order.status === 'success' ? 'Оплачен' : 'Заказ закрыт' }}
+        </p>
+
+        <p>
+            Сумма: {{ (order.totalAmount ?? 0) / 100 | number:'1.2-2' }} {{ order.currency }}
+        </p>
+
+        <p>
+            Оформлен: {{ order.placedAt | date:'dd.MM.yyyy HH:mm' }}
+        </p>
+
+        <p>
+            Срок оплаты: {{ order.paymentExpiresAt | date:'dd.MM.yyyy HH:mm' }}
+        </p>
+
+        <ul>
+            @for (item of order.patterns; track item.id) {
+                <li>
+                    {{ item.name?.ru ?? 'Схема' }} —
+
+                    @for (size of item.snapshot?.sizes; track size.patternSizeId) {
+                        размер {{ size.value }}{{ !$last ? ', ' : '' }}
+                    }
+
+                    @if (item.color) {
+                        · подбор цвета
+                    }
+                </li>
+            }
+        </ul>
+
+        <p>
+            Оплата пока недоступна.
+        </p>
+
+        <amstore-button [disabled]="refresh.loading()" (click)="updateCart()">
+            К новой корзине
+        </amstore-button>
+    }
+
+    @else {
+        @if (hasConflict()) {
+            <p role="alert">
+                Корзина изменилась. Проверьте затронутые позиции, обновите корзину и подтвердите оформление ещё раз.
+            </p>
+
+            <ul>
+                @for (conflict of conflicts(); track $index) {
+                    <li>
+                        {{ conflict }}
+                    </li>
+                }
+            </ul>
+        }
+
+        @else if (request.errors()) {
+            <p role="alert">
+                Не удалось получить результат оформления. Повторите проверку: уже созданный заказ не будет оформлен повторно.
+            </p>
+        }
+
+        @if (attempt() && !hasConflict()) {
+            <p>
+                Сохранена попытка оформления. Проверьте её результат перед новым заказом.
+            </p>
+        }
+
+        <div class="flex flex-wrap gap-3">
+            <amstore-button [disabled]="disabled()" (click)="place()">
+                {{ request.loading() ? 'Оформление…' : attempt() ? 'Проверить оформление' : 'Оформить заказ' }}
+            </amstore-button>
+
+            @if (hasConflict() || request.errors()) {
+                <amstore-button [disabled]="request.loading() || refresh.loading()" (click)="updateCart()">
+                    Обновить корзину
+                </amstore-button>
+            }
+        </div>
+    }
+
+    @if (refresh.errors()) {
+        <p role="alert">
+            Не удалось обновить корзину. Попробуйте ещё раз.
+        </p>
+    }
+</div>

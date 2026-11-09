@@ -17,6 +17,7 @@ export interface EmailLoginRequestDto {
 
 /** Code of error */
 export enum EnumApiErrorCodes {
+    CART_CONFLICT = "CART_CONFLICT",
     ALREADY_EXIST = "ALREADY_EXIST",
     INVALID_PASSWORD = "INVALID_PASSWORD",
     INVALID_EMAIL = "INVALID_EMAIL",
@@ -343,79 +344,12 @@ export interface FullPatternEntityDto {
     sizes: Array<FullPatternSizeDto>;
 }
 
-/** Order status */
-export enum EnumOrderStatus {
-    Cancel = "cancel",
-    Open = "open",
-    PendingPayment = "pending_payment",
-    Success = "success",
-    PartiallyRefunded = "partially_refunded",
-    Refunded = "refunded"
-}
-
-export interface CartOrderPatternEntityDto {
-    /** Id of entity */
-    id: number;
-    /** Id of entity */
-    createdAt?: Date;
-    /** Id of entity */
-    updatedAt?: Date;
-    /** Base price of pattern */
-    basePrice: NumberEntityDto;
-    /** Additional price of pattern */
-    additionalPrice: NumberEntityDto;
-    /** Color price of pattern */
-    colorPrice: NumberEntityDto;
-}
-
-export interface CartOrderPatternDto {
-    /** Id of entity */
-    id: number;
-    /** Id of entity */
-    createdAt?: Date;
-    /** Id of entity */
-    updatedAt?: Date;
-    /** Sizes selected in cart */
-    sizes: Array<CartOrderPatternSizeDto>;
-    /** Pattern with prices */
-    pattern: CartOrderPatternEntityDto;
-    /** Status of colors able */
-    color: boolean;
-    /** Whether base pattern purchase should be included */
-    requiresPatternPurchase: boolean;
-}
-
-export interface CartOrderDto {
-    /** Id of entity */
-    id: number;
-    /** Id of entity */
-    createdAt?: Date;
-    /** Id of entity */
-    updatedAt?: Date;
-    /** Order status */
-    status: EnumOrderStatus;
-    /** Patterns in cart */
-    patterns: Array<CartOrderPatternDto>;
-}
-
-export interface CartDto {
-    /** Pattern IDs whose selection was corrected or removed after checking current rights and catalogue */
-    correctedPatternIds: Array<number>;
-    /** Cart total price */
-    price: NumberEntityDto;
-    /** Current user order */
-    cart: CartOrderDto;
-}
-
-export interface InputShortOrderPatternDto {
-    /** Sizes ids */
-    sizes: Array<number>;
-    /** Status of colors able */
-    color: boolean;
-    /** Pattern id */
-    pattern: number;
-    /** Whether base pattern purchase should be included */
-    requiresPatternPurchase: boolean;
+export interface CheckoutInputDto {
+    /** ID исходной OPEN-корзины; устойчивый ключ повторного оформления, не ID пользователя */
+    cartId: number;
+    /** Отпечаток состава из последнего подтверждённого ответа корзины */
+    cartRevision: string;
+    currency: 'RUB' | 'USD';
 }
 
 export interface OrderDiscountSnapshotDto {
@@ -424,6 +358,16 @@ export interface OrderDiscountSnapshotDto {
     /** Discount in integer minor currency units */
     amount: number;
     sourceId?: string;
+}
+
+/** Completed order status */
+export enum EnumOrderStatus {
+    Cancel = "cancel",
+    Open = "open",
+    PendingPayment = "pending_payment",
+    Success = "success",
+    PartiallyRefunded = "partially_refunded",
+    Refunded = "refunded"
 }
 
 export interface OrderSnapshotNameDto {
@@ -475,6 +419,130 @@ export interface PurchasedOrderPatternDto {
     sizes: Array<CartOrderPatternSizeDto>;
     /** Whether color selection was purchased */
     color: boolean;
+}
+
+export interface CheckoutOrderDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Subtotal in minor units; null when historical price is unknown */
+    subtotalAmount: number | null;
+    /** Discount in minor units */
+    discountAmount: number;
+    /** Total in minor units; null when historical price is unknown */
+    totalAmount: number | null;
+    currency: 'RUB' | 'USD' | null;
+    discounts: Array<OrderDiscountSnapshotDto>;
+    paymentExpiresAt: Date | null;
+    paidAt: Date | null;
+    cancelledAt: Date | null;
+    cancelReason: string | null;
+    /** Completed order status */
+    status: EnumOrderStatus;
+    /** Purchased patterns */
+    patterns: Array<PurchasedOrderPatternDto>;
+    /** Зафиксированное время оформления */
+    placedAt: Date;
+    /** Версия настроек срока оплаты при оформлении */
+    appSettingsVersion: number;
+}
+
+/** Причины конфликта оформления корзины */
+export enum EnumCheckoutConflictReason {
+    PatternUnavailable = "pattern_unavailable",
+    SizeUnavailable = "size_unavailable",
+    ColorUnavailable = "color_unavailable",
+    SizeOwned = "size_owned",
+    ColorOwned = "color_owned",
+    SelectionChanged = "selection_changed"
+}
+
+export interface CheckoutConflictItemDto {
+    itemId: number;
+    patternId: number | null;
+    name: string | null;
+    sizeIds: Array<number>;
+    color: boolean;
+    /** Причины конфликта оформления корзины */
+    reasons: Array<EnumCheckoutConflictReason>;
+}
+
+export interface CheckoutConflictDto {
+    /** Code of error */
+    code: EnumApiErrorCodes;
+    /** Error entity name */
+    entity?: EnumApiEntityNames;
+    items: Array<CheckoutConflictItemDto>;
+}
+
+export interface CartOrderPatternEntityDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Base price of pattern */
+    basePrice: NumberEntityDto;
+    /** Additional price of pattern */
+    additionalPrice: NumberEntityDto;
+    /** Color price of pattern */
+    colorPrice: NumberEntityDto;
+}
+
+export interface CartOrderPatternDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Sizes selected in cart */
+    sizes: Array<CartOrderPatternSizeDto>;
+    /** Pattern with prices */
+    pattern: CartOrderPatternEntityDto;
+    /** Status of colors able */
+    color: boolean;
+    /** Whether base pattern purchase should be included */
+    requiresPatternPurchase: boolean;
+}
+
+export interface CartOrderDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Order status */
+    status: EnumOrderStatus;
+    /** Patterns in cart */
+    patterns: Array<CartOrderPatternDto>;
+}
+
+export interface CartDto {
+    /** Отпечаток состава для явного подтверждения checkout */
+    revision: string;
+    /** Pattern IDs whose selection was corrected or removed after checking current rights and catalogue */
+    correctedPatternIds: Array<number>;
+    /** Cart total price */
+    price: NumberEntityDto;
+    /** Current user order */
+    cart: CartOrderDto;
+}
+
+export interface InputShortOrderPatternDto {
+    /** Sizes ids */
+    sizes: Array<number>;
+    /** Status of colors able */
+    color: boolean;
+    /** Pattern id */
+    pattern: number;
+    /** Whether base pattern purchase should be included */
+    requiresPatternPurchase: boolean;
 }
 
 export interface UserOrderDetailsDto {

@@ -17,7 +17,7 @@ export class OrderPatternRepository extends Repository<OrderPatternEntity> {
 	}
 
 	/**
-	 * Загружает активную схему с названием и ценами в переданной транзакции; при отсутствии возвращает
+	 * Загружает активную схему с названием, ценами и доступностью подбора цвета в переданной транзакции; при отсутствии возвращает
 	 * null.
 	 */
 	public findSelectedPattern(id: number, manager: EntityManager): Promise<PatternEntity | null> {
@@ -31,6 +31,7 @@ export class OrderPatternRepository extends Repository<OrderPatternEntity> {
 				basePrice: true,
 				additionalPrice: true,
 				colorPrice: true,
+				color: true,
 			},
 		});
 	}

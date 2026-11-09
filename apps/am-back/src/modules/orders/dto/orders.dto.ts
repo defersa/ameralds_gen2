@@ -281,6 +281,9 @@ export class CartOrderDto extends BaseEntityDto {
 }
 
 export class CartDto {
+	@ApiProperty({ type: String, description: "Отпечаток состава для явного подтверждения checkout" })
+	public revision: string;
+
 	@ApiProperty({
 		description: "Pattern IDs whose selection was corrected or removed after checking current rights and catalogue",
 		type: "integer",

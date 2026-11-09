@@ -7,3 +7,4 @@ export * from "./lib/constants/api-errors";
 export * from "./lib/constants/numeric-limits";
 export * from "./lib/constants/pagination";
 export * from "./lib/constants/time";
+export * from "./lib/constants/checkout-conflict-reason";

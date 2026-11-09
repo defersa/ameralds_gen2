@@ -9,6 +9,7 @@ import { AdminOrderMailService } from "../src/db/services/order/admin/admin-orde
 import { AdminOrderService } from "../src/db/services/order/admin/admin-order.service";
 import { AdminCartService } from "../src/db/services/order/cart/admin-cart.service";
 import { UserCartService } from "../src/db/services/order/cart/user-cart.service";
+import { PlaceOrderService } from "../src/db/services/order/checkout/place-order.service";
 import { OrderCheckoutService } from "../src/db/services/order/checkout/order-checkout.service";
 import { OrderExpirationService } from "../src/db/services/order/checkout/order-expiration.service";
 import { AdminOrderRepository } from "../src/db/services/order/repositories/admin-order.repository";
@@ -72,6 +73,7 @@ export function orderTestModule(db: DataSource): Promise<TestingModule> {
 			...settingsProviders,
 			...orderRepositories,
 			OrderCheckoutService,
+			PlaceOrderService,
 			OrderExpirationService,
 			UserCartService,
 			AdminCartService,

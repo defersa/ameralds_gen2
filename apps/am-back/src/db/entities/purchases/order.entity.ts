@@ -43,6 +43,13 @@ export enum OrderStatus {
 	'"status" <> \'pending_payment\' OR ("paymentExpiresAt" IS NOT NULL AND "appSettingsVersion" IS NOT NULL)',
 )
 export class UserOrderEntity extends BaseModel {
+	@Column({
+		name: "placed_at",
+		type: "timestamptz",
+		nullable: true,
+	})
+	public placedAt: Date | null;
+
 	@OneToMany(() => OrderPatternEntity, (pattern: OrderPatternEntity) => pattern.order)
 	public patterns: OrderPatternEntity[];
 

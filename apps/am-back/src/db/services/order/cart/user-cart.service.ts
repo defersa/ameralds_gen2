@@ -13,6 +13,7 @@ import { getOrderPrice } from "../pricing/order-price";
 import { OrderPatternRepository } from "../repositories/order-pattern.repository";
 import { UserOrderRepository } from "../repositories/user-order.repository";
 import { prepareCartPattern } from "./cart-selection";
+import { cartRevision } from "./cart-revision";
 import { normalizeUserSelection } from "./normalize-user-selection";
 
 
@@ -169,6 +170,7 @@ export class UserCartService {
 	private response(cart: UserOrderEntity, corrected = new Set<number>()): CartDto {
 		return {
 			cart: toUserCart(cart),
+			revision: cartRevision(cart),
 			price: getOrderPrice(cart.patterns ?? []),
 			correctedPatternIds: [...corrected],
 		};
@@ -197,7 +199,7 @@ export class UserCartService {
 		const prepared = normalizeUserSelection({
 			...input,
 			sizes: validIds,
-			color: Boolean(pattern && !pattern.hidden && input.color),
+			color: Boolean(pattern && !pattern.hidden && pattern.color?.state === ModelState.ACTIVE && input.color),
 		}, bought);
 
 		if (!prepared || prepared.color !== input.color || prepared.sizes.length !== input.sizes?.length ||

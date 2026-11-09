@@ -1,7 +1,9 @@
+import type { CheckoutOrderDto } from "@am-back/modules/orders/dto/checkout.dto";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import type { AdminOrderEntity, UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
 import type { AdminOrderDetailsDto, AdminOrderListDto } from "@am-back/modules/admin/admin.dto";
 import type { UserOrderDetailsDto } from "@am-back/modules/orders/dto/orders.dto";
+import { invalidOrder } from "../errors/order-validation";
 import type { OrderPlacement } from "../types/order-placement";
 import { selectedItemView, toAdminOrder } from "./cart.mapper";
 
@@ -203,5 +205,23 @@ export function toOrderPlacement(order: UserOrderEntity): OrderPlacement {
 		totalAmount: order.totalAmount,
 		currency: order.currency,
 		discounts: order.discounts,
+	};
+}
+
+/**
+ * Возвращает оформленный заказ из исторических snapshot без пользователя и приватных путей файлов.
+ * При отсутствии даты оформления или версии настроек возвращает стандартную ошибку INVALID для корзины.
+ */
+export function toCheckoutOrder(order: UserOrderEntity): CheckoutOrderDto {
+	const hasMissingPlacementMetadata = !order.placedAt || !order.appSettingsVersion;
+
+	if (hasMissingPlacementMetadata) {
+		invalidOrder();
+	}
+
+	return {
+		...toUserOrderDetails(order),
+		placedAt: order.placedAt,
+		appSettingsVersion: order.appSettingsVersion,
 	};
 }

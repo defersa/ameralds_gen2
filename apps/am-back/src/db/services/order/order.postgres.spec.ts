@@ -1,3 +1,7 @@
+import { CheckoutConflictReason } from "@ameralds/utils";
+import { CheckoutPlacement1793900000000 } from "../../../../database/migrations/1793900000000-checkout-placement";
+import { PlaceOrderService } from "./checkout/place-order.service";
+import { PrivateFileEntity } from "@am-back/db/entities/files/file.entity";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import { DataSourceService } from "@am-back/db/data-source.service";
 import { LabelLangEntity } from "@am-back/db/entities/common/label-lang.entity";
@@ -47,6 +51,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 	let size: PatternSizeEntity;
 	let orders: UserOrderService;
 	let carts: UserCartService;
+	let checkout: PlaceOrderService;
 	let orderRepository: UserOrderRepository;
 	let purchases: UserOrderService;
 	let itemRepository: OrderPatternRepository;
@@ -83,6 +88,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 			"DROP SCHEMA IF EXISTS patterns CASCADE; DROP SCHEMA IF EXISTS users CASCADE; DROP SCHEMA public CASCADE; CREATE SCHEMA public; CREATE SCHEMA patterns; CREATE SCHEMA users",
 		);
 		await db.synchronize();
+		await db.transaction((manager) => new CheckoutPlacement1793900000000().down(manager.queryRunner));
 		await db.transaction((manager) => migration.down(manager.queryRunner));
 		// Убираем поля и ограничения окна оплаты, чтобы воспроизвести схему до применения миграций.
 		await db.query(`ALTER TABLE "users"."user_order_entity" DROP CONSTRAINT "CHK_pending_order_payment_window",
@@ -122,11 +128,17 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 			},
 		]);
 
+		const color = await db.getRepository(PrivateFileEntity).save({
+			name: "colors.pdf",
+			path: "test/colors.pdf",
+		});
+
 		pattern = await db.getRepository(PatternEntity).save({
 			name,
 			basePrice: prices[0],
 			additionalPrice: prices[1],
 			colorPrice: prices[2],
+			color,
 		});
 
 		const definition = await db.getRepository(SizeEntity).save({ value: 36 });
@@ -140,6 +152,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 
 		orders = module.get(UserOrderService);
 		carts = module.get(UserCartService);
+		checkout = module.get(PlaceOrderService);
 		orderRepository = module.get(UserOrderRepository);
 		purchases = module.get(UserOrderService);
 		itemRepository = module.get(OrderPatternRepository);
@@ -175,6 +188,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 	 */
 	async function apply(): Promise<void> {
 		await db.transaction((manager) => migration.up(manager.queryRunner));
+		await db.transaction((manager) => new CheckoutPlacement1793900000000().up(manager.queryRunner));
 	}
 
 	/** Добавляет в тестовую корзину позицию с подготовленной схемой, размером и цветом. */
@@ -386,6 +400,77 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 
 		expect(repurchase.cart.patterns[0]).toMatchObject({ color: true, requiresPatternPurchase: true });
 		expect(repurchase.cart.patterns[0].sizes).toHaveLength(1);
+	});
+
+	it("checks out once under concurrent retries, keeps snapshots and opens the next cart lazily", async () => {
+		await apply();
+
+		const cart = await carts.addToUserCart(user.id, {
+			pattern: pattern.id, sizes: [size.size.id], color: false, requiresPatternPurchase: true,
+		});
+
+		const input = { cartId: cart.cart.id, cartRevision: cart.revision, currency: "RUB" as const };
+
+		const results = await Promise.all(Array.from({ length: 4 }, () => checkout.place(user.id, input)));
+
+		expect(new Set(results
+			.map((result) => result.id)).size).toBe(1);
+		expect(results[0]).toMatchObject({ status: OrderStatus.PENDING_PAYMENT, subtotalAmount: 121, totalAmount: 121, discounts: [] });
+		expect(await orderRepository.findOpenCart(user.id)).toBeNull();
+		await db.getRepository(NumberLangEntity).update(pattern.basePrice.id, { ru: 999 });
+
+		const settings = new AppSettingsService(new AppSettingsRepository(db), db);
+		const currentSettings = await settings.current();
+
+		await settings.createVersion(currentSettings.version, { orders: { paymentExpirationDays: 14 } }, user.id);
+
+		const next = await carts.getUserCart(user.id);
+		const repeated = await checkout.place(user.id, input);
+
+		expect(next.cart.id).not.toBe(input.cartId);
+		expect(repeated).toEqual(results[0]);
+		await expect(db.getRepository(UserOrderEntity).update(input.cartId, { placedAt: new Date() })).rejects.toThrow("immutable");
+		await expect(db.getRepository(OrderPatternEntity).update(results[0].patterns[0].id, { color: true })).rejects.toThrow("immutable");
+	});
+
+	it("rolls checkout back when payment-window persistence fails", async () => {
+		await apply();
+
+		const cart = await carts.addToUserCart(user.id, {
+			pattern: pattern.id, sizes: [size.size.id], color: false, requiresPatternPurchase: true,
+		});
+
+		const spy = jest.spyOn(orderRepository, "fixPaymentWindow").mockRejectedValueOnce(new Error("payment-window failure"));
+
+		try {
+			await expect(checkout.place(user.id, { cartId: cart.cart.id, cartRevision: cart.revision, currency: "RUB" })).rejects.toThrow("payment-window failure");
+		} finally {
+			spy.mockRestore();
+		}
+
+		const unchanged = await orderRepository.findOpenCart(user.id);
+
+		expect(unchanged).toMatchObject({ status: OrderStatus.OPEN, totalAmount: null, placedAt: null });
+		expect(unchanged.patterns[0].snapshot).toBeNull();
+	});
+
+	it("returns conflicts for newly acquired rights without silently editing the cart", async () => {
+		await apply();
+
+		const cart = await carts.addToUserCart(user.id, {
+			pattern: pattern.id, sizes: [size.size.id], color: false, requiresPatternPurchase: true,
+		});
+
+		await db.getRepository(UserPatternEntity).save({ user, pattern, sizes: [size], color: false });
+		await expect(checkout.place(user.id, { cartId: cart.cart.id, cartRevision: cart.revision, currency: "RUB" })).rejects.toMatchObject({
+			status: 409,
+			response: { items: [expect.objectContaining({ reasons: expect.arrayContaining([CheckoutConflictReason.SIZE_OWNED]) })] },
+		});
+
+		const unchanged = await orderRepository.findOpenCart(user.id);
+
+		expect(unchanged.patterns[0].sizes).toHaveLength(1);
+		expect(unchanged.patterns[0].snapshot).toBeNull();
 	});
 
 	it("enforces one active OPEN under concurrent creation, permits anonymous carts and multiple pending orders", async () => {

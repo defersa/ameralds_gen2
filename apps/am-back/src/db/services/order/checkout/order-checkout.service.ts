@@ -1,7 +1,7 @@
 import { ApiEntityNames, ApiErrorCodes, MILLISECONDS_PER_DAY } from "@ameralds/utils";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import type { OrderCurrency } from "@am-back/db/entities/purchases/order-snapshot.model";
-import { OrderStatus } from "@am-back/db/entities/purchases/order.entity";
+import { OrderStatus, type UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
 import { AppSettingsService } from "@am-back/db/service/app-settings/app-settings.service";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import type { EntityManager } from "typeorm";
@@ -24,13 +24,15 @@ export class OrderCheckoutService {
 
 	/**
 	 * В активной транзакции блокирует собственную непустую OPEN-корзину и фиксирует snapshot позиций и
-	 * итогов в минимальных денежных единицах. Недопустимое состояние или цена возвращает INVALID.
+	 * итогов в минимальных денежных единицах. validate перепроверяет права и доступность того же состава,
+	 * который попадёт в snapshot. Недопустимое состояние или цена возвращает INVALID.
 	 */
 	public async capture(
 		orderId: number,
 		userId: number,
 		currency: OrderCurrency,
 		manager: EntityManager,
+		validate?: (order: UserOrderEntity) => Promise<void>,
 	): Promise<OrderPlacement> {
 		if (!manager.queryRunner?.isTransactionActive) {
 			throw new Error("Order snapshot requires an active transaction");
@@ -41,6 +43,8 @@ export class OrderCheckoutService {
 		if (!order || order.status !== OrderStatus.OPEN || order.sourceAdminOrder || !order.patterns.length) {
 			invalidOrder();
 		}
+
+		await validate?.(order);
 
 		if (
 			order.patterns
@@ -109,7 +113,7 @@ export class OrderCheckoutService {
 			now.valueOf() + settings.effective.orders.paymentExpirationDays * MILLISECONDS_PER_DAY,
 		);
 		order.appSettingsVersion = settings.version;
-		await this.orders.fixPaymentWindow(order.id, order.paymentExpiresAt, order.appSettingsVersion, manager);
+		await this.orders.fixPaymentWindow(order.id, order.paymentExpiresAt, order.appSettingsVersion, manager, now);
 		return toOrderPlacement(order);
 	}
 }

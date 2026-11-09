@@ -5,6 +5,7 @@ import { AdminOrderMailService } from "./admin/admin-order-mail.service";
 import { AdminOrderService } from "./admin/admin-order.service";
 import { AdminCartService } from "./cart/admin-cart.service";
 import { UserCartService } from "./cart/user-cart.service";
+import { PlaceOrderService } from "./checkout/place-order.service";
 import { OrderCheckoutService } from "./checkout/order-checkout.service";
 import { OrderExpirationService } from "./checkout/order-expiration.service";
 import { AdminOrderRepository } from "./repositories/admin-order.repository";
@@ -22,6 +23,7 @@ import { UserOrderService } from "./user/user-order.service";
 		AdminOrderService,
 		AdminOrderMailService,
 		OrderCheckoutService,
+		PlaceOrderService,
 		OrderExpirationService,
 		UserOrderRepository,
 		AdminOrderRepository,
@@ -34,6 +36,7 @@ import { UserOrderService } from "./user/user-order.service";
 		AdminOrderService,
 		AdminOrderMailService,
 		OrderCheckoutService,
+		PlaceOrderService,
 	],
 })
 export class OrderDomainModule {}

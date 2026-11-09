@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { RequestOptions, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderDetailsDto } from "../models";
+import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderDetailsDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiOrdersProducer {
@@ -23,6 +23,37 @@ export class ApiOrdersProducer {
     private createContextWithClientId(existingContext?: HttpContext): HttpContext {
         const context = existingContext || new HttpContext();
         return context.set(this.clientContextToken, 'default');
+    }
+
+    checkoutControllerPlace(checkoutInputDto: CheckoutInputDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<CheckoutOrderDto>;
+    checkoutControllerPlace(checkoutInputDto: CheckoutInputDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<CheckoutOrderDto>>;
+    checkoutControllerPlace(checkoutInputDto: CheckoutInputDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<CheckoutOrderDto>>;
+    checkoutControllerPlace(checkoutInputDto: CheckoutInputDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders/checkout`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('post', url, {
+            body: checkoutInputDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
     }
 
     ordersControllerCart(observe?: 'body', options?: RequestOptions<'json'>): Observable<CartDto>;

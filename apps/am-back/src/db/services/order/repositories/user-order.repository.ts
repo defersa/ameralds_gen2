@@ -157,8 +157,9 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 						basePrice: true,
 						additionalPrice: true,
 						colorPrice: true,
+						color: true,
 					},
-					sizes: { size: true },
+					sizes: { size: true, pattern: true },
 				},
 			},
 		});
@@ -206,9 +207,11 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 		paymentExpiresAt: Date,
 		appSettingsVersion: number,
 		manager: EntityManager,
+		placedAt: Date,
 	): Promise<void> {
 		await this.using(manager).update(id, {
 			status: OrderStatus.PENDING_PAYMENT,
+			placedAt,
 			paymentExpiresAt,
 			appSettingsVersion,
 		});

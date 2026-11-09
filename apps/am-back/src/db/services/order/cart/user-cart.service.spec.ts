@@ -1,3 +1,4 @@
+import { PrivateFileEntity } from "@am-back/db/entities/files/file.entity";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import { OrderPatternEntity } from "@am-back/db/entities/patterns/pattern-order.entity";
 import { PatternSizeEntity } from "@am-back/db/entities/patterns/pattern-size.entity";
@@ -31,6 +32,7 @@ describe("UserCartService normalization", () => {
 	let insertSelection: jest.Mock;
 
 	beforeEach(async () => {
+		pattern.color = Object.assign(new PrivateFileEntity(), { state: ModelState.ACTIVE });
 		owned = [{ patternId: 7, sizeIds: [1], color: false }];
 		cart = Object.assign(new UserOrderEntity(), { id: 5, patterns: [] });
 		lockOwner = jest.fn();
@@ -92,6 +94,16 @@ describe("UserCartService normalization", () => {
 
 		expect(result.cart.patterns).toEqual([]);
 		expect(insertSelection).not.toHaveBeenCalled();
+	});
+
+	it("removes an unavailable color on explicit refresh so checkout can be confirmed again", async () => {
+		await service.addToUserCart(42, { pattern: 7, sizes: [], color: true, requiresPatternPurchase: false });
+		pattern.color.state = ModelState.INACTIVE;
+
+		const result = await service.getUserCart(42);
+
+		expect(result.cart.patterns).toEqual([]);
+		expect(result.correctedPatternIds).toEqual([7]);
 	});
 
 	it("allows buying revoked rights again and ignores the client base-purchase flag", async () => {

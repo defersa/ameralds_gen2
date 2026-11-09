@@ -10,13 +10,17 @@ import { UserCartService } from './user-cart.service';
 describe('UserCartService', () => {
     const selection = { pattern: 7, sizes: [1], color: true, requiresPatternPurchase: false };
     const response: CartDto = {
+        revision: "a".repeat(64),
         correctedPatternIds: [7],
         price: { ru: 0, en: 0 },
-        cart: { id: 5, createdAt: '', updatedAt: '', status: EnumOrderStatus.Open, patterns: [] },
+        cart: { id: 5, createdAt: new Date(), updatedAt: new Date(), status: EnumOrderStatus.Open, patterns: [] },
     };
     const auth = signal(true);
     let service: UserCartService;
-    let producer: Record<string, jest.Mock>;
+    let producer: Record<
+        'ordersControllerCart' | 'ordersControllerAddItemToCart' | 'ordersControllerRemoveItemFromCart' |
+        'ordersControllerMergeLocalCart' | 'ordersControllerClearAll', jest.Mock
+    >;
     let snack: { open: jest.Mock; warn: jest.Mock };
 
     beforeEach(() => {

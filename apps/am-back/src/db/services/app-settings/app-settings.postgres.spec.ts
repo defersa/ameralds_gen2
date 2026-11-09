@@ -70,6 +70,8 @@ postgres("AppSettings and order expiration on PostgreSQL", () => {
             "subtotalAmount" bigint DEFAULT 0, "discountAmount" bigint DEFAULT 0,
             "totalAmount" bigint DEFAULT 0, "currency" varchar(3) DEFAULT 'RUB',
             "discounts" jsonb DEFAULT '[]', "paidAt" timestamptz,
+            -- Текущая модель фиксирует дату checkout; проверка её миграции находится в order.postgres.spec.ts.
+            "placed_at" timestamptz,
             "status" "users"."user_order_entity_status_enum" NOT NULL DEFAULT 'open'
         )`);
 
@@ -363,8 +365,10 @@ postgres("AppSettings and order expiration on PostgreSQL", () => {
 	it("captures 7 days and its version once; later settings affect only new orders", async () => {
 		const first = await pendingOrder();
 
-		expect(first.paymentExpiresAt.valueOf() - Date.now()).toBeGreaterThan(7 * 86_400_000 - 3000);
-		expect(first.paymentExpiresAt.valueOf() - Date.now()).toBeLessThanOrEqual(7 * 86_400_000);
+		const firstOrder = await db.getRepository(UserOrderEntity).findOneByOrFail({ id: first.id });
+
+		// Обе даты фиксируются временем БД; проверка не зависит от расхождения часов контейнера и Node.
+		expect(first.paymentExpiresAt.valueOf() - firstOrder.placedAt.valueOf()).toBe(7 * 86_400_000);
 		expect(first.appSettingsVersion).toBe(1);
 		await writer.createVersion(
 			1,
@@ -382,7 +386,9 @@ postgres("AppSettings and order expiration on PostgreSQL", () => {
 		const next = await pendingOrder();
 
 		expect(next.appSettingsVersion).toBe(2);
-		expect(next.paymentExpiresAt.valueOf() - Date.now()).toBeGreaterThan(14 * 86_400_000 - 3000);
+		const nextOrder = await db.getRepository(UserOrderEntity).findOneByOrFail({ id: next.id });
+
+		expect(next.paymentExpiresAt.valueOf() - nextOrder.placedAt.valueOf()).toBe(14 * 86_400_000);
 	});
 
 	it("rejects foreign, missing, inactive, completed and administrative orders", async () => {
