@@ -59,12 +59,8 @@ export class UserOrderEntity extends BaseModel {
 	})
 	public user: UserEntity;
 
-	@OneToOne(() => UserPaymentEntity, {
-		onDelete: "SET NULL",
-		nullable: true,
-	})
-	@JoinColumn()
-	public payment: UserPaymentEntity;
+	@OneToMany(() => UserPaymentEntity, (payment: UserPaymentEntity) => payment.order)
+	public payments: UserPaymentEntity[];
 
 	@OneToOne(() => AdminOrderEntity, {
 		onDelete: "SET NULL",

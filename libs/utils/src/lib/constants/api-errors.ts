@@ -1,4 +1,6 @@
 export enum ApiErrorCodes {
+	PAYMENT_CONFLICT = "PAYMENT_CONFLICT",
+	PAYMENT_UNAVAILABLE = "PAYMENT_UNAVAILABLE",
 	CART_CONFLICT = "CART_CONFLICT",
 	ALREADY_EXIST = "ALREADY_EXIST",
 	INVALID_PASSWORD = "INVALID_PASSWORD",
@@ -16,6 +18,7 @@ export enum ApiErrorCodes {
 }
 
 export enum ApiEntityNames {
+	PAYMENT = "payment",
 	CATEGORY = "category",
 	SIZE = "size",
 	PATTERN = "pattern",

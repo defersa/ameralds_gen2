@@ -4,7 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
-import { ApiOrdersProducer, EnumOrderStatus, UserOrderSummaryDto } from '@am-front/root/api-v2';
+import { ApiOrdersProducer, EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, UserOrderSummaryDto } from '@am-front/root/api-v2';
+import { UserOrdersService } from '@am-front/services/user-orders.service';
 import { AuthService } from '@am-front/services/auth.service';
 import { CategoriesService } from '@am-front/services/categories.service';
 import { OrderDetailsComponent } from './order-details.component';
@@ -14,6 +15,8 @@ describe('personal order page', () => {
     const authenticated = signal(true);
     const getOrder = jest.fn();
     const cancelOrder = jest.fn();
+    const createPayment = jest.fn();
+    const redirect = jest.fn();
     const auth = { auth: authenticated, sessionRevision: 0 };
     let routeParams: BehaviorSubject<ParamMap>;
 
@@ -52,6 +55,18 @@ describe('personal order page', () => {
         }],
     };
 
+    const attempt = {
+        id: 1,
+        orderId: 17,
+        status: EnumPaymentStatus.PENDING,
+        amount: 12345,
+        currency: 'RUB',
+        confirmationUrl: 'https://pay.example.test/1',
+        createdAt: new Date('2026-11-10T12:00:00Z'),
+        paidAt: null,
+        testMode: true,
+    } satisfies PaymentAttemptDto;
+
     beforeEach(() => {
         authenticated.set(true);
         auth.sessionRevision = 0;
@@ -59,13 +74,15 @@ describe('personal order page', () => {
         jest.clearAllMocks();
         getOrder.mockReturnValue(of(stored));
         cancelOrder.mockReturnValue(of(cancelled));
+        createPayment.mockReturnValue(of(attempt));
         TestBed.configureTestingModule({ imports: [OrderDetailsComponent], providers: [
             provideRouter([]),
             { provide: ActivatedRoute, useValue: { paramMap: routeParams } },
             { provide: AuthService, useValue: auth },
-            { provide: ApiOrdersProducer, useValue: { userOrdersControllerGetOrder: getOrder, userOrdersControllerCancelOrder: cancelOrder } },
+            { provide: ApiOrdersProducer, useValue: { userOrdersControllerGetOrder: getOrder, userOrdersControllerCancelOrder: cancelOrder, paymentsControllerCreatePayment: createPayment } },
             { provide: CategoriesService, useValue: { categoriesById: signal({ 4: { value: 4, label: 'Природа' } }) } },
         ] });
+        jest.spyOn(TestBed.inject(UserOrdersService), 'redirectToPayment').mockImplementation(redirect);
     });
 
     it('loads a pending order using its URL and shows cart-style cards without modification actions', () => {
@@ -89,11 +106,10 @@ describe('personal order page', () => {
         expect(navigation.querySelector('a[routerLink="/account/orders"]')?.getAttribute('href')).toBe('/account/orders');
         expect(navigation.querySelector('a[routerLink="/cart"]')?.getAttribute('href')).toBe('/cart');
 
-        const pay = fixture.debugElement.query(By.css('amstore-button[aria-disabled="true"]'));
+        const pay = fixture.debugElement.query(By.css('button[color="primary"]'));
 
         expect(pay.nativeElement.textContent.trim()).toBe('Оплатить');
-        expect(pay.componentInstance.disabled()).toBe(true);
-        expect(pay.nativeElement.getAttribute('aria-disabled')).toBe('true');
+        expect(pay.componentInstance.disabled()).toBe(false);
     });
 
     it('loads the order again after reopening the page instead of relying on checkout state', () => {
@@ -264,6 +280,106 @@ describe('personal order page', () => {
         expect(fixture.componentInstance.order()).toBeNull();
         expect(cancelOrder).toHaveBeenCalledTimes(1);
         expect(pending.observed).toBe(false);
+    });
+
+    it('creates payment from the real button and redirects without marking the order paid', () => {
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        fixture.nativeElement.querySelector('button[color="primary"]').click();
+        fixture.detectChanges();
+
+        expect(createPayment).toHaveBeenCalledWith(17, { idempotencyKey: expect.any(String) });
+        expect(redirect).toHaveBeenCalledWith(attempt);
+        expect(fixture.componentInstance.order()?.status).toBe(EnumOrderStatus.PendingPayment);
+        expect(fixture.nativeElement.textContent).toContain('Тестовая оплата без списания денег');
+    });
+
+    it('blocks repeated payment and cancellation while preparing the link', () => {
+        const pending = new Subject<PaymentAttemptDto>();
+
+        createPayment.mockReturnValue(pending);
+
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        fixture.componentInstance.pay();
+        fixture.componentInstance.pay();
+        fixture.componentInstance.cancelOrder();
+        fixture.detectChanges();
+
+        expect(createPayment).toHaveBeenCalledTimes(1);
+        expect(cancelOrder).not.toHaveBeenCalled();
+        expect(fixture.nativeElement.querySelector('button[color="primary"]').disabled).toBe(true);
+        expect(fixture.nativeElement.querySelector('button[color="warn"]').disabled).toBe(true);
+    });
+
+    it('reuses the payment key after a timeout and shows a retryable error', () => {
+        createPayment.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 503 })));
+
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        fixture.componentInstance.pay();
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('Не удалось получить ссылку');
+        fixture.componentInstance.pay();
+
+        expect(createPayment.mock.calls[1]).toEqual(createPayment.mock.calls[0]);
+    });
+
+    it.each([EnumPaymentStatus.FAILED, EnumPaymentStatus.CANCELLED])('uses a new key only after a terminal result %s', status => {
+        createPayment.mockReturnValueOnce(of({ ...attempt, status, confirmationUrl: null }));
+
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        fixture.componentInstance.pay();
+        fixture.componentInstance.pay();
+
+        expect(createPayment.mock.calls[1][1].idempotencyKey).not.toBe(createPayment.mock.calls[0][1].idempotencyKey);
+        expect(redirect).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['route', 'logout'])('ignores a late payment link after %s', context => {
+        const pending = new Subject<PaymentAttemptDto>();
+
+        createPayment.mockReturnValue(pending);
+
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        fixture.componentInstance.pay();
+
+        if (context === 'route') {
+            getOrder.mockReturnValue(of({ ...stored, id: 99 }));
+            routeParams.next(convertToParamMap({ id: '99' }));
+        } else {
+            authenticated.set(false);
+            auth.sessionRevision++;
+        }
+
+        fixture.detectChanges();
+        pending.next(attempt);
+
+        expect(pending.observed).toBe(false);
+        expect(redirect).not.toHaveBeenCalled();
+    });
+
+    it('keeps a captured payment separate from order completion and blocks another payment', () => {
+        createPayment.mockReturnValue(of({ ...attempt, status: EnumPaymentStatus.SUCCEEDED, confirmationUrl: null }));
+
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        fixture.componentInstance.pay();
+        fixture.componentInstance.pay();
+        fixture.detectChanges();
+
+        expect(createPayment).toHaveBeenCalledTimes(1);
+        expect(fixture.componentInstance.order()?.status).toBe(EnumOrderStatus.PendingPayment);
+        expect(fixture.nativeElement.textContent).toContain('Ожидается подтверждение заказа');
     });
 
 });

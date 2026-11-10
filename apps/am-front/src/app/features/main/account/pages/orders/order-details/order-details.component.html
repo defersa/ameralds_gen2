@@ -70,7 +70,13 @@
             @if (details.status === pendingStatus) {
                 <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3" aria-live="polite">
                     <p class="!m-0 text-xs leading-4">
-                        Оплата пока недоступна.
+                        @if (payment()?.testMode) {
+                            Тестовая оплата без списания денег.
+                        }
+
+                        @else {
+                            Оплата на странице платёжного сервиса.
+                        }
                     </p>
 
                     <div class="ml-auto flex flex-wrap justify-end gap-3">
@@ -79,20 +85,49 @@
                                 color="warn"
                                 size="medium"
                                 [stroked]="true"
-                                [disabled]="cancelRequest.loading()"
+                                [disabled]="cancelRequest.loading() || paymentRequest.loading()"
                                 (click)="cancelOrder()">
                             {{ cancelRequest.loading() ? 'Отменяем…' : 'Отменить' }}
                         </button>
 
-                        <amstore-button [disabled]="true" role="button" aria-disabled="true" tabindex="-1" color="primary" size="medium">
-                            Оплатить
-                        </amstore-button>
+                        <button amstore-button
+                                type="button"
+                                color="primary"
+                                size="medium"
+                                [disabled]="paymentRequest.loading() || cancelRequest.loading() || payment()?.status === paymentStatuses.SUCCEEDED"
+                                (click)="pay()">
+                            {{ paymentRequest.loading() ? 'Подготавливаем…' : 'Оплатить' }}
+                        </button>
                     </div>
                 </div>
 
                 @if (cancelRequest.errors()) {
                     <p class="amstore-text-caption !m-0" role="alert">
                         Не удалось отменить заказ. Попробуйте ещё раз или обновите страницу, чтобы проверить его статус.
+                    </p>
+                }
+
+                @if (paymentRequest.errors()) {
+                    <p class="amstore-text-caption !m-0" role="alert">
+                        Не удалось получить ссылку на оплату. Попробуйте ещё раз или обновите страницу, чтобы проверить статус заказа.
+                    </p>
+                }
+
+                @if (payment()?.status === paymentStatuses.FAILED || payment()?.status === paymentStatuses.CANCELLED) {
+                    <p class="amstore-text-caption !m-0" role="status">
+                        Платёж не завершён. Можно повторить попытку.
+                    </p>
+                }
+
+                @if (payment()?.status === paymentStatuses.SUCCEEDED) {
+                    <p class="amstore-text-caption !m-0" role="status">
+                        Ожидается подтверждение заказа. Повторная оплата не требуется.
+                    </p>
+                }
+
+                @if (payment()?.status === paymentStatuses.PENDING && !payment()?.confirmationUrl) {
+                    <p class="amstore-text-caption !m-0" role="status">
+                        Платёж обрабатывается. Проверка статуса доступна при повторном нажатии «Оплатить».
                     </p>
                 }
             }

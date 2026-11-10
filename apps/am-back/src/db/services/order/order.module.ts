@@ -13,11 +13,18 @@ import { OrderPatternRepository } from "./repositories/order-pattern.repository"
 import { UserOrderRepository } from "./repositories/user-order.repository";
 import { UserOrderService } from "./user/user-order.service";
 import { CancelUserOrderService } from "./user/cancel-user-order.service";
+import { PaymentService } from '../payment/payment.service';
+import { PaymentRepository } from '../payment/repositories/payment.repository';
+import { MockPaymentProvider } from '../payment/providers/mock-payment.provider';
+import { PAYMENT_PROVIDER } from '../payment/types/payment-provider';
 
 
 @Module({
 	imports: [DbInfrastructureModule, AppSettingsDomainModule],
 	providers: [
+		PaymentService,
+		PaymentRepository,
+		{ provide: PAYMENT_PROVIDER, useClass: MockPaymentProvider },
 		UserCartService,
 		AdminCartService,
 		UserOrderService,
@@ -32,6 +39,7 @@ import { CancelUserOrderService } from "./user/cancel-user-order.service";
 		OrderPatternRepository,
 	],
 	exports: [
+		PaymentService,
 		UserCartService,
 		AdminCartService,
 		UserOrderService,

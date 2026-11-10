@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderSummaryDto, UserOrdersPageDto, UserOrderDetailsDto } from "../models";
+import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderSummaryDto, UserOrdersPageDto, UserOrderDetailsDto, CreatePaymentDto, PaymentAttemptDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiOrdersProducer {
@@ -319,6 +319,37 @@ export class ApiOrdersProducer {
         }
 
         return this.httpClient.request('get', url, {
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    paymentsControllerCreatePayment(id: number, createPaymentDto: CreatePaymentDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<PaymentAttemptDto>;
+    paymentsControllerCreatePayment(id: number, createPaymentDto: CreatePaymentDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<PaymentAttemptDto>>;
+    paymentsControllerCreatePayment(id: number, createPaymentDto: CreatePaymentDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<PaymentAttemptDto>>;
+    paymentsControllerCreatePayment(id: number, createPaymentDto: CreatePaymentDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders/${id}/payments`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('post', url, {
+            body: createPaymentDto,
             observe,
             headers,
             reportProgress: options?.reportProgress,

@@ -233,11 +233,44 @@ postgres("user order migration and invariants on PostgreSQL", () => {
         const end = new Date('2026-11-10T00:00:00Z');
 
         const stored = await orderRepository.save([
-            { user, status: OrderStatus.PAID, createdAt: start, totalAmount: 0 },
-            { user, status: OrderStatus.PAID, createdAt: start, totalAmount: 100 },
-            { user, status: OrderStatus.PAID, createdAt: end, totalAmount: 50 },
-            { user, status: OrderStatus.CANCELLED, createdAt: start, totalAmount: 50 },
-            { user, status: OrderStatus.PAID, createdAt: start, totalAmount: null },
+            {
+                user,
+                status: OrderStatus.PAID,
+                createdAt: start,
+                subtotalAmount: 0,
+                totalAmount: 0,
+                currency: 'RUB',
+            },
+            {
+                user,
+                status: OrderStatus.PAID,
+                createdAt: start,
+                subtotalAmount: 100,
+                totalAmount: 100,
+                currency: 'RUB',
+            },
+            {
+                user,
+                status: OrderStatus.PAID,
+                createdAt: end,
+                subtotalAmount: 50,
+                totalAmount: 50,
+                currency: 'RUB',
+            },
+            {
+                user,
+                status: OrderStatus.CANCELLED,
+                createdAt: start,
+                subtotalAmount: 50,
+                totalAmount: 50,
+                currency: 'RUB',
+            },
+            {
+                user,
+                status: OrderStatus.PAID,
+                createdAt: start,
+                totalAmount: null,
+            },
         ]);
 
         const result = await orders.getUserOrders(user.id, {

@@ -17,6 +17,8 @@ export interface EmailLoginRequestDto {
 
 /** Code of error */
 export enum EnumApiErrorCodes {
+    PAYMENT_CONFLICT = "PAYMENT_CONFLICT",
+    PAYMENT_UNAVAILABLE = "PAYMENT_UNAVAILABLE",
     CART_CONFLICT = "CART_CONFLICT",
     ALREADY_EXIST = "ALREADY_EXIST",
     INVALID_PASSWORD = "INVALID_PASSWORD",
@@ -35,6 +37,7 @@ export enum EnumApiErrorCodes {
 
 /** Error entity name */
 export enum EnumApiEntityNames {
+    Payment = "payment",
     Category = "category",
     Size = "size",
     Pattern = "pattern",
@@ -610,6 +613,33 @@ export interface UserOrderDetailsDto {
     status: EnumOrderStatus;
     /** Purchased patterns */
     patterns: Array<PurchasedOrderPatternDto>;
+}
+
+export interface CreatePaymentDto {
+    /** UUID одной попытки; сохраняйте при сетевых ошибках. Новый ключ нужен только после FAILED/CANCELLED. */
+    idempotencyKey: string;
+}
+
+export enum EnumPaymentStatus {
+    PENDING = "PENDING",
+    SUCCEEDED = "SUCCEEDED",
+    FAILED = "FAILED",
+    CANCELLED = "CANCELLED"
+}
+
+export interface PaymentAttemptDto {
+    id: number;
+    orderId: number;
+    status: EnumPaymentStatus;
+    /** Серверная сумма в копейках/центах */
+    amount: number;
+    currency: 'RUB' | 'USD';
+    /** Ссылка провайдера; переход по ней не подтверждает оплату */
+    confirmationUrl: string | null;
+    createdAt: Date;
+    paidAt: Date | null;
+    /** Тестовый провайдер: денежные средства не списываются */
+    testMode: boolean;
 }
 
 export interface AdminOrderPatternSizeDto {
