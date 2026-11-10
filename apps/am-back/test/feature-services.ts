@@ -16,6 +16,8 @@ import { AdminOrderRepository } from "../src/db/services/order/repositories/admi
 import { OrderPatternRepository } from "../src/db/services/order/repositories/order-pattern.repository";
 import { UserOrderRepository } from "../src/db/services/order/repositories/user-order.repository";
 import { UserOrderService } from "../src/db/services/order/user/user-order.service";
+import { CancelUserOrderService } from "../src/db/services/order/user/cancel-user-order.service";
+import { PendingRegistrationRepository } from "../src/db/repositories/pending-registration.repository";
 import { PatternsService } from "../src/db/services/patterns/patterns.service";
 import { TokenService } from "../src/db/services/token.service";
 import { UserService } from "../src/db/services/user.service";
@@ -78,8 +80,13 @@ export function orderTestModule(db: DataSource): Promise<TestingModule> {
 			UserCartService,
 			AdminCartService,
 			UserOrderService,
+			CancelUserOrderService,
 			AdminOrderService,
 			UserService,
+			{
+				provide: PendingRegistrationRepository,
+				useValue: {},
+			},
 			UserPatternService,
 			DataSourceService,
 			{

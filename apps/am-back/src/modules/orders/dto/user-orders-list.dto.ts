@@ -1,7 +1,8 @@
 import { MAX_PAGE_NUMBER } from '@ameralds/utils';
-import { EntityDto, PaginatedPageDto } from '@am-back/common/common.dto';
+import { PaginatedPageDto } from '@am-back/common/common.dto';
 import { OrderStatus } from '@am-back/db/entities/purchases/order.entity';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
+import { UserOrderDetailsDto } from './orders.dto';
 
 
 export class UserOrdersQueryDto {
@@ -24,7 +25,13 @@ export class UserOrdersQueryDto {
     public maxAmount?: number;
 }
 
+export class UserOrderSummaryDto extends OmitType(UserOrderDetailsDto, ['patterns', 'discounts'] as const) {}
+
 export class UserOrdersPageDto extends PaginatedPageDto {
-    @ApiProperty({ type: EntityDto, isArray: true, description: 'Идентификаторы оформленных заказов текущего пользователя, новые первыми' })
-    public items: EntityDto[];
+    @ApiProperty({
+        type: UserOrderSummaryDto,
+        isArray: true,
+        description: 'Основные поля оформленных заказов текущего пользователя без позиций, скидочных снимков и связей, новые первыми',
+    })
+    public items: UserOrderSummaryDto[];
 }

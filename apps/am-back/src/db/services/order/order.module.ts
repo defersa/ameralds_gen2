@@ -12,6 +12,7 @@ import { AdminOrderRepository } from "./repositories/admin-order.repository";
 import { OrderPatternRepository } from "./repositories/order-pattern.repository";
 import { UserOrderRepository } from "./repositories/user-order.repository";
 import { UserOrderService } from "./user/user-order.service";
+import { CancelUserOrderService } from "./user/cancel-user-order.service";
 
 
 @Module({
@@ -20,6 +21,7 @@ import { UserOrderService } from "./user/user-order.service";
 		UserCartService,
 		AdminCartService,
 		UserOrderService,
+		CancelUserOrderService,
 		AdminOrderService,
 		AdminOrderMailService,
 		OrderCheckoutService,
@@ -33,6 +35,7 @@ import { UserOrderService } from "./user/user-order.service";
 		UserCartService,
 		AdminCartService,
 		UserOrderService,
+		CancelUserOrderService,
 		AdminOrderService,
 		AdminOrderMailService,
 		OrderCheckoutService,

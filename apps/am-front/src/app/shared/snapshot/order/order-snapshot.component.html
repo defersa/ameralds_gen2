@@ -1,0 +1,71 @@
+@let snapshot = order();
+
+<div class="order-snapshot__visual flex w-20 shrink-0 items-center justify-center md:w-40" aria-hidden="true">
+    <amstore-icon class="order-snapshot__icon--desktop" [iconName]="appearance().icon" [size]="desktopIconSize" [contrast]="true"/>
+
+    <amstore-icon class="order-snapshot__icon--mobile" [iconName]="appearance().icon" [size]="64" [contrast]="true"/>
+</div>
+
+<div class="flex min-w-0 flex-1 flex-col gap-1 p-2">
+    <h2 class="order-snapshot__heading break-words">
+        Заказ №{{ snapshot.id }}
+    </h2>
+
+    <dl class="m-0 flex min-w-0 flex-col gap-1">
+        <div class="order-snapshot__line flex flex-wrap items-center gap-x-1">
+            <amstore-icon iconName="time" [size]="24" [color]="appearance().color" aria-hidden="true"/>
+
+            <dt>
+                Оформлен:
+            </dt>
+
+            <dd class="m-0">
+                @if (placedAt(); as date) {
+                    <time [attr.datetime]="date | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">
+                        {{ date | date:'dd.MM.yyyy HH:mm' }}
+                    </time>
+                }
+
+                @else {
+                    Дата неизвестна
+                }
+            </dd>
+        </div>
+
+        <div class="order-snapshot__line flex flex-wrap items-center gap-x-1">
+            <amstore-icon iconName="status" [size]="24" [color]="appearance().color" aria-hidden="true"/>
+
+            <dt>
+                Статус:
+            </dt>
+
+            <dd class="m-0">
+                {{ status() }}
+            </dd>
+        </div>
+
+        <div class="order-snapshot__line flex flex-wrap items-center gap-x-1">
+            <amstore-icon iconName="price" [size]="24" [color]="appearance().color" aria-hidden="true"/>
+
+            <dt>
+                Стоимость:
+            </dt>
+
+            <dd class="m-0">
+                @if (snapshot.totalAmount !== null && snapshot.currency !== null) {
+                    {{ snapshot.totalAmount / 100 | number:'1.2-2' }} {{ snapshot.currency === 'RUB' ? '₽' : '$' }}
+                } @else {
+                    Неизвестна
+                }
+            </dd>
+        </div>
+    </dl>
+
+    <a class="order-snapshot__link mt-auto self-end no-underline"
+       [routerLink]="['/account/orders', snapshot.id]"
+       [attr.aria-label]="'Подробнее о заказе №' + snapshot.id">
+        <amstore-button class="block !min-w-36 uppercase" size="small" [color]="appearance().color">
+            Подробнее
+        </amstore-button>
+    </a>
+</div>

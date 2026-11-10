@@ -24,8 +24,8 @@ export class CheckoutOrderDto extends UserOrderDetailsDto {
 	@ApiProperty({ type: Date, description: "Зафиксированное время оформления" })
 	public override placedAt: Date;
 
-	@ApiProperty({ type: "integer", description: "Версия настроек срока оплаты при оформлении" })
-	public appSettingsVersion: number;
+	@ApiProperty({ type: "integer", nullable: false, description: "Версия настроек срока оплаты при оформлении" })
+	public override appSettingsVersion: number;
 }
 
 export class CheckoutConflictItemDto {

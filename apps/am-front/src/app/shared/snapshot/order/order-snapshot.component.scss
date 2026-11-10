@@ -1,0 +1,66 @@
+@use "spacing";
+@use "theming-var";
+@use "typography";
+@use "utils";
+
+:host {
+    --order-color: #{theming-var.get-amstore-color(blue, deep)};
+
+    min-height: spacing.get-spacing(10) * 4;
+    border: 1px solid var(--order-color);
+    border-radius: theming-var.$card-border-radius;
+    background: theming-var.get-amstore-color(gray, white);
+    color: theming-var.get-amstore-color(gray, dark);
+
+    &.is-paid {
+        --order-color: #{theming-var.get-amstore-color(green, deep)};
+    }
+
+    &.is-cancelled {
+        --order-color: #{theming-var.get-amstore-color(red, deep)};
+    }
+}
+
+.order-snapshot__visual {
+    background: var(--order-color);
+}
+
+.order-snapshot__icon--desktop {
+    @include utils.mobile {
+        display: none;
+    }
+}
+
+.order-snapshot__icon--mobile {
+    display: none;
+
+    @include utils.mobile {
+        display: inline-block;
+    }
+}
+
+.order-snapshot__heading {
+    margin: 0;
+    color: theming-var.get-amstore-color(gray, deep);
+
+    @include typography.get-amstore-font("headline", 24);
+
+    @include utils.mobile {
+        @include typography.get-amstore-font("headline", 20);
+    }
+}
+
+.order-snapshot__line {
+    @include typography.get-amstore-font("body", 16);
+
+    dt {
+        color: theming-var.get-amstore-color(gray, middle);
+
+        @include typography.get-amstore-font("body", 14);
+    }
+}
+
+.order-snapshot__link:focus-visible {
+    outline: 2px solid var(--order-color);
+    outline-offset: spacing.get-spacing(1);
+}

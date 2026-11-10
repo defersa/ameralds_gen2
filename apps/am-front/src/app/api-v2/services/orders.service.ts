@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrdersPageDto, UserOrderDetailsDto } from "../models";
+import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderSummaryDto, UserOrdersPageDto, UserOrderDetailsDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiOrdersProducer {
@@ -219,6 +219,33 @@ export class ApiOrdersProducer {
 
         return this.httpClient.request('post', url, {
             body: requestBody,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    userOrdersControllerCancelOrder(id: number, observe?: 'body', options?: RequestOptions<'json'>): Observable<UserOrderSummaryDto>;
+    userOrdersControllerCancelOrder(id: number, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<UserOrderSummaryDto>>;
+    userOrdersControllerCancelOrder(id: number, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<UserOrderSummaryDto>>;
+    userOrdersControllerCancelOrder(id: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders/${id}/cancel`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('post', url, {
+            body: null,
             observe,
             headers,
             reportProgress: options?.reportProgress,

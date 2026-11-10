@@ -5,7 +5,7 @@ import { IconsMap } from "@am-front/cdk/icons/icons.map";
 import type { IconsName } from "@am-front/cdk/icons/icons.map";
 
 
-export type IconSize = 12 | 16 | 20 | 24 | 28 | 32 | 64;
+export type IconSize = 12 | 16 | 20 | 24 | 28 | 32 | 64 | 100;
 
 @Component({
     selector: 'amstore-icon',

@@ -431,6 +431,8 @@ export interface CheckoutOrderDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Версия настроек срока оплаты при оформлении */
+    appSettingsVersion: number;
     /** Зафиксированное время оформления */
     placedAt: Date | null;
     /** Subtotal in minor units; null when historical price is unknown */
@@ -449,8 +451,6 @@ export interface CheckoutOrderDto {
     status: EnumOrderStatus;
     /** Purchased patterns */
     patterns: Array<PurchasedOrderPatternDto>;
-    /** Версия настроек срока оплаты при оформлении */
-    appSettingsVersion: number;
 }
 
 /** Причины конфликта оформления корзины */
@@ -548,9 +548,30 @@ export interface InputShortOrderPatternDto {
     requiresPatternPurchase: boolean;
 }
 
-export interface EntityDto {
+export interface UserOrderSummaryDto {
     /** Id of entity */
     id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Версия настроек при оформлении; null для старых заказов без сохранённой версии */
+    appSettingsVersion: number | null;
+    /** Checkout time; null when unknown for legacy orders */
+    placedAt: Date | null;
+    /** Subtotal in minor units; null when historical price is unknown */
+    subtotalAmount: number | null;
+    /** Discount in minor units */
+    discountAmount: number;
+    /** Total in minor units; null when historical price is unknown */
+    totalAmount: number | null;
+    currency: 'RUB' | 'USD' | null;
+    paymentExpiresAt: Date | null;
+    paidAt: Date | null;
+    cancelledAt: Date | null;
+    cancelReason: string | null;
+    /** Completed order status */
+    status: EnumOrderStatus;
 }
 
 export interface UserOrdersPageDto {
@@ -558,8 +579,8 @@ export interface UserOrdersPageDto {
     page: number;
     /** Count of pages */
     count: number;
-    /** Идентификаторы оформленных заказов текущего пользователя, новые первыми */
-    items: Array<EntityDto>;
+    /** Основные поля оформленных заказов текущего пользователя без позиций, скидочных снимков и связей, новые первыми */
+    items: Array<UserOrderSummaryDto>;
 }
 
 export interface UserOrderDetailsDto {
@@ -569,6 +590,8 @@ export interface UserOrderDetailsDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Версия настроек при оформлении; null для старых заказов без сохранённой версии */
+    appSettingsVersion: number | null;
     /** Checkout time; null when unknown for legacy orders */
     placedAt: Date | null;
     /** Subtotal in minor units; null when historical price is unknown */

@@ -1,15 +1,16 @@
-import { UserOrdersPageDto, UserOrdersQueryDto } from './dto/user-orders-list.dto';
+import { UserOrdersPageDto, UserOrdersQueryDto, UserOrderSummaryDto } from './dto/user-orders-list.dto';
 import { UserOrdersQueryPipe } from './user-orders-query.pipe';
 import type { UserOrderFilters } from '@am-back/db/service/order/types/user-order-filters';
 import { NumberEntityDto } from "@am-back/common/common.dto";
 import { Auth } from "@am-back/core/guards/auth.guard";
 import { UserCartService } from "@am-back/db/service/order/cart/user-cart.service";
 import { UserOrderService } from "@am-back/db/service/order/user/user-order.service";
+import { CancelUserOrderService } from "@am-back/db/service/order/user/cancel-user-order.service";
 import type { RequestModel } from "@am-back/models/request.model";
 import { ErrorsDto } from "@am-back/modules/errors/errors.dto";
 import { CartDto, InputShortOrderPatternDto, UserOrderDetailsDto } from "@am-back/modules/orders/dto/orders.dto";
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, Query } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Query } from "@nestjs/common";
+import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiQuery, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 
 
 @Controller("orders/cart")
@@ -131,13 +132,35 @@ export class LocalCartController {
 @ApiTags("orders")
 @Auth()
 export class UserOrdersController {
-	/** Подключает сервис просмотра оформленных пользовательских заказов. */
-	constructor(private readonly orderService: UserOrderService) {}
+	/** Подключает просмотр оформленных пользовательских заказов и безопасную отмену ожидающей оплаты. */
+	constructor(
+		private readonly orderService: UserOrderService,
+		private readonly cancellation: CancelUserOrderService,
+	) {}
 
-    /** Возвращает страницу собственных оформленных заказов; идентификатор владельца берётся только из проверенного контекста. */
+    /** Отменяет собственный ожидающий оплаты заказ; владелец берётся из проверенного контекста авторизации. */
+    @Post(':id/cancel')
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({
+        type: UserOrderSummaryDto,
+        description: 'Отменённый заказ без состава и связей; повторная отмена не меняет время и причину.',
+    })
+    @ApiBadRequestResponse({
+        type: ErrorsDto,
+        description: 'NOT_EXIST для чужого, отсутствующего или неактивного заказа; INVALID для недопустимого статуса или источника.',
+    })
+    @ApiUnauthorizedResponse({ type: ErrorsDto, description: 'Требуется авторизация.' })
+    public cancelOrder(@Req() request: RequestModel, @Param('id', ParseIntPipe) id: number): Promise<UserOrderSummaryDto> {
+        return this.cancellation.cancel(request.user.id, id);
+    }
+
+    /** Возвращает основные поля собственных оформленных заказов без связей; владелец берётся только из проверенного контекста. */
     @Get()
     @ApiQuery({ type: UserOrdersQueryDto })
-    @ApiOkResponse({ type: UserOrdersPageDto })
+    @ApiOkResponse({
+        type: UserOrdersPageDto,
+        description: 'Страница собственных оформленных заказов со статусом, временем оформления, суммами и прочими основными полями без товарных позиций и связей.',
+    })
     @ApiBadRequestResponse({ type: ErrorsDto, description: 'Некорректные фильтры или номер страницы.' })
     public getOrders(@Req() request: RequestModel, @Query(UserOrdersQueryPipe) filters: UserOrderFilters): Promise<UserOrdersPageDto> {
         return this.orderService.getUserOrders(request.user.id, filters);

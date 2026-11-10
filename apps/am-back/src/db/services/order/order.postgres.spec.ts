@@ -32,6 +32,7 @@ import { OrderPatternRepository } from "./repositories/order-pattern.repository"
 import { UserOrderRepository } from "./repositories/user-order.repository";
 import type { OrderPlacement } from "./types/order-placement";
 import { UserOrderService } from "./user/user-order.service";
+import { CancelUserOrderService } from "./user/cancel-user-order.service";
 
 
 const url = process.env.ORDER_TEST_DATABASE_URL;
@@ -50,6 +51,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 	let pattern: PatternEntity;
 	let size: PatternSizeEntity;
 	let orders: UserOrderService;
+	let cancelOrders: CancelUserOrderService;
 	let carts: UserCartService;
 	let checkout: PlaceOrderService;
 	let orderRepository: UserOrderRepository;
@@ -150,6 +152,8 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 
 		const module = await orderTestModule(db);
 
+		cancelOrders = module.get(CancelUserOrderService);
+
 		orders = module.get(UserOrderService);
 		carts = module.get(UserCartService);
 		checkout = module.get(PlaceOrderService);
@@ -197,17 +201,29 @@ postgres("user order migration and invariants on PostgreSQL", () => {
         const second = await orders.getUserOrders(user.id, { page: 999 });
 
         expect(first.count).toBe(2);
-        expect(first.items).toEqual(stored
+        expect(first.items[0]).toMatchObject({
+            status: OrderStatus.PAID,
+            createdAt,
+            placedAt: null,
+            totalAmount: null,
+            appSettingsVersion: null,
+        });
+        expect(first.items[0]).not.toHaveProperty('patterns');
+        expect(first.items[0]).not.toHaveProperty('discounts');
+        expect(first.items[0]).not.toHaveProperty('user');
+        expect(first.items
+            .map(order => order.id)).toEqual(stored
             .slice()
             .reverse()
             .slice(0, 10)
-            .map(order => ({ id: order.id })));
+            .map(order => order.id));
         expect(second.page).toBe(2);
-        expect(second.items).toEqual(stored
+        expect(second.items
+            .map(order => order.id)).toEqual(stored
             .slice()
             .reverse()
             .slice(10)
-            .map(order => ({ id: order.id })));
+            .map(order => order.id));
     });
 
     it('combines status, inclusive price limits and a half-open creation period, excluding unknown prices', async () => {
@@ -233,7 +249,10 @@ postgres("user order migration and invariants on PostgreSQL", () => {
             maxAmount: 100,
         });
 
-        expect(result.items).toEqual([{ id: stored[1].id }, { id: stored[0].id }]);
+        expect(result.items
+            .map(order => order.id)).toEqual([stored[1].id, stored[0].id]);
+        expect(result.items[0]).toMatchObject({ status: OrderStatus.PAID, totalAmount: 100, createdAt: start });
+        expect(result.items[1].totalAmount).toBe(0);
         expect(await orders.getUserOrders(other.id, { page: 1 })).toEqual({ page: 1, count: 1, items: [] });
     });
 
@@ -280,6 +299,34 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 			item,
 		};
 	}
+
+    it('cancels a pending order once under concurrent requests without changing its immutable snapshot or the next cart', async () => {
+        await apply();
+
+        const { order } = await pending();
+        const before = await orders.getUserOrder(user.id, order.id);
+        const nextCart = await openCart(user);
+
+        await expect(cancelOrders.cancel(other.id, order.id)).rejects.toMatchObject({
+            response: { code: 'NOT_EXIST' },
+        });
+
+        const results = await Promise.all([
+            cancelOrders.cancel(user.id, order.id),
+            cancelOrders.cancel(user.id, order.id),
+        ]);
+
+        const after = await orders.getUserOrder(user.id, order.id);
+
+        expect(results[0].status).toBe(OrderStatus.CANCELLED);
+        expect(results[0].cancelReason).toBe('user_cancelled');
+        expect(results[0].cancelledAt).toBeInstanceOf(Date);
+        expect(results[1]).toEqual(results[0]);
+        expect(after.patterns).toEqual(before.patterns);
+        expect(after.totalAmount).toBe(before.totalAmount);
+        expect(after.paymentExpiresAt).toEqual(before.paymentExpiresAt);
+        expect((await orderRepository.findOpenCart(user.id)).id).toBe(nextCart.id);
+    });
 
 	it("keeps legacy statuses, admin links and unknown prices; merges duplicate carts without losing selections", async () => {
 		// Создаём старый оплаченный заказ без денежного snapshot для проверки совместимости миграции.

@@ -3,16 +3,14 @@ import { ModelState } from "@am-back/db/abstract/abstract.model";
 import type { AdminOrderEntity, UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
 import type { AdminOrderDetailsDto, AdminOrderListDto } from "@am-back/modules/admin/admin.dto";
 import type { UserOrderDetailsDto } from "@am-back/modules/orders/dto/orders.dto";
+import type { UserOrderSummaryDto } from "@am-back/modules/orders/dto/user-orders-list.dto";
 import { invalidOrder } from "../errors/order-validation";
 import type { OrderPlacement } from "../types/order-placement";
 import { selectedItemView, toAdminOrder } from "./cart.mapper";
 
 
-/**
- * Формирует личный заказ из активных позиций, предпочитая исторические snapshot названий, размеров и цвета.
- * Исключает данные пользователя и приватные пути; неизвестные исторические суммы оставляет null.
- */
-export function toUserOrderDetails(order: UserOrderEntity): UserOrderDetailsDto {
+/** Возвращает основные поля личного заказа без связей и служебного состояния; неизвестные исторические суммы и даты сохраняет как null. */
+export function toUserOrderSummary(order: UserOrderEntity): UserOrderSummaryDto {
 	return {
 		id: order.id,
 		placedAt: order.placedAt ?? null,
@@ -23,11 +21,22 @@ export function toUserOrderDetails(order: UserOrderEntity): UserOrderDetailsDto 
 		discountAmount: order.discountAmount ?? 0,
 		totalAmount: order.totalAmount ?? null,
 		currency: order.currency ?? null,
-		discounts: order.discounts ?? [],
+		appSettingsVersion: order.appSettingsVersion ?? null,
 		paymentExpiresAt: order.paymentExpiresAt ?? null,
 		paidAt: order.paidAt ?? null,
 		cancelledAt: order.cancelledAt ?? null,
 		cancelReason: order.cancelReason ?? null,
+	};
+}
+
+/**
+ * Формирует личный заказ из активных позиций, предпочитая исторические snapshot названий, размеров и цвета.
+ * Исключает данные пользователя и приватные пути; неизвестные исторические суммы оставляет null.
+ */
+export function toUserOrderDetails(order: UserOrderEntity): UserOrderDetailsDto {
+	return {
+		...toUserOrderSummary(order),
+		discounts: order.discounts ?? [],
 		patterns: (order.patterns ?? [])
 			.filter((item) => item.state === ModelState.ACTIVE)
 			.map((item) => ({

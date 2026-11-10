@@ -9,7 +9,7 @@ import type { UserOrderDetailsDto } from "@am-back/modules/orders/dto/orders.dto
 import { BadRequestException, Injectable } from "@nestjs/common";
 import type { EntityManager } from "typeorm";
 import { invalidOrder, validateOrderPrice } from "../errors/order-validation";
-import { toUserOrderDetails } from "../mappers/order.mapper";
+import { toUserOrderDetails, toUserOrderSummary } from "../mappers/order.mapper";
 import { createOrderPatternSnapshot, sumOrderSnapshots } from "../pricing/order-snapshot";
 import { AdminOrderRepository } from "../repositories/admin-order.repository";
 import { OrderPatternRepository } from "../repositories/order-pattern.repository";
@@ -30,7 +30,7 @@ export class UserOrderService {
 		private readonly purchases: UserPatternService,
 	) {}
 
-    /** Выдаёт только идентификаторы оформленных заказов владельца и метаданные пагинации без связей и персональных данных. */
+    /** Возвращает основные поля оформленных заказов владельца и пагинацию без позиций, связей и персональных данных. */
     public async getUserOrders(userId: number, filters: UserOrderFilters): Promise<UserOrdersPageDto> {
         const result = await this.orders.findPlacedOrders(userId, filters);
 
@@ -38,7 +38,7 @@ export class UserOrderService {
             page: result.page,
             count: result.count,
             items: result.items
-                .map(order => ({ id: order.id })),
+                .map(toUserOrderSummary),
         };
     }
 

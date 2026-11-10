@@ -5,6 +5,7 @@ import request from "supertest";
 import { AuthGuard } from "../../core/guards/auth.guard";
 import { UserOrderService } from "../../db/services/order/user/user-order.service";
 import { UserOrdersController } from "./orders.controller";
+import { CancelUserOrderService } from "../../db/services/order/user/cancel-user-order.service";
 
 
 describe("personal order access", () => {
@@ -12,11 +13,16 @@ describe("personal order access", () => {
 
 	const getUserOrder = jest.fn();
     const getUserOrders = jest.fn();
+    const cancel = jest.fn();
 
 	beforeAll(async () => {
 		const module = await Test.createTestingModule({
 			controllers: [UserOrdersController],
 			providers: [
+				{
+					provide: CancelUserOrderService,
+					useValue: { cancel },
+				},
 				{
 					provide: UserOrderService,
 					useValue: { getUserOrder, getUserOrders },
@@ -39,6 +45,7 @@ describe("personal order access", () => {
 	});
 	beforeEach(() => {
 		jest.clearAllMocks();
+        cancel.mockResolvedValue({ id: 17, status: 'cancel', cancelReason: 'user_cancelled' });
 		getUserOrder.mockResolvedValue({
 			id: 17,
 			patterns: [],
@@ -56,18 +63,54 @@ describe("personal order access", () => {
 		await request(app.getHttpServer()).get("/orders/17?userId=999").set("test-user", "42").expect(200);
 		expect(getUserOrder).toHaveBeenCalledWith(42, 17);
 	});
+
+    it('rejects anonymous cancellations before accessing an order', async () => {
+        await request(app.getHttpServer()).post('/orders/17/cancel').expect(401);
+        expect(cancel).not.toHaveBeenCalled();
+    });
+
+    it('cancels using the authenticated owner and returns updated metadata with HTTP 200', async () => {
+        await request(app.getHttpServer())
+            .post('/orders/17/cancel?userId=999')
+            .set('test-user', '42')
+            .send({ userId: 999, status: 'success' })
+            .expect(200, { id: 17, status: 'cancel', cancelReason: 'user_cancelled' });
+        expect(cancel).toHaveBeenCalledWith(42, 17);
+    });
+
+    it('rejects a malformed cancellation ID before accessing an order', async () => {
+        await request(app.getHttpServer()).post('/orders/invalid/cancel').set('test-user', '42').expect(400);
+        expect(cancel).not.toHaveBeenCalled();
+    });
     it('rejects an anonymous list request before reading orders', async () => {
         await request(app.getHttpServer()).get('/orders').expect(401);
         expect(getUserOrders).not.toHaveBeenCalled();
     });
 
     it('passes validated filters with the authenticated owner, ignoring a supplied userId', async () => {
-        getUserOrders.mockResolvedValue({ page: 2, count: 3, items: [{ id: 17 }] });
+        const order = {
+            id: 17,
+            createdAt: '2026-11-09T12:00:00.000Z',
+            updatedAt: '2026-11-09T12:00:00.000Z',
+            placedAt: '2026-11-09T12:00:00.000Z',
+            status: 'success',
+            subtotalAmount: 12345,
+            discountAmount: 0,
+            totalAmount: 12345,
+            currency: 'RUB',
+            paymentExpiresAt: null,
+            paidAt: '2026-11-09T12:00:00.000Z',
+            cancelledAt: null,
+            cancelReason: null,
+            appSettingsVersion: null,
+        };
+
+        getUserOrders.mockResolvedValue({ page: 2, count: 3, items: [order] });
 
         await request(app.getHttpServer())
             .get('/orders?page=2&status=success&minAmount=0&maxAmount=12345&userId=999')
             .set('test-user', '42')
-            .expect(200, { page: 2, count: 3, items: [{ id: 17 }] });
+            .expect(200, { page: 2, count: 3, items: [order] });
         expect(getUserOrders).toHaveBeenCalledWith(42, expect.objectContaining({
             page: 2, status: 'success', minAmount: 0, maxAmount: 12345,
         }));

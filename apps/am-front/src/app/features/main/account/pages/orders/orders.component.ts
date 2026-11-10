@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, distinctUntilChanged, EMPTY, ReplaySubject, Subject, startWith, switchMap } from 'rxjs';
 import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
-import { EntityDto } from '@am-front/root/api-v2';
+import { UserOrderSummaryDto } from '@am-front/root/api-v2';
 import { AuthService } from '@am-front/services/auth.service';
 import { UserOrdersFilters, UserOrdersService } from '@am-front/services/user-orders.service';
 import { UserOrdersFiltersComponent } from '@am-front/shared/filters/user-orders/user-orders-filters.component';
+import { OrderSnapshotComponent } from '@am-front/shared/snapshot/order/order-snapshot.component';
 import { createRequestWrapper } from '@am-front/utils/request-wrapper';
 
 
@@ -14,7 +15,7 @@ import { createRequestWrapper } from '@am-front/utils/request-wrapper';
     templateUrl: './orders.component.html',
     styleUrls: ['./orders.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [UserOrdersFiltersComponent, AmstoreButtonComponent],
+    imports: [UserOrdersFiltersComponent, AmstoreButtonComponent, OrderSnapshotComponent],
 })
 export class OrdersComponent {
     private readonly service = inject(UserOrdersService);
@@ -22,7 +23,7 @@ export class OrdersComponent {
     private readonly retry$ = new Subject<void>();
 
     public readonly filtersUpdate$ = new ReplaySubject<UserOrdersFilters>(1);
-    public readonly orders = signal<EntityDto[]>([]);
+    public readonly orders = signal<UserOrderSummaryDto[]>([]);
     public readonly pagesCount = signal(1);
     public readonly page = signal(1);
     public readonly load = createRequestWrapper<typeof this.service.getOrders>(this.service.getOrders.bind(this.service));

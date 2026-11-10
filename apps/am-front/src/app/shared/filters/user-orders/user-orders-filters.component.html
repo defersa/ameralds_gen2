@@ -1,9 +1,9 @@
-<amstore-panel color="primary">
+<amstore-panel color="accent">
     <amstore-panel-header class="flex w-full items-center justify-between">
         Фильтры
 
         @if (hasFilters()) {
-            <amstore-button (click)="clearFilters($event)">
+            <amstore-button (click)="clearFilters($event)" color="accent">
                 Очистить
             </amstore-button>
         }

@@ -349,6 +349,13 @@ export class PurchasedOrderPatternDto extends BaseEntityDto {
 
 export class UserOrderDetailsDto extends BaseEntityDto {
 	@ApiProperty({
+		type: "integer",
+		nullable: true,
+		description: "Версия настроек при оформлении; null для старых заказов без сохранённой версии",
+	})
+	public appSettingsVersion: number | null;
+
+	@ApiProperty({
 		type: Date,
 		nullable: true,
 		description: "Checkout time; null when unknown for legacy orders",

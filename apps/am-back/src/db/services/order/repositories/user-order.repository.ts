@@ -5,8 +5,8 @@ import { ModelState } from "@am-back/db/abstract/abstract.model";
 import type { OrderCurrency, OrderDiscountSnapshot } from "@am-back/db/entities/purchases/order-snapshot.model";
 import { OrderStatus, UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
 import { Injectable } from "@nestjs/common";
-import { DataSource, type EntityManager, Not, Repository } from "typeorm";
-import { PAYMENT_EXPIRED_REASON } from "../checkout/payment-window";
+import { DataSource, type EntityManager, IsNull, Not, Repository } from "typeorm";
+import { PAYMENT_EXPIRED_REASON, USER_CANCELLED_REASON } from "../checkout/payment-window";
 
 
 @Injectable()
@@ -16,11 +16,26 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 		super(UserOrderEntity, dataSource.createEntityManager());
 	}
 
-    /** Возвращает страницу ID активных оформленных заказов владельца; суммы сравниваются в минимальных единицах, даты — по createdAt. */
+    /** Возвращает основные поля активных оформленных заказов владельца без связей; суммы фильтруются в минимальных единицах, даты — по createdAt. */
     public async findPlacedOrders(userId: number, filters: UserOrderFilters): Promise<{ items: UserOrderEntity[]; page: number; count: number }> {
         // Выбираем только заказы владельца без OPEN-корзин и неактивных строк; связи и персональные данные не загружаются.
         const query = this.createQueryBuilder('orders')
-            .select(['orders.id'])
+            .select([
+                'orders.id',
+                'orders.createdAt',
+                'orders.updatedAt',
+                'orders.placedAt',
+                'orders.status',
+                'orders.subtotalAmount',
+                'orders.discountAmount',
+                'orders.totalAmount',
+                'orders.currency',
+                'orders.paymentExpiresAt',
+                'orders.paidAt',
+                'orders.cancelledAt',
+                'orders.cancelReason',
+                'orders.appSettingsVersion',
+            ])
             .where('orders.user = :userId', { userId })
             .andWhere('orders.state = :state', { state: ModelState.ACTIVE })
             .andWhere('orders.status <> :open', { open: OrderStatus.OPEN });
@@ -213,10 +228,11 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 	}
 
 	/**
-	 * Блокирует строку активного заказа указанного владельца для открытия окна оплаты и читает
+	 * Блокирует строку активного заказа указанного владельца для изменения окна оплаты или отмены и читает
 	 * идентификатор административного источника; требует активную транзакцию.
 	 */
 	public lockForPayment(orderId: number, userId: number, manager: EntityManager): Promise<UserOrderEntity | null> {
+		// Блокируем активный заказ владельца в транзакции; источник загружаем только как идентификатор, без JOIN.
 		return this.using(manager).findOne({
 			where: {
 				id: orderId,
@@ -228,6 +244,28 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 				relations: ["sourceAdminOrder"],
 			},
 		});
+	}
+
+	/**
+	 * Отменяет собственный активный PENDING_PAYMENT без административного источника после блокировки строки.
+	 * Требует активную транзакцию; сохраняет состав и цену. Возвращает false, если условия уже не выполнены.
+	 */
+	public async cancelPendingByOwner(orderId: number, userId: number, now: Date, manager: EntityManager): Promise<boolean> {
+		// Дополнительно ограничиваем UPDATE владельцем, статусом и состоянием; изменяем только реквизиты отмены.
+		const result = await this.using(manager).update({
+			id: orderId,
+			user: { id: userId },
+			state: ModelState.ACTIVE,
+			status: OrderStatus.PENDING_PAYMENT,
+			sourceAdminOrder: IsNull(),
+		}, {
+			status: OrderStatus.CANCELLED,
+			cancelledAt: now,
+			cancelReason: USER_CANCELLED_REASON,
+			updatedAt: now,
+		});
+
+		return result.affected === 1;
 	}
 
 	/**
