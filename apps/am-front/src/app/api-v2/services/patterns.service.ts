@@ -182,4 +182,31 @@ export class ApiPatternsProducer {
             context: this.createContextWithClientId(options?.context)
         });
     }
+
+    purchasedPatternFilesControllerDownload(id: number, fileId: number, observe?: 'body', options?: RequestOptions<'blob'>): Observable<Blob>;
+    purchasedPatternFilesControllerDownload(id: number, fileId: number, observe?: 'response', options?: RequestOptions<'blob'>): Observable<HttpResponse<Blob>>;
+    purchasedPatternFilesControllerDownload(id: number, fileId: number, observe?: 'events', options?: RequestOptions<'blob'>): Observable<HttpEvent<Blob>>;
+    purchasedPatternFilesControllerDownload(id: number, fileId: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/patterns/${id}/download/${fileId}`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/pdf, image/png, application/octet-stream');
+        }
+
+        return this.httpClient.request('get', url, {
+            observe,
+            headers,
+            responseType: 'blob',
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
 }

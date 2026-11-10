@@ -4,7 +4,7 @@ import { OrderPatternEntity } from "@am-back/db/entities/patterns/pattern-order.
 import { PatternSizeEntity } from "@am-back/db/entities/patterns/pattern-size.entity";
 import { PatternEntity } from "@am-back/db/entities/patterns/pattern.entity";
 import { AdminOrderEntity, OrderStatus, UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
-import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
+import { PatternGrantsService } from "@am-back/db/service/pattern-grants/pattern-grants.service";
 import { UserService } from "@am-back/db/service/user.service";
 import { DataSource, Not } from "typeorm";
 import { repositoryFixture, testService } from "../../../../../test/feature-services";
@@ -32,7 +32,7 @@ describe("UserOrderService.getUserOrder", () => {
 				useValue: {},
 			},
 			{
-				provide: UserPatternService,
+				provide: PatternGrantsService,
 				useValue: {},
 			},
 			{
@@ -104,7 +104,7 @@ describe("UserOrderService.getUserOrder", () => {
 				useValue: {},
 			},
 			{
-				provide: UserPatternService,
+				provide: PatternGrantsService,
 				useValue: {},
 			},
 			{
@@ -165,7 +165,7 @@ describe("UserOrderService", () => {
 	};
 
 	const purchases = {
-		addBoughtSelections: jest.fn(),
+		grantPaidOrder: jest.fn(),
 	};
 
 	let service: UserOrderService;
@@ -233,7 +233,7 @@ describe("UserOrderService", () => {
 				useValue: users,
 			},
 			{
-				provide: UserPatternService,
+				provide: PatternGrantsService,
 				useValue: purchases,
 			},
 		]);
@@ -249,18 +249,7 @@ describe("UserOrderService", () => {
 			paidAt: new Date("2026-11-04"),
 		});
 		expect(orders.createAdminPurchase).toHaveBeenCalledWith(42, 1, manager);
-		expect(purchases.addBoughtSelections).toHaveBeenCalledWith(
-			42,
-			[
-				{
-					patternId: 8,
-					active: true,
-					color: true,
-					sizes: [],
-				},
-			],
-			manager,
-		);
+		expect(purchases.grantPaidOrder).toHaveBeenCalledWith(42, 2, manager);
 		expect(source.patterns[0]).not.toHaveProperty("snapshot");
 		expect(orders.finishAdminPurchase).toHaveBeenCalledWith(created, manager);
 	});
@@ -271,7 +260,7 @@ describe("UserOrderService", () => {
 		await expect(service.createFromAdminOrder(1, manager)).resolves.toBe(99);
 		expect(orders.createAdminPurchase).not.toHaveBeenCalled();
 		expect(items.copyAdminItems).not.toHaveBeenCalled();
-		expect(purchases.addBoughtSelections).not.toHaveBeenCalled();
+		expect(purchases.grantPaidOrder).not.toHaveBeenCalled();
 	});
 
 	it.each([undefined, null, ""])("skips account and purchase creation for a VK-only source (%s)", async (email) => {
@@ -313,7 +302,7 @@ describe("UserOrderService", () => {
 		expect(orders.createAdminPurchase).not.toHaveBeenCalled();
 		expect(items.copyAdminItems).not.toHaveBeenCalled();
 		expect(users.getOrCreateBuyerId).not.toHaveBeenCalled();
-		expect(purchases.addBoughtSelections).not.toHaveBeenCalled();
+		expect(purchases.grantPaidOrder).not.toHaveBeenCalled();
 	});
 
 	it("keeps unknown prices for deleted patterns and excludes inactive selections from rights", async () => {
@@ -324,24 +313,13 @@ describe("UserOrderService", () => {
 			totalAmount: null,
 			currency: null,
 		});
-		expect(purchases.addBoughtSelections).toHaveBeenCalledWith(
-			42,
-			[
-				{
-					patternId: null,
-					active: false,
-					color: true,
-					sizes: [],
-				},
-			],
-			manager,
-		);
+		expect(purchases.grantPaidOrder).toHaveBeenCalledWith(42, 2, manager);
 	});
 
 	it("propagates a rights failure to the transaction owner", async () => {
 		const error = new Error("rights write failed");
 
-		purchases.addBoughtSelections.mockRejectedValue(error);
+		purchases.grantPaidOrder.mockRejectedValue(error);
 		await expect(service.createFromAdminOrder(1, manager)).rejects.toBe(error);
 	});
 	it("maps a domain pricing error to the existing API error before writing a purchase", async () => {
@@ -354,6 +332,6 @@ describe("UserOrderService", () => {
 			},
 		});
 		expect(orders.createAdminPurchase).not.toHaveBeenCalled();
-		expect(purchases.addBoughtSelections).not.toHaveBeenCalled();
+		expect(purchases.grantPaidOrder).not.toHaveBeenCalled();
 	});
 });

@@ -17,6 +17,7 @@ import { PatternSizeEntity } from './entities/patterns/pattern-size.entity';
 import { OrderPatternEntity, UserPatternEntity } from './entities/patterns/pattern-order.entity';
 import { AdminOrderEntity, UserOrderEntity } from './entities/purchases/order.entity';
 import { UserPaymentEntity } from './entities/purchases/payment.entity';
+import { UserPatternGrantEntity } from './entities/patterns/user-pattern-grant.entity';
 import { PaymentRequestEntity } from './entities/purchases/payment-request.entity';
 import { EmailLoginLinkEntity } from './entities/tokens/email-login-link.entity';
 import { AuthEmailRequestEntity } from './entities/tokens/auth-email-request.entity';
@@ -57,6 +58,7 @@ import { AppSettingEntity } from './entities/app-setting.entity';
 
                 OrderPatternEntity,
                 UserPatternEntity,
+                UserPatternGrantEntity,
 
                 AdminOrderEntity,
                 UserOrderEntity,

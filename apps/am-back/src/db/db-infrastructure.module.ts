@@ -15,6 +15,9 @@ import { TokenService } from "@am-back/db/service/token.service";
 import { UserService } from "@am-back/db/service/user.service";
 import { MailService } from "@am-back/mail/mail.service";
 import { Module, type Provider } from "@nestjs/common";
+import { PatternGrantsService } from './services/pattern-grants/pattern-grants.service';
+import { PatternGrantRepository } from './services/pattern-grants/repositories/pattern-grant.repository';
+import { UserPatternRepository } from './services/pattern-grants/repositories/user-pattern.repository';
 import { PendingRegistrationRepository } from "./repositories/pending-registration.repository";
 
 
@@ -31,6 +34,7 @@ const services: Provider[] = [
 	FilesService,
 	PatternOrdersService,
 	UserPatternService,
+	PatternGrantsService,
 	EmailLoginService,
 	MailService,
 	AuthEmailService,
@@ -38,7 +42,7 @@ const services: Provider[] = [
 ];
 
 @Module({
-	providers: [...services, PendingRegistrationRepository],
+	providers: [...services, PendingRegistrationRepository, PatternGrantRepository, UserPatternRepository],
 	exports: services,
 })
 export class DbInfrastructureModule {}

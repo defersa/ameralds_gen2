@@ -3,7 +3,7 @@ import type { UserOrdersPageDto } from '@am-back/modules/orders/dto/user-orders-
 import { ApiEntityNames, ApiErrorCodes } from "@ameralds/utils";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import { OrderStatus } from "@am-back/db/entities/purchases/order.entity";
-import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
+import { PatternGrantsService } from "@am-back/db/service/pattern-grants/pattern-grants.service";
 import { UserService } from "@am-back/db/service/user.service";
 import type { UserOrderDetailsDto } from "@am-back/modules/orders/dto/orders.dto";
 import { BadRequestException, Injectable } from "@nestjs/common";
@@ -27,7 +27,7 @@ export class UserOrderService {
 		private readonly orders: UserOrderRepository,
 		private readonly items: OrderPatternRepository,
 		private readonly users: UserService,
-		private readonly purchases: UserPatternService,
+		private readonly purchases: PatternGrantsService,
 	) {}
 
     /** Возвращает основные поля оформленных заказов владельца и пагинацию без позиций, связей и персональных данных. */
@@ -113,21 +113,7 @@ export class UserOrderService {
 		order.state = ModelState.ACTIVE;
 		order.paidAt = await this.orders.databaseTime(manager);
 		await this.orders.finishAdminPurchase(order, manager);
-		await this.purchases.addBoughtSelections(
-			userId,
-			order.patterns
-				.map((item) => ({
-					patternId: item.pattern?.id ?? null,
-					active: item.state === ModelState.ACTIVE && item.pattern?.state === ModelState.ACTIVE,
-					color: item.color,
-					sizes: (item.sizes ?? [])
-						.map((size) => ({
-							id: size.id,
-							active: size.state === ModelState.ACTIVE,
-						})),
-				})),
-			manager,
-		);
+		await this.purchases.grantPaidOrder(userId, order.id, manager);
 		return order.id;
 	}
 }

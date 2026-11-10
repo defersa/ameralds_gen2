@@ -3,10 +3,3 @@ export interface OwnedPatternSelection {
 	color: boolean;
 	sizeIds: number[];
 }
-
-export interface GrantedPatternSelection {
-	patternId: number | null;
-	active: boolean;
-	color: boolean;
-	sizes: { id: number; active: boolean }[];
-}

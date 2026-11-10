@@ -4,6 +4,9 @@ import { DataSource } from "typeorm";
 import { DataSourceService } from "../src/db/data-source.service";
 import { AppSettingsService } from "../src/db/services/app-settings/app-settings.service";
 import { AppSettingsRepository } from "../src/db/services/app-settings/repositories/app-settings.repository";
+import { PatternGrantsService } from '../src/db/services/pattern-grants/pattern-grants.service';
+import { PatternGrantRepository } from '../src/db/services/pattern-grants/repositories/pattern-grant.repository';
+import { UserPatternRepository } from '../src/db/services/pattern-grants/repositories/user-pattern.repository';
 import { UserPatternService } from "../src/db/services/general/user-pattern.service";
 import { AdminOrderMailService } from "../src/db/services/order/admin/admin-order-mail.service";
 import { AdminOrderService } from "../src/db/services/order/admin/admin-order.service";
@@ -88,6 +91,9 @@ export function orderTestModule(db: DataSource): Promise<TestingModule> {
 				useValue: {},
 			},
 			UserPatternService,
+			PatternGrantsService,
+			PatternGrantRepository,
+			UserPatternRepository,
 			DataSourceService,
 			{
 				provide: DataSource,

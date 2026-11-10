@@ -1,165 +1,68 @@
-import { Injectable } from "@nestjs/common";
-import { type EntityManager, Repository } from "typeorm";
-import { ModelState } from "../../abstract/abstract.model";
-import { DataSourceService } from "../../data-source.service";
-import { OrderPatternEntity, UserPatternEntity } from "../../entities/patterns/pattern-order.entity";
-import { PatternSizeEntity } from "../../entities/patterns/pattern-size.entity";
-import { PatternEntity } from "../../entities/patterns/pattern.entity";
-import { UserEntity } from "../../entities/user.entity";
-import type { GrantedPatternSelection, OwnedPatternSelection } from "./pattern-purchase";
+import { ApiEntityNames, ApiErrorCodes } from '@ameralds/utils';
+import { ModelState } from '@am-back/db/abstract/abstract.model';
+import type { FileDto } from '@am-back/modules/files/files.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import type { EntityManager } from 'typeorm';
+import { UserPatternRepository } from '../pattern-grants/repositories/user-pattern.repository';
+import type { OwnedPatternSelection } from './pattern-purchase';
 
 
 @Injectable()
 export class UserPatternService {
-	private userPatternRepository: Repository<UserPatternEntity>;
+    /** Подключает совместимое представление эффективных прав, обновляемое вместе с журналом оснований. */
+    constructor(private readonly purchases: UserPatternRepository) {}
 
-	/** Подключает репозиторий приобретённых пользователями схем. */
-	constructor(private dataSource: DataSourceService) {
-		this.userPatternRepository = this.dataSource.getRepository<UserPatternEntity>(UserPatternEntity);
-	}
+    /** Возвращает эффективные размеры и отдельное право цвета для нормализации корзины и checkout. */
+    public async getBoughtSelections(userId: number, manager: EntityManager): Promise<OwnedPatternSelection[]> {
+        const bought = await this.purchases.findOwned(userId, manager);
 
-	/**
-	 * Возвращает идентификаторы приобретённых схем, цвет и размеры пользователя для расчёта новых покупок в
-	 * переданной транзакции.
-	 */
-	public async getBoughtSelections(userId: number, manager: EntityManager): Promise<OwnedPatternSelection[]> {
-		const bought = await this.getBoughtPatternsByUser({ id: userId }, manager);
+        return bought
+            .map((item) => ({
+                patternId: item.pattern.id,
+                color: item.color,
+                sizeIds: item.sizes
+                    .filter((size) => size.state === ModelState.ACTIVE && size.size?.state === ModelState.ACTIVE &&
+                        size.pattern?.id === item.pattern.id)
+                    .map((size) => size.size.id),
+            }));
+    }
 
-		return bought
-			.filter((item) => item.pattern)
-			.map((item) => ({
-				patternId: item.pattern.id,
-				color: item.color,
-				sizeIds: item.sizes
-					.filter((size) => size.state === ModelState.ACTIVE && size.size?.state === ModelState.ACTIVE)
-					.flatMap((size) => (size.size ? [size.size.id] : [])),
-			}));
-	}
+    /**
+     * Возвращает только файл действующего размера либо цвет схемы при наличии действующего размера.
+     * Проверяет владельца, активность каталога/файла и принадлежность размера схеме; отказ возвращает NOT_EXIST.
+     * Цвет без размеров сохраняется как право, но его скачивание приостановлено до получения размера.
+     */
+    public async getPurchasedFile(userId: number, patternId: number, fileId: number): Promise<FileDto> {
+        const owned = await this.purchases.findOwned(userId, undefined, patternId);
 
-	/** Преобразует выдаваемые права в позиции покупки и добавляет их пользователю в переданной транзакции. */
-	public async addBoughtSelections(
-		userId: number,
-		selections: GrantedPatternSelection[],
-		manager: EntityManager,
-	): Promise<void> {
-		const user = Object.assign(new UserEntity(), { id: userId });
+        const sizes = owned
+            .flatMap((item) => item.sizes ?? [])
+                .filter((size) => size.state === ModelState.ACTIVE && size.size?.state === ModelState.ACTIVE &&
+                    size.pattern?.id === patternId && size.pattern.state === ModelState.ACTIVE);
 
-		const items = selections
-			.map((selection) =>
-				Object.assign(new OrderPatternEntity(), {
-					state: selection.active ? ModelState.ACTIVE : ModelState.INACTIVE,
-					pattern:
-						selection.patternId === null
-							? null
-							: Object.assign(new PatternEntity(), {
-								id: selection.patternId,
-								state: ModelState.ACTIVE,
-							}),
-					color: selection.color,
-					sizes: selection.sizes
-						.map((size) =>
-							Object.assign(new PatternSizeEntity(), {
-								id: size.id,
-								state: size.active ? ModelState.ACTIVE : ModelState.INACTIVE,
-							}),
-						),
-				}),
-			);
+        const files = sizes
+            .flatMap((size) => [size.cbb, size.pdf, size.png]);
 
-		await this.addBoughtPatterns(user, items, manager);
-	}
+        if (sizes.length) {
+            files.push(...owned
+                .filter((item) => item.color)
+                .map((item) => item.pattern.color));
+        }
 
-	/**
-	 * Загружает активные покупки пользователя вместе со схемами и размерами; при наличии manager использует
-	 * его транзакцию.
-	 */
-	public async getBoughtPatternsByUser(
-		user: Pick<UserEntity, "id">,
-		manager?: EntityManager,
-	): Promise<UserPatternEntity[]> {
-		return (manager?.getRepository(UserPatternEntity) ?? this.userPatternRepository)
-			.find({
-				where: {
-					user: {
-						id: user.id,
-					},
-					state: ModelState.ACTIVE,
-				},
-				relations: {
-					pattern: true,
-					sizes: {
-						size: true,
-					},
-				},
-			});
-	}
+        const file = files
+            .find((candidate) => candidate?.id === fileId && candidate.state === ModelState.ACTIVE);
 
-	// Вызывается в транзакции с заблокированной строкой пользователя.
-	/**
-	 * Объединяет права на активные схемы, размеры и цвет с прежними покупками в транзакции; не дублирует
-	 * размеры и не отзывает уже купленный цвет.
-	 */
-	public async addBoughtPatterns(
-		user: UserEntity,
-		patterns: OrderPatternEntity[],
-		manager: EntityManager,
-	): Promise<void> {
-		const repository = manager.getRepository(UserPatternEntity);
+        if (file) {
+            return {
+                id: file.id,
+                name: file.name,
+                path: file.path,
+            };
+        }
 
-		const boughtPatterns = await repository
-			.find({
-				where: {
-					user: {
-						id: user.id,
-					},
-					state: ModelState.ACTIVE,
-				},
-				relations: {
-					pattern: true,
-					sizes: true,
-				},
-			});
-
-		const boughtByPattern = new Map(
-			boughtPatterns
-				.filter((item) => item.pattern)
-				.map((item) => [item.pattern.id, item]),
-		);
-
-		for (const item of patterns) {
-			if (item.state !== ModelState.ACTIVE || item.pattern?.state !== ModelState.ACTIVE) {
-				continue;
-			}
-
-			let bought = boughtByPattern.get(item.pattern.id);
-
-			if (!bought) {
-				bought = repository.create({
-					user,
-					pattern: item.pattern,
-					sizes: [],
-					color: false,
-				});
-				boughtByPattern.set(item.pattern.id, bought);
-			}
-
-			const sizes = new Map((bought.sizes ?? [])
-				.map((size) => [size.id, size]));
-
-			for (const size of item.sizes ?? []) {
-				if (size.state === ModelState.ACTIVE && !sizes.has(size.id)) {
-					sizes.set(size.id, size);
-				}
-			}
-
-			const color = bought.color || item.color;
-
-			if (!bought.id || sizes.size !== (bought.sizes ?? []).length || color !== bought.color) {
-				bought.sizes = [...sizes
-					.values()];
-				bought.color = color;
-				await repository.save(bought);
-			}
-		}
-	}
+        throw new BadRequestException({
+            code: ApiErrorCodes.NOT_EXIST,
+            entity: ApiEntityNames.FILE,
+        });
+    }
 }

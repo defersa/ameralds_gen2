@@ -176,7 +176,7 @@ export class UserService {
 	}
 
 	/**
-	 * Возвращает профиль активного пользователя с активными приобретёнными схемами и размерами; при
+	 * Возвращает профиль активного пользователя с эффективными правами на активные схемы и размеры; при
 	 * отсутствии пользователя возвращает UNAUTHORIZED.
 	 */
 	public async getUser(id: number): Promise<UserProfileDto> {
@@ -207,7 +207,7 @@ export class UserService {
 			username: user.username,
 			role: user.role,
 			ownPatterns: (user.ownPatterns ?? [])
-				.filter((item) => item.state === ModelState.ACTIVE)
+				.filter((item) => item.state === ModelState.ACTIVE && item.pattern?.state === ModelState.ACTIVE)
 				.map((item) => ({
 					id: item.id,
 					createdAt: item.createdAt,
@@ -221,7 +221,7 @@ export class UserService {
 						}
 						: null,
 					sizes: (item.sizes ?? [])
-						.filter((size) => size.state === ModelState.ACTIVE)
+						.filter((size) => size.state === ModelState.ACTIVE && size.size?.state === ModelState.ACTIVE)
 						.map((size) => ({
 							id: size.id,
 							createdAt: size.createdAt,

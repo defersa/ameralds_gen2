@@ -1,112 +1,96 @@
-import type { EntityManager } from 'typeorm';
-import { ModelState } from '../../abstract/abstract.model';
-import { DataSourceService } from '../../data-source.service';
-import { OrderPatternEntity, UserPatternEntity } from '../../entities/patterns/pattern-order.entity';
-import { PatternEntity } from '../../entities/patterns/pattern.entity';
-import { PatternSizeEntity } from '../../entities/patterns/pattern-size.entity';
-import { UserEntity } from '../../entities/user.entity';
+import { ModelState } from '@am-back/db/abstract/abstract.model';
+import { PrivateFileEntity } from '@am-back/db/entities/files/file.entity';
+import { UserPatternEntity } from '@am-back/db/entities/patterns/pattern-order.entity';
+import { PatternSizeEntity } from '@am-back/db/entities/patterns/pattern-size.entity';
+import { PatternEntity } from '@am-back/db/entities/patterns/pattern.entity';
+import { SizeEntity } from '@am-back/db/entities/patterns/size.entity';
+import { testService } from '../../../../test/feature-services';
+import { UserPatternRepository } from '../pattern-grants/repositories/user-pattern.repository';
 import { UserPatternService } from './user-pattern.service';
 
-describe('UserPatternService.addBoughtPatterns', () => {
-    const user = Object.assign(new UserEntity(), { id: 42 });
-    const pattern = Object.assign(new PatternEntity(), { id: 7, state: ModelState.ACTIVE });
-    const size = (id: number) => Object.assign(new PatternSizeEntity(), { id, state: ModelState.ACTIVE });
+
+describe('effective pattern ownership and download access', () => {
+    const findOwned = jest.fn();
     let service: UserPatternService;
-    let manager: EntityManager;
-    let bought: UserPatternEntity;
-    let item: OrderPatternEntity;
-    let repository: { find: jest.Mock; create: jest.Mock; save: jest.Mock };
+    let owned: UserPatternEntity;
+    let size: PatternSizeEntity;
+    let color: PrivateFileEntity;
+    let pdf: PrivateFileEntity;
 
-    beforeEach(() => {
-        bought = Object.assign(new UserPatternEntity(), {
-            id: 10, user, pattern, sizes: [size(21)], color: true, state: ModelState.ACTIVE,
-            createdAt: new Date('2026-01-01'),
+    beforeEach(async () => {
+        jest.resetAllMocks();
+        pdf = Object.assign(new PrivateFileEntity(), {
+            id: 90,
+            name: 'size.pdf',
+            path: '/private/size.pdf',
+            state: ModelState.ACTIVE,
         });
-        item = Object.assign(new OrderPatternEntity(), {
-            id: 31, pattern, sizes: [size(21), size(22)], color: false, state: ModelState.ACTIVE,
+        color = Object.assign(new PrivateFileEntity(), pdf, { id: 91, name: 'color.pdf' });
+        size = Object.assign(new PatternSizeEntity(), {
+            id: 21,
+            state: ModelState.ACTIVE,
+            size: Object.assign(new SizeEntity(), { id: 3, state: ModelState.ACTIVE }),
+            pattern: Object.assign(new PatternEntity(), { id: 7, state: ModelState.ACTIVE }),
+            pdf,
         });
-        repository = {
-            find: jest.fn().mockResolvedValue([bought]),
-            create: jest.fn(details => Object.assign(new UserPatternEntity(), details)),
-            save: jest.fn(async entity => Object.assign(entity, { id: entity.id ?? 11 })),
-        };
-        manager = { getRepository: jest.fn().mockReturnValue(repository) } as unknown as EntityManager;
-        service = new UserPatternService({ getRepository: jest.fn() } as unknown as DataSourceService);
-    });
-
-    it('adds missing sizes and preserves the purchased color and original purchase', async () => {
-        const originalSize = bought.sizes[0];
-
-        await service.addBoughtPatterns(user, [item], manager);
-
-        expect(bought).toMatchObject({ id: 10, createdAt: new Date('2026-01-01'), color: true });
-        expect(bought.sizes.map(size => size.id)).toEqual([21, 22]);
-        expect(bought.sizes[0]).toBe(originalSize);
-        expect(repository.create).not.toHaveBeenCalled();
-        expect(repository.save).toHaveBeenCalledWith(bought);
-    });
-
-    it('adds color without removing previously purchased sizes', async () => {
-        bought.color = false;
-        item.color = true;
-        item.sizes = [size(22)];
-
-        await service.addBoughtPatterns(user, [item], manager);
-
-        expect(bought.color).toBe(true);
-        expect(bought.sizes.map(size => size.id)).toEqual([21, 22]);
-    });
-
-    it('does not rewrite a purchase when all options are already owned', async () => {
-        item.sizes = [size(21), size(21)];
-
-        await service.addBoughtPatterns(user, [item, item], manager);
-
-        expect(repository.save).not.toHaveBeenCalled();
-        expect(repository.create).not.toHaveBeenCalled();
-    });
-
-    it('creates one purchase for repeated items of a new pattern and combines their options', async () => {
-        repository.find.mockResolvedValue([]);
-        const secondItem = Object.assign(new OrderPatternEntity(), item, { sizes: [size(23)], color: true });
-
-        await service.addBoughtPatterns(user, [item, secondItem], manager);
-
-        expect(repository.create).toHaveBeenCalledTimes(1);
-        const purchase = repository.save.mock.calls.at(-1)[0] as UserPatternEntity;
-        expect(purchase).toMatchObject({ user, pattern, color: true });
-        expect(purchase.sizes.map(size => size.id)).toEqual([21, 22, 23]);
-    });
-
-    it('keeps unrelated purchases intact', async () => {
-        const other = Object.assign(new UserPatternEntity(), bought, {
-            id: 12, pattern: Object.assign(new PatternEntity(), { id: 8 }), sizes: [size(25)],
+        owned = Object.assign(new UserPatternEntity(), {
+            id: 10,
+            pattern: Object.assign(new PatternEntity(), { id: 7, state: ModelState.ACTIVE, color }),
+            sizes: [size],
+            color: true,
         });
-        repository.find.mockResolvedValue([bought, other]);
-        const snapshot = { ...other };
-
-        await service.addBoughtPatterns(user, [item], manager);
-
-        expect(other).toEqual(snapshot);
-        expect(repository.save).not.toHaveBeenCalledWith(other);
+        findOwned.mockResolvedValue([owned]);
+        service = await testService(UserPatternService, [{
+            provide: UserPatternRepository,
+            useValue: { findOwned },
+        }]);
     });
 
-    it.each(['item', 'pattern', 'deleted pattern'])('does not grant access for an unavailable %s', async entity => {
-        if (entity === 'item') item.state = ModelState.INACTIVE;
-        if (entity === 'pattern') item.pattern = Object.assign(new PatternEntity(), pattern, { state: ModelState.INACTIVE });
-        if (entity === 'deleted pattern') item.pattern = null;
-
-        await service.addBoughtPatterns(user, [item], manager);
-
-        expect(repository.save).not.toHaveBeenCalled();
+    it('returns only the purchased size file or the separately owned color', async () => {
+        await expect(service.getPurchasedFile(42, 7, 90)).resolves.toEqual({ id: 90, name: 'size.pdf', path: '/private/size.pdf' });
+        await expect(service.getPurchasedFile(42, 7, 91)).resolves.toMatchObject({ id: 91 });
+        expect(findOwned).toHaveBeenCalledWith(42, undefined, 7);
+        await expect(service.getPurchasedFile(42, 7, 999)).rejects.toMatchObject({ response: { code: 'NOT_EXIST', entity: 'file' } });
     });
 
-    it('does not grant inactive sizes or discard previously owned sizes', async () => {
-        item.sizes = [Object.assign(size(22), { state: ModelState.INACTIVE })];
+    it('rejects users without effective ownership even when a file ID is known', async () => {
+        findOwned.mockResolvedValue([]);
+        await expect(service.getPurchasedFile(43, 7, 90)).rejects.toMatchObject({ status: 400 });
+    });
 
-        await service.addBoughtPatterns(user, [item], manager);
+    it('requires a color grant in addition to an owned size', async () => {
+        owned.color = false;
+        await expect(service.getPurchasedFile(42, 7, 91)).rejects.toMatchObject({ status: 400 });
+        await expect(service.getPurchasedFile(42, 7, 90)).resolves.toMatchObject({ id: 90 });
+    });
 
-        expect(bought.sizes.map(size => size.id)).toEqual([21]);
-        expect(repository.save).not.toHaveBeenCalled();
+    it('retains color ownership but suspends its download when the last size is revoked', async () => {
+        owned.sizes = [];
+        await expect(service.getPurchasedFile(42, 7, 91)).rejects.toMatchObject({ status: 400 });
+        await expect(service.getBoughtSelections(42, undefined)).resolves.toEqual([{ patternId: 7, sizeIds: [], color: true }]);
+    });
+
+    it.each(['size', 'definition', 'pattern', 'wrong pattern', 'file'] as const)('denies an unavailable or unrelated %s', async (target) => {
+        if (target === 'size') {
+            size.state = ModelState.INACTIVE;
+        }
+
+        if (target === 'definition') {
+            size.size.state = ModelState.INACTIVE;
+        }
+
+        if (target === 'pattern') {
+            size.pattern.state = ModelState.INACTIVE;
+        }
+
+        if (target === 'wrong pattern') {
+            size.pattern.id = 8;
+        }
+
+        if (target === 'file') {
+            pdf.state = ModelState.INACTIVE;
+        }
+
+        await expect(service.getPurchasedFile(42, 7, 90)).rejects.toMatchObject({ status: 400 });
     });
 });
