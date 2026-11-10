@@ -25,6 +25,7 @@
             [attr.aria-describedby]="hint() || showErrors() ? messageId : null"
             [attr.aria-invalid]="showErrors()"
             (input)="changeValue($event)"
+            (change)="changeValue($event)"
             (blur)="markAsTouched()"
         >
 
@@ -33,7 +34,7 @@
                 class="amstore-input-signal__suffix"
                 type="button"
                 [disabled]="disabled()"
-                [attr.aria-label]="label() || 'Действие поля'"
+                [attr.aria-label]="suffixAriaLabel() || label() || 'Действие поля'"
                 (click)="emitSuffixClick()"
             >
                 <amstore-icon

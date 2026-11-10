@@ -3,12 +3,14 @@ import { AmstoreButtonBaseDirective } from '../base.abstract.directive';
 
 
 @Component({
-    selector: 'amstore-button',
+    selector: 'amstore-button, button[amstore-button]',
     templateUrl: './amstore-button.component.html',
     styleUrls: ['./amstore-button.component.scss'],
     standalone: true,
     host: {
         class: 'amstore-button-default',
+        '[attr.disabled]': 'disabled() ? "" : null',
+        '[attr.aria-disabled]': 'disabled()',
         '[class.amstore-button-default-stroked]': 'stroked()',
         '[class.amstore-button-default-disabled]': 'disabled()',
         '[class.amstore-button-default-small]': 'size() === "small"',

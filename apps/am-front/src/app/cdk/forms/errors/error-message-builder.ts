@@ -10,6 +10,7 @@ const ErrorTemplates: Record<string, TransformFunc> = {
     contactRequired: () => 'Заполните хотя бы одно из полей',
     min: (value: { min: number }) => `Значение должно быть не меньше ${value.min}`,
     max: (value: { max: number }) => `Значение должно быть не больше ${value.max}`,
+    maxLength: (value: { maxLength: number }) => `Максимальное количество символов — ${value.maxLength}`,
     integer: () => 'Введите целое число',
     minValue: (value: { current: number; expected: number; }) => `Текущее значение ${value.current} меньше чем минимально ожидаемое ${value.expected}`,
     notUniq: (value: unknown) => `Значение должно быть отлично от существующих!`,

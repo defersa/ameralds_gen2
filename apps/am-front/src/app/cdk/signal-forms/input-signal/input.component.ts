@@ -43,6 +43,7 @@ export class AmstoreInputSignalComponent
     public readonly autocomplete: InputSignal<string | undefined> = input<string>();
     public readonly type: InputSignal<InputSignalType> = input<InputSignalType>('text');
     public readonly suffixName: InputSignal<IconsName | undefined> = input<IconsName>();
+    public readonly suffixAriaLabel: InputSignal<string | undefined> = input<string>();
 
     public readonly onSuffixClick: OutputEmitterRef<void> = output<void>();
 

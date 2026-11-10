@@ -129,7 +129,8 @@ export class UserController {
 
 	/**
 	 * Выполняет вход по email и паролю, устанавливает refresh-cookie и возвращает только access-токен в
-	 * JSON.
+	 * JSON. Если аккаунта ещё нет, но есть действующая ссылка регистрации для почты, сообщает о необходимости
+	 * подтвердить адрес независимо от введённого пароля.
 	 */
 	@Post("sign-in")
 	@HttpCode(HttpStatus.OK)
@@ -144,7 +145,10 @@ export class UserController {
 		description: "Access token; refresh token is set as an HttpOnly cookie.",
 		type: UserTokensDTO,
 	})
-	@ApiUnauthorizedResponse({ type: ErrorsDto })
+	@ApiUnauthorizedResponse({
+		type: ErrorsDto,
+		description: "INVALID_CREDENTIALS for rejected credentials; EMAIL_CONFIRMATION_REQUIRED when no account exists but the email has an active registration confirmation link, regardless of the submitted password. No session is created before email confirmation.",
+	})
 	@ApiBadRequestResponse({ type: ErrorsDto })
 	public async signIn(
 		@Body(UserCredentialsPipe) { email, password }: UserCredentialsDto,

@@ -11,15 +11,17 @@
         }
     </amstore-panel-header>
 
-    <amstore-input-signal
-        (onSuffixClick)="clearQuery()"
-        [formField]="filterForm.query"
-        [suffixName]="filterSet().query ? 'cross' : undefined"
-        label="Поиск по названиям"
-    />
+    <div class="flex flex-col gap-4 ">
+        <amstore-input-signal
+            (onSuffixClick)="clearQuery()"
+            [formField]="filterForm.query"
+            [suffixName]="filterSet().query ? 'cross' : undefined"
+            label="Поиск по названиям"
+        />
 
-    <amstore-checkbox-list-signal [items]="categoriesList()" [formField]="filterForm.categories" label="Категории"/>
-    <amstore-checkbox-list-signal [items]="sizesList()" [formField]="filterForm.sizes" label="Размеры"/>
+        <amstore-checkbox-list-signal [items]="categoriesList()" [formField]="filterForm.categories" label="Категории"/>
+        <amstore-checkbox-list-signal [items]="sizesList()" [formField]="filterForm.sizes" label="Размеры"/>
+    </div>
 </amstore-panel>
 
 <ng-content/>

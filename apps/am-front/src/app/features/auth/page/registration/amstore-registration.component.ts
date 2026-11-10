@@ -1,94 +1,135 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from "@angular/core";
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule, UntypedFormGroup, Validators } from "@angular/forms";
-import { CustomValidatorFns } from "@am-front/cdk/forms/custom-validators-fn";
-import { ProfileService } from "@am-front/services/profile.service";
-import { DialogService } from "@am-front/core/dialog/dialog.service";
-import { Router } from "@angular/router";
-import { AmstorePanelBasicComponent } from "@am-front/cdk/panel/panel-basic/amstore-panel-basic.component";
-import { AmstoreInputComponent } from "@am-front/cdk/forms/input/input.component";
-import { AmstoreInputPasswordComponent } from "@am-front/cdk/forms/input-password/input-password.component";
-import { AmstoreCheckboxComponent } from "@am-front/cdk/forms/checkbox/checkbox.component";
-import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
-import { finalize } from "rxjs/operators";
-import { SnackService } from '@am-front/services/snackbar.service';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { disabled, email, form, FormField, maxLength, required, validate } from '@angular/forms/signals';
+import { Router } from '@angular/router';
+import { isStrongPassword } from '@ameralds/utils';
+import { AmstoreButtonRoundComponent } from '@am-front/cdk/buttons/round/round.component';
+import { AmstorePanelBasicComponent } from '@am-front/cdk/panel/panel-basic/amstore-panel-basic.component';
+import { AmstoreCheckboxSignalComponent, AmstoreInputSignalComponent } from '@am-front/cdk/signal-forms';
+import { DialogService } from '@am-front/core/dialog/dialog.service';
+import { ProfileService } from '@am-front/services/profile.service';
+import { createRequestWrapper } from '@am-front/utils/request-wrapper';
 
+
+interface RegistrationFormModel {
+    email: string;
+    password: string;
+    passwordRepeat: string;
+    firstName: string;
+    lastName: string;
+    isAccept: boolean;
+}
 
 @Component({
     selector: 'amstore-registration',
     templateUrl: './amstore-registration.component.html',
     styleUrls: ['./amstore-registration.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         AmstorePanelBasicComponent,
-        AmstoreInputComponent,
-        ReactiveFormsModule,
-        AmstoreInputPasswordComponent,
-        AmstoreCheckboxComponent,
-        AmstoreButtonComponent,
+        AmstoreInputSignalComponent,
+        AmstoreCheckboxSignalComponent,
+        AmstoreButtonRoundComponent,
+        FormField,
     ],
 })
 export class AmstoreRegistrationComponent {
-    private _profileService: ProfileService = inject(ProfileService);
-    private _dialogService: DialogService = inject(DialogService);
-    private _router: Router = inject(Router);
-    private _snackService: SnackService = inject(SnackService);
-    private readonly destroyRef = inject(DestroyRef);
+    private readonly profileService = inject(ProfileService);
+    private readonly dialogService = inject(DialogService);
+    private readonly router = inject(Router);
 
-    public regForm: UntypedFormGroup;
-    public isAccept: FormControl = new FormControl(false);
-    public readonly pending = signal(false);
+    public readonly createRequest = createRequestWrapper<typeof this.profileService.createUser>(
+        this.profileService.createUser.bind(this.profileService),
+    );
 
-    constructor() {
-        const passwordControl: FormControl = new FormControl(null, [
-            CustomValidatorFns.getPasswordComplexity,
-        ]);
-        this.regForm = new UntypedFormGroup({
-            email: new FormControl(null, [CustomValidatorFns.isEmail, Validators.maxLength(254)]),
-            password: passwordControl,
-            passwordRepeat: new FormControl(null, [
-                CustomValidatorFns.getEqualPassword(passwordControl),
-            ]),
-            firstName: new FormControl(),
-            lastName: new FormControl(),
-        });
+    public readonly model = signal<RegistrationFormModel>({
+        email: '',
+        password: '',
+        passwordRepeat: '',
+        firstName: '',
+        lastName: '',
+        isAccept: false,
+    });
+
+    public readonly passwordVisible = signal(false);
+    public readonly passwordRepeatVisible = signal(false);
+
+    public readonly regForm = form(this.model, path => {
+        required(path.email);
+        email(path.email);
+        maxLength(path.email, 254);
+        required(path.password);
+        validate(path.password, ({ value }) =>
+            !value() || isStrongPassword(value()) ? null : { kind: 'notComplexity' });
+        required(path.passwordRepeat);
+        validate(path.passwordRepeat, ({ value, valueOf }) =>
+            !value() || value() === valueOf(path.password) ? null : { kind: 'notEqualPassword' });
+        required(path.isAccept);
+        disabled(path, { when: () => this.createRequest.loading() });
+    }, { name: 'registration' });
+
+    public readonly requestError = computed(() => {
+        const error = this.createRequest.errors();
+
+        if (!error) {
+            return null;
+        }
+
+        return error instanceof HttpErrorResponse && error.status === 429
+            ? 'Слишком много попыток. Попробуйте позже'
+            : 'Не удалось принять запрос. Проверьте данные и попробуйте позже';
+    });
+
+    /** Переключает видимость выбранного пароля, сохраняя значение поля. */
+    public togglePasswordVisibility(repeat: boolean): void {
+        const visible = repeat ? this.passwordRepeatVisible : this.passwordVisible;
+
+        visible.update(value => !value);
     }
 
-    public sendUser(): void {
-        if (this.pending() || !this.isAccept.value) return;
-        if (this.regForm.invalid) {
-            this.regForm.markAllAsTouched();
+    /**
+     * Отправляет валидные данные после согласия с условиями, блокируя повторный запрос.
+     * После успеха открывает инструкции по почте; ошибку отображает состояние запроса.
+     */
+    public sendUser(event?: Event): void {
+        event?.preventDefault();
 
+        if (this.createRequest.loading()) {
             return;
         }
 
-        this.pending.set(true);
-        const { email, password } = this.regForm.value;
-        this._profileService
-            .createUser({ email: email.trim().toLowerCase(), password })
-            .pipe(
-                finalize(() => this.pending.set(false)),
-                takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe({
-                next: () => {
-                    const showInstructions = () => this._dialogService.openInfoDialog({
-                        minWidth: '0', width: '440px', maxWidth: 'calc(100vw - 32px)',
-                        data: {
-                            title: 'Проверьте почту',
-                            smallTitle: 'Запрос принят.',
-                            text: 'Если для указанного адреса доступна регистрация или вход, на него придёт письмо с дальнейшими действиями. Ссылка действует 7 дней.',
-                        },
-                    });
-                    // Переход уничтожает форму: показ общего диалога не должен
-                    // отменяться takeUntilDestroyed вместе с подпиской формы.
-                    void this._router.navigate(['/']).then(showInstructions, showInstructions);
-                },
-                error: (error: HttpErrorResponse) => {
-                    this._snackService.open(error.status === 429
-                        ? 'Слишком много попыток. Попробуйте позже'
-                        : 'Не удалось принять запрос. Проверьте данные и попробуйте позже');
-                },
-            });
+        this.regForm().markAsTouched();
+
+        if (this.regForm().invalid()) {
+            return;
+        }
+
+        const { email, password } = this.model();
+
+        this.createRequest.request({
+            email: email.trim().toLowerCase(),
+            password,
+        }).subscribe(() => {
+            // Переход уничтожает форму, поэтому открытие общего диалога
+            // выполняется независимо от подписки запроса после навигации.
+            void this.router.navigate(['/']).then(
+                () => this.showEmailInstructions(),
+                () => this.showEmailInstructions(),
+            );
+        });
+    }
+
+    /** Показывает нейтральные инструкции, не раскрывая наличие аккаунта с указанной почтой. */
+    private showEmailInstructions(): void {
+        this.dialogService.openInfoDialog({
+            minWidth: '0',
+            width: '440px',
+            maxWidth: 'calc(100vw - 32px)',
+            data: {
+                title: 'Проверьте почту',
+                smallTitle: 'Запрос принят.',
+                text: 'Если для указанного адреса доступна регистрация или вход, на него придёт письмо с дальнейшими действиями. Ссылка действует 7 дней.',
+            },
+        });
     }
 }

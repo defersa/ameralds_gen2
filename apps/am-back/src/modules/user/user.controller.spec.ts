@@ -1,4 +1,5 @@
-import { INestApplication, Module } from '@nestjs/common';
+import { INestApplication, Module, UnauthorizedException } from '@nestjs/common';
+import { ApiErrorCodes } from '@ameralds/utils';
 import { Reflector, RouterModule } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import { ThrottlerModule, ThrottlerStorage, ThrottlerStorageService } from '@nestjs/throttler';
@@ -88,6 +89,18 @@ describe('authentication HTTP contract', () => {
                 .set('X-CSRF-Protection', '1').send({ email: 'user@example.com', password: 'Password123!' }).expect(200);
             expect(response.headers['set-cookie'][0]).toContain('Secure');
         } finally { process.env.NODE_ENV = previous; }
+    });
+
+    it('returns the confirmation-required code without setting a session cookie', async () => {
+        users.signIn.mockRejectedValueOnce(new UnauthorizedException({
+            code: ApiErrorCodes.EMAIL_CONFIRMATION_REQUIRED,
+        }));
+
+        const response = await request(app.getHttpServer()).post(base + '/sign-in')
+            .set('X-CSRF-Protection', '1').send({ email: 'pending@example.com', password: 'Password123!' }).expect(401);
+
+        expect(response.body).toEqual({ code: ApiErrorCodes.EMAIL_CONFIRMATION_REQUIRED });
+        expect(response.headers['set-cookie']).toBeUndefined();
     });
 
     it('refreshes without an access token, using only the cookie', async () => {

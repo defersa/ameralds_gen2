@@ -15,6 +15,7 @@ import { TokenService } from "@am-back/db/service/token.service";
 import { UserService } from "@am-back/db/service/user.service";
 import { MailService } from "@am-back/mail/mail.service";
 import { Module, type Provider } from "@nestjs/common";
+import { PendingRegistrationRepository } from "./repositories/pending-registration.repository";
 
 
 const services: Provider[] = [
@@ -37,7 +38,7 @@ const services: Provider[] = [
 ];
 
 @Module({
-	providers: services,
+	providers: [...services, PendingRegistrationRepository],
 	exports: services,
 })
 export class DbInfrastructureModule {}

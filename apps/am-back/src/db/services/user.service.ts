@@ -7,6 +7,7 @@ import { ModelState } from "../abstract/abstract.model";
 import { DataSourceService } from "../data-source.service";
 import { UserEntity, UserStatus } from "../entities/user.entity";
 import { SessionTokens, TokenService } from "./token.service";
+import { PendingRegistrationRepository } from "../repositories/pending-registration.repository";
 
 
 // Сравнение выполняется и для неизвестного email, чтобы не раскрывать наличие пользователя по времени ответа.
@@ -16,10 +17,11 @@ const DUMMY_PASSWORD_HASH = bcrypt.hashSync("invalid-user-password", 10);
 export class UserService {
 	private userRepository: Repository<UserEntity>;
 
-	/** Подключает репозиторий пользователей и сервис управления сессиями. */
+	/** Подключает репозитории пользователей, ожидающих регистраций и управление сессиями. */
 	constructor(
 		private dataSource: DataSourceService,
 		private tokenService: TokenService,
+		private readonly pendingRegistrations: PendingRegistrationRepository,
 	) {
 		this.userRepository = this.dataSource.getRepository(UserEntity);
 	}
@@ -114,8 +116,9 @@ export class UserService {
 	}
 
 	/**
-	 * Проверяет пароль и активность аккаунта и создаёт сессию; при отказе возвращает INVALID_CREDENTIALS
-	 * без раскрытия существования email.
+	 * Для отсутствующего аккаунта с действующей ссылкой регистрации возвращает EMAIL_CONFIRMATION_REQUIRED
+	 * независимо от пароля. Для существующего аккаунта проверяет пароль и активность перед выдачей сессии;
+	 * остальные отказы возвращают INVALID_CREDENTIALS.
 	 */
 	public async signIn(email: string, password: string): Promise<SessionTokens> {
 		// Находим учётные данные по email без учёта регистра, выбирая только id, хеш пароля и состояние.
@@ -131,6 +134,12 @@ export class UserService {
 				state: true,
 			},
 		});
+
+		if (!user && await this.pendingRegistrations.hasActiveLinkForEmail(email)) {
+			throw new UnauthorizedException({
+				code: ApiErrorCodes.EMAIL_CONFIRMATION_REQUIRED,
+			});
+		}
 
 		const validPassword = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
 

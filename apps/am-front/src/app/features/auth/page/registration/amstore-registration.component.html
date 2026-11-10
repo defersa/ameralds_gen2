@@ -1,43 +1,52 @@
 <amstore-panel-basic class="container">
-    <h1>Регистрация нового пользователя</h1>
+    <h1 class="mb-8!">
+        Регистрация нового пользователя
+    </h1>
 
-    <form [formGroup]="regForm">
-        <div class="row">
-            <amstore-forms-input type="email"
-                                 formControlName="email"
-                                 [required]="true"
-                                 class="col-12"
-                                 label="Email" />
+    <form class="flex flex-col gap-4" name="registration" (submit)="sendUser($event)" novalidate>
+        <amstore-input-signal type="email"
+                              autocomplete="username"
+                              label="Email"
+                              [formField]="regForm.email"/>
 
-            <amstore-forms-input-password class="col-12"
-                                          formControlName="password"
-                                          label="Пароль"
-                                          [required]="true" />
+        <amstore-input-signal autocomplete="new-password"
+                              label="Пароль"
+                              [type]="passwordVisible() ? 'text' : 'password'"
+                              [suffixName]="passwordVisible() ? 'eye-off' : 'eye-on'"
+                              [formField]="regForm.password"
+                              (onSuffixClick)="togglePasswordVisibility(false)"/>
 
-            <amstore-forms-input-password class="col-12"
-                                          formControlName="passwordRepeat"
-                                          label="Повторите пароль"
-                                          [required]="true" />
+        <amstore-input-signal autocomplete="new-password"
+                              label="Повторите пароль"
+                              [type]="passwordRepeatVisible() ? 'text' : 'password'"
+                              [suffixName]="passwordRepeatVisible() ? 'eye-off' : 'eye-on'"
+                              [formField]="regForm.passwordRepeat"
+                              (onSuffixClick)="togglePasswordVisibility(true)"/>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <amstore-input-signal autocomplete="given-name"
+                                  label="Имя"
+                                  [formField]="regForm.firstName"/>
+
+            <amstore-input-signal autocomplete="family-name"
+                                  label="Фамилия"
+                                  [formField]="regForm.lastName"/>
         </div>
 
-        <div class="row">
-            <amstore-forms-input class="col-6"
-                                 formControlName="firstName"
-                                 label="Имя" />
+        <amstore-checkbox-signal [formField]="regForm.isAccept"
+                                 label="Я согласен с условиями регистрации"/>
 
-            <amstore-forms-input class="col-6"
-                                 formControlName="lastName"
-                                 label="Фамилия" />
-        </div>
+        @if (requestError(); as error) {
+            <p role="alert">
+                {{ error }}
+            </p>
+        }
 
-        <amstore-checkbox [formControl]="isAccept"
-                          label="Я согласен с условиями регистрации"/>
+        <button amstore-button-round
+                class="mt-6 w-full"
+                type="submit"
+                [disabled]="!model().isAccept || createRequest.loading()">
+            {{ createRequest.loading() ? 'Подождите…' : 'Зарегистрироваться' }}
+        </button>
     </form>
-
-    <div class="row justify-content-end">
-        <amstore-button class="col" size="large" [disabled]="!isAccept.value || pending()" (click)="sendUser()">
-            {{ pending() ? 'Подождите…' : 'Зарегистрироваться' }}
-        </amstore-button>
-    </div>
-
 </amstore-panel-basic>

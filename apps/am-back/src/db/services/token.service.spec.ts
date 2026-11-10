@@ -10,6 +10,7 @@ import { UserEntity, UserRole } from '../entities/user.entity';
 import { ACCESS_TOKEN_TTL_SECONDS, REFRESH_TOKEN_TTL_SECONDS, TokenService } from './token.service';
 import { JWT_AUDIENCE, JWT_ISSUER } from '../../core/jwt/jwt.module';
 import { UserService } from './user.service';
+import { PendingRegistrationRepository } from '../repositories/pending-registration.repository';
 
 const secret = 'test-only-secret-for-authentication-regressions';
 const passwordHash = hashSync('Password123!', 10);
@@ -22,6 +23,7 @@ describe('authentication session lifecycle', () => {
     let records: (TokenEntity & { user: UserEntity; kind: TokenType })[];
     let failSave: boolean;
     let userRepository: { findOne: jest.Mock; create: jest.Mock; save: jest.Mock };
+    let pendingRegistrations: { hasActiveLinkForEmail: jest.Mock };
     let tokenRepository: { create: jest.Mock; save: jest.Mock; findOne: jest.Mock; update: jest.Mock };
 
     beforeEach(() => {
@@ -74,7 +76,8 @@ describe('authentication session lifecycle', () => {
         });
         const dataSource = { getRepository: manager.getRepository, dataSource: { transaction } } as unknown as DataSourceService;
         service = new TokenService(jwt, dataSource);
-        userService = new UserService(dataSource, service);
+        pendingRegistrations = { hasActiveLinkForEmail: jest.fn().mockResolvedValue(false) };
+        userService = new UserService(dataSource, service, pendingRegistrations as unknown as PendingRegistrationRepository);
     });
 
     it('issues distinct signed tokens with aligned expirations and stores only SHA-256 hashes', async () => {
@@ -184,6 +187,39 @@ describe('authentication session lifecycle', () => {
         expect(profile).not.toHaveProperty('access');
         expect(profile).not.toHaveProperty('refresh');
         expect(profile).not.toHaveProperty('state');
+    });
+
+    it.each(['Password123!', 'wrong-password', 'another-password'])(
+        'requires email confirmation by email regardless of the submitted password: %s',
+        async password => {
+            pendingRegistrations.hasActiveLinkForEmail.mockResolvedValue(true);
+
+            await expect(userService.signIn('pending@example.com', password)).rejects.toMatchObject({
+                response: { code: 'EMAIL_CONFIRMATION_REQUIRED' },
+                status: 401,
+            });
+            expect(pendingRegistrations.hasActiveLinkForEmail).toHaveBeenCalledWith('pending@example.com');
+            expect(records).toHaveLength(0);
+        },
+    );
+
+    it('does not use pending registration credentials to bypass an existing inactive account', async () => {
+        user.state = ModelState.INACTIVE;
+        pendingRegistrations.hasActiveLinkForEmail.mockResolvedValue(true);
+
+        await expect(userService.signIn(user.email, 'Password123!')).rejects.toMatchObject({
+            response: { code: 'INVALID_CREDENTIALS' },
+            status: 401,
+        });
+        expect(pendingRegistrations.hasActiveLinkForEmail).not.toHaveBeenCalled();
+        expect(records).toHaveLength(0);
+    });
+
+    it('uses the existing account credentials even if a registration link remains', async () => {
+        pendingRegistrations.hasActiveLinkForEmail.mockResolvedValue(true);
+
+        await expect(userService.signIn(user.email, 'Password123!')).resolves.toHaveProperty('access');
+        expect(pendingRegistrations.hasActiveLinkForEmail).not.toHaveBeenCalled();
     });
 
     it.each(['Password123!', 'invalid-user-password'])('rejects passwordless accounts even with %s', async password => {
