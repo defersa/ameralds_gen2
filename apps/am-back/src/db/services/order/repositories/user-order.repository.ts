@@ -1,9 +1,11 @@
+import { DEFAULT_PAGE_SIZE } from '@ameralds/utils';
+import type { UserOrderFilters } from '../types/user-order-filters';
 import { UserEntity } from "@am-back/db/entities/user.entity";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import type { OrderCurrency, OrderDiscountSnapshot } from "@am-back/db/entities/purchases/order-snapshot.model";
 import { OrderStatus, UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
 import { Injectable } from "@nestjs/common";
-import { DataSource, type EntityManager, Repository } from "typeorm";
+import { DataSource, type EntityManager, Not, Repository } from "typeorm";
 import { PAYMENT_EXPIRED_REASON } from "../checkout/payment-window";
 
 
@@ -14,6 +16,50 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 		super(UserOrderEntity, dataSource.createEntityManager());
 	}
 
+    /** Возвращает страницу ID активных оформленных заказов владельца; суммы сравниваются в минимальных единицах, даты — по createdAt. */
+    public async findPlacedOrders(userId: number, filters: UserOrderFilters): Promise<{ items: UserOrderEntity[]; page: number; count: number }> {
+        // Выбираем только заказы владельца без OPEN-корзин и неактивных строк; связи и персональные данные не загружаются.
+        const query = this.createQueryBuilder('orders')
+            .select(['orders.id'])
+            .where('orders.user = :userId', { userId })
+            .andWhere('orders.state = :state', { state: ModelState.ACTIVE })
+            .andWhere('orders.status <> :open', { open: OrderStatus.OPEN });
+
+        if (filters.status) {
+            query.andWhere('orders.status = :status', { status: filters.status });
+        }
+
+        if (filters.createdFrom) {
+            query.andWhere('orders.createdAt >= :createdFrom', { createdFrom: filters.createdFrom });
+        }
+
+        if (filters.createdBefore) {
+            query.andWhere('orders.createdAt < :createdBefore', { createdBefore: filters.createdBefore });
+        }
+
+        if (filters.minAmount !== undefined) {
+            query.andWhere('orders.totalAmount >= :minAmount', { minAmount: filters.minAmount });
+        }
+
+        if (filters.maxAmount !== undefined) {
+            query.andWhere('orders.totalAmount <= :maxAmount', { maxAmount: filters.maxAmount });
+        }
+
+        const total = await query.getCount();
+        const count = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE));
+        const page = Math.min(filters.page, count);
+
+        // Стабильный порядок по времени и ID исключает перестановки заказов с одинаковой датой между страницами.
+        const items = await query
+            .orderBy('orders.createdAt', 'DESC')
+            .addOrderBy('orders.id', 'DESC')
+            .skip((page - 1) * DEFAULT_PAGE_SIZE)
+            .take(DEFAULT_PAGE_SIZE)
+            .getMany();
+
+        return { items, page, count };
+    }
+
 	/** Блокирует владельца до чтения прав и корзины; требует транзакцию и согласован с выдачей покупок. */
 	public async lockOwner(userId: number, manager: EntityManager): Promise<void> {
 		// Сериализуем изменения корзины и выдачу прав общей блокировкой строки пользователя.
@@ -23,13 +69,13 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 		});
 	}
 
-	/** Загружает только активный оплаченный заказ указанного владельца с данными для личного просмотра. */
-	public findCompletedOrder(userId: number, id: number): Promise<UserOrderEntity | null> {
+	/** Загружает активный оформленный заказ владельца, включая ожидающий оплаты; OPEN-корзины не выдаёт. */
+	public findPlacedOrder(userId: number, id: number): Promise<UserOrderEntity | null> {
 		return this.findOne({
 			where: {
 				id,
 				user: { id: userId },
-				status: OrderStatus.PAID,
+				status: Not(OrderStatus.OPEN),
 				state: ModelState.ACTIVE,
 			},
 			relations: {
@@ -37,6 +83,7 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 					pattern: {
 						name: true,
 						images: true,
+						categories: true,
 					},
 					sizes: { size: true },
 				},

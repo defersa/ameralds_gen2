@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { ApiOrdersProducer, CheckoutInputDto, CheckoutOrderDto } from '@am-front/root/api-v2';
+import { UserCartService } from './sources/user-cart.service';
 import { AuthService } from '@am-front/services/auth.service';
-import { defer, Observable, tap, throwError } from 'rxjs';
+import { defer, map, Observable, switchMap, tap, throwError } from 'rxjs';
 
 
 const ATTEMPT_KEY = 'amstore_checkout_attempt';
@@ -33,12 +34,12 @@ function restoreAttempt(): CheckoutInputDto | null {
 export class CheckoutService {
     private readonly api = inject(ApiOrdersProducer);
     private readonly auth = inject(AuthService);
+    private readonly cart = inject(UserCartService);
     private readonly pendingAttempt = signal<CheckoutInputDto | null>(restoreAttempt());
 
     public readonly attempt = this.pendingAttempt.asReadonly();
-    public readonly result = signal<CheckoutOrderDto | null>(null);
 
-    /** Очищает результат и попытку при выходе, чтобы другой пользователь не видел прежний заказ. */
+    /** Очищает сохранённую попытку при выходе из аккаунта. */
     constructor() {
         effect(() => {
             if (!this.auth.auth()) {
@@ -49,7 +50,8 @@ export class CheckoutService {
 
     /**
      * Оформляет подтверждённый состав. До отправки сохраняет исходный cartId для повтора после потери ответа
-     * или перезагрузки; сервер проверяет владельца, состав и стоимость независимо от сохранённых данных.
+     * или перезагрузки. После ответа обновляет серверную корзину и только затем возвращает заказ
+     * для навигации; при ошибке обновления сохраняет попытку для безопасного повтора.
      */
     public place(input: CheckoutInputDto): Observable<CheckoutOrderDto> {
         return defer(() => {
@@ -66,14 +68,19 @@ export class CheckoutService {
             }
 
             return this.api.checkoutControllerPlace(input)
-                .pipe(tap((order) => this.result.set(order)));
+                .pipe(
+                    switchMap((order) => this.cart.refreshCart()
+                        .pipe(
+                            tap(() => this.reset()),
+                            map(() => order),
+                        )),
+                );
         });
     }
 
-    /** Завершает попытку только после явного обновления корзины; следующая отправка потребует нового подтверждения. */
+    /** Завершает попытку после успешного обновления корзины; следующая отправка потребует нового подтверждения. */
     public reset(): void {
         this.pendingAttempt.set(null);
-        this.result.set(null);
 
         try {
             sessionStorage.removeItem(ATTEMPT_KEY);

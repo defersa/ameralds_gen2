@@ -39,6 +39,7 @@ export class AmstoreInputSignalComponent
     public readonly value: ModelSignal<InputSignalValue> = model<InputSignalValue>(null);
 
     public readonly hint: InputSignal<string | undefined> = input<string>();
+    public readonly placeholder: InputSignal<string> = input('');
     public readonly autocomplete: InputSignal<string | undefined> = input<string>();
     public readonly type: InputSignal<InputSignalType> = input<InputSignalType>('text');
     public readonly suffixName: InputSignal<IconsName | undefined> = input<IconsName>();

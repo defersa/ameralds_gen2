@@ -26,6 +26,7 @@ export class PlaceOrderService {
 	/**
 	 * Атомарно оформляет собственную OPEN-корзину, не исправляя конфликты молча.
 	 * ID исходной корзины обеспечивает повтор после потери ответа: возвращается тот же snapshot.
+	 * Новая OPEN-корзина создаётся в той же транзакции; существующая корзина при повторе сохраняется.
 	 * Чужой/пустой заказ отклоняется INVALID, изменившийся состав — CART_CONFLICT с позициями.
 	 */
 	public async place(userId: number, input: CheckoutInputDto): Promise<CheckoutOrderDto> {
@@ -42,6 +43,8 @@ export class PlaceOrderService {
 				if (!order.placedAt || order.currency !== input.currency) {
 					invalidOrder();
 				}
+
+				await this.orders.ensureOpenCart(userId, manager);
 
 				return toCheckoutOrder(order);
 			}
@@ -82,6 +85,7 @@ export class PlaceOrderService {
 			});
 
 			await this.checkout.startPaymentWindow(order.id, userId, manager);
+			await this.orders.ensureOpenCart(userId, manager);
 
 			const placed = await this.orders.lockForSnapshot(order.id, userId, manager);
 

@@ -22,7 +22,7 @@ export class CheckoutInputDto {
 
 export class CheckoutOrderDto extends UserOrderDetailsDto {
 	@ApiProperty({ type: Date, description: "Зафиксированное время оформления" })
-	public placedAt: Date;
+	public override placedAt: Date;
 
 	@ApiProperty({ type: "integer", description: "Версия настроек срока оплаты при оформлении" })
 	public appSettingsVersion: number;

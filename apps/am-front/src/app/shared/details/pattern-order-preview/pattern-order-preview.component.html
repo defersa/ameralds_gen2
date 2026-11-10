@@ -1,0 +1,45 @@
+@if (categories().length) {
+    <div class="amstore-short-line flex flex-row gap-1 p-1">
+        <mat-icon fontIcon="style" class="amstore-text-primary"/>
+
+        @for (category of categories(); track category.value) {
+            <amstore-chip [isDark]="true">
+                {{ category.label }}
+            </amstore-chip>
+        }
+    </div>
+}
+
+<div class="amstore-short-line flex flex-row flex-wrap gap-1 p-1">
+    <mat-icon fontIcon="straighten" class="amstore-text-primary"/>
+
+    @for (size of item().sizes; track size.id) {
+        <amstore-chip>
+            {{ size.size?.value ?? 'Недоступен' }}
+        </amstore-chip>
+    }
+
+    @empty {
+        <span>
+            Без новых размеров
+        </span>
+    }
+</div>
+
+@if (item().color) {
+    <div class="p-1 amstore-text-caption flex flex-row gap-1 items-center">
+        <mat-icon fontIcon="invert_colors" class="amstore-text-primary"/>
+
+        <span>
+            Подбор включён
+        </span>
+    </div>
+}
+
+@if (item().snapshot; as snapshot) {
+    <div class="p-2 text-right flex flex-row gap-2 justify-end">
+        <h4>
+            {{ snapshot.totalAmount / 100 | number:'1.2-2' }} {{ currency() }}
+        </h4>
+    </div>
+}

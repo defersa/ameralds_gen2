@@ -409,6 +409,8 @@ export interface PurchasedOrderPatternDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Current pattern category IDs for display */
+    categories: Array<number>;
     /** Immutable purchase snapshot; null for legacy purchases */
     snapshot: OrderPatternSnapshotDto | null;
     /** Purchased pattern name, or null if unavailable */
@@ -428,6 +430,8 @@ export interface CheckoutOrderDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Зафиксированное время оформления */
+    placedAt: Date | null;
     /** Subtotal in minor units; null when historical price is unknown */
     subtotalAmount: number | null;
     /** Discount in minor units */
@@ -444,8 +448,6 @@ export interface CheckoutOrderDto {
     status: EnumOrderStatus;
     /** Purchased patterns */
     patterns: Array<PurchasedOrderPatternDto>;
-    /** Зафиксированное время оформления */
-    placedAt: Date;
     /** Версия настроек срока оплаты при оформлении */
     appSettingsVersion: number;
 }
@@ -545,6 +547,20 @@ export interface InputShortOrderPatternDto {
     requiresPatternPurchase: boolean;
 }
 
+export interface EntityDto {
+    /** Id of entity */
+    id: number;
+}
+
+export interface UserOrdersPageDto {
+    /** Current page */
+    page: number;
+    /** Count of pages */
+    count: number;
+    /** Идентификаторы оформленных заказов текущего пользователя, новые первыми */
+    items: Array<EntityDto>;
+}
+
 export interface UserOrderDetailsDto {
     /** Id of entity */
     id: number;
@@ -552,6 +568,8 @@ export interface UserOrderDetailsDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Checkout time; null when unknown for legacy orders */
+    placedAt: Date | null;
     /** Subtotal in minor units; null when historical price is unknown */
     subtotalAmount: number | null;
     /** Discount in minor units */

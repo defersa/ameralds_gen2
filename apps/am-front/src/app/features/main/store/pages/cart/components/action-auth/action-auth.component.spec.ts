@@ -1,12 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { CheckoutInputDto, CheckoutOrderDto, EnumCheckoutConflictReason, EnumOrderStatus } from '@am-front/root/api-v2';
 import { AuthService } from '@am-front/services/auth.service';
 import { CheckoutService } from '@am-front/services/cart/checkout.service';
 import { UserCartService } from '@am-front/services/cart/sources/user-cart.service';
 import { LangService } from '@am-front/services/lang.service';
-import { of, Subject, tap, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { ActionAuthComponent } from './action-auth.component';
 
 
@@ -14,27 +15,28 @@ describe('checkout cart action', () => {
     const selection = { cartId: 17, cartRevision: 'a'.repeat(64) };
     const auth = signal(true);
     const attempt = signal<CheckoutInputDto | null>(null);
-    const result = signal<CheckoutOrderDto | null>(null);
-    const place = jest.fn();
+        const place = jest.fn();
     const refreshCart = jest.fn();
-    const reset = jest.fn(() => { attempt.set(null); result.set(null); });
+    const reset = jest.fn(() => attempt.set(null));
+    const navigate = jest.fn().mockResolvedValue(true);
     let response: Subject<CheckoutOrderDto>;
 
     beforeEach(() => {
         auth.set(true);
         attempt.set(null);
-        result.set(null);
         reset.mockClear();
+        navigate.mockClear();
         refreshCart.mockReset().mockReturnValue(of({}));
         response = new Subject();
         place.mockReset().mockImplementation((input: CheckoutInputDto) => {
             attempt.set(input);
 
-            return response.pipe(tap((order) => result.set(order)));
+            return response;
         });
         TestBed.configureTestingModule({ imports: [ActionAuthComponent], providers: [
             { provide: AuthService, useValue: { auth } },
-            { provide: CheckoutService, useValue: { place, attempt, result, reset } },
+            { provide: Router, useValue: { navigate } },
+            { provide: CheckoutService, useValue: { place, attempt, reset } },
             { provide: UserCartService, useValue: {
                 checkoutSelection: signal(selection), cart: signal([{ pattern: 7 }]), refreshCart,
             } },
@@ -42,7 +44,7 @@ describe('checkout cart action', () => {
         ] });
     });
 
-    it('blocks a double click and shows the resulting order with its frozen deadline and amount', () => {
+    it('blocks a double click and navigates to the created order instead of showing it inside the cart', () => {
         const fixture = TestBed.createComponent(ActionAuthComponent);
 
         fixture.detectChanges();
@@ -67,9 +69,8 @@ describe('checkout cart action', () => {
         });
         response.complete();
         fixture.detectChanges();
-        expect(fixture.nativeElement.textContent).toContain('Заказ №17 оформлен');
-        expect(fixture.nativeElement.textContent).toContain('123.45 RUB');
-        expect(fixture.nativeElement.textContent).toContain('11.11.2026');
+        expect(navigate).toHaveBeenCalledWith(['/account/orders', 17]);
+        expect(fixture.nativeElement.textContent).not.toContain('Заказ №17');
     });
 
     it('shows conflicting positions and requires explicit refresh and confirmation', () => {

@@ -306,6 +306,13 @@ export class CartDto {
 
 export class PurchasedOrderPatternDto extends BaseEntityDto {
 	@ApiProperty({
+		type: "integer",
+		isArray: true,
+		description: "Current pattern category IDs for display",
+	})
+	public categories: number[];
+
+	@ApiProperty({
 		description: "Immutable purchase snapshot; null for legacy purchases",
 		type: OrderPatternSnapshotDto,
 		nullable: true,
@@ -341,6 +348,13 @@ export class PurchasedOrderPatternDto extends BaseEntityDto {
 }
 
 export class UserOrderDetailsDto extends BaseEntityDto {
+	@ApiProperty({
+		type: Date,
+		nullable: true,
+		description: "Checkout time; null when unknown for legacy orders",
+	})
+	public placedAt: Date | null;
+
 	@ApiProperty({
 		description: "Subtotal in minor units; null when historical price is unknown",
 		type: "integer",

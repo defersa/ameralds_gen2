@@ -1,0 +1,89 @@
+<section class="flex min-w-0 flex-col gap-4">
+    <a routerLink="/cart">
+        В корзину
+    </a>
+
+    @if (load.loading()) {
+        <p role="status">
+            Загрузка заказа…
+        </p>
+    }
+
+    @else if (order(); as details) {
+        <h2>
+            Заказ №{{ details.id }}
+        </h2>
+
+        <div class="rounded-xl border border-gray-200 bg-white shadow-sm px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-col gap-2">
+                @if (details.totalAmount !== null) {
+                    <h3>
+                        Стоимость: {{ details.totalAmount / 100 | number:'1.2-2' }} {{ details.currency }}
+                    </h3>
+                }
+
+                @else {
+                    <h3>
+                        Стоимость неизвестна
+                    </h3>
+                }
+
+                <p>
+                    Позиций: {{ details.patterns.length }}
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <p>
+                    Статус: {{ status() }}
+                </p>
+
+                <p>
+                    Оформлен: {{ details.placedAt ?? details.createdAt | date:'dd.MM.yyyy HH:mm' }}
+                </p>
+            </div>
+        </div>
+
+        @if (details.status === pendingStatus) {
+            <div class="flex flex-wrap items-center justify-between gap-4" aria-live="polite">
+                <div class="flex flex-col gap-2">
+                    <p>
+                        Оплатите заказ до {{ details.paymentExpiresAt | date:'dd.MM.yyyy HH:mm' }}.
+                    </p>
+
+                    <p>
+                        Оплата пока недоступна.
+                    </p>
+                </div>
+
+                <amstore-button [disabled]="true" role="button" aria-disabled="true" tabindex="-1" color="primary" size="large">
+                    Оплатить
+                </amstore-button>
+            </div>
+        }
+
+        <h2>
+            Список паттернов
+        </h2>
+
+        <div class="flex flex-col">
+            @for (item of details.patterns; track item.id) {
+                <amstore-snapshot-pattern [pattern]="item">
+                    <amstore-pattern-order-preview [item]="item" [currency]="details.currency"/>
+                </amstore-snapshot-pattern>
+            }
+
+            @empty {
+                <p>
+                    В заказе нет схем.
+                </p>
+            }
+        </div>
+    }
+
+    @else {
+        <p role="alert">
+            Заказ недоступен. Проверьте ссылку и аккаунт, в который выполнен вход.
+        </p>
+    }
+</section>

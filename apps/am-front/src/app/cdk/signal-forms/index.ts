@@ -4,3 +4,4 @@ export * from './checkbox-list-signal/checkbox-list.component';
 export * from './input-signal/input.component';
 export * from './datepicker-signal/datepicker.component';
 export * from './slide-signal/slide.component';
+export * from './select-signal/select.component';

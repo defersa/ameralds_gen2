@@ -1,0 +1,19 @@
+@use '@angular/material' as mat;
+@use 'theming-var';
+
+:host {
+    @include mat.select-overrides((
+        enabled-trigger-text-color: theming-var.get-amstore-color(gray, dark),
+        disabled-trigger-text-color: theming-var.get-amstore-color(gray, dark),
+        placeholder-text-color: theming-var.get-amstore-color(gray, middle),
+        enabled-arrow-color: theming-var.get-amstore-color(gray, middle),
+        trigger-text-size: 18px,
+        trigger-text-line-height: 24px,
+    ));
+}
+
+mat-select.amstore-input-signal__input {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}

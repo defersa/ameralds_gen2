@@ -6,7 +6,7 @@ import { PatternEntity } from "@am-back/db/entities/patterns/pattern.entity";
 import { AdminOrderEntity, OrderStatus, UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
 import { UserPatternService } from "@am-back/db/service/general/user-pattern.service";
 import { UserService } from "@am-back/db/service/user.service";
-import { DataSource } from "typeorm";
+import { DataSource, Not } from "typeorm";
 import { repositoryFixture, testService } from "../../../../../test/feature-services";
 import { AdminOrderRepository } from "../repositories/admin-order.repository";
 import { OrderPatternRepository } from "../repositories/order-pattern.repository";
@@ -14,8 +14,8 @@ import { UserOrderRepository } from "../repositories/user-order.repository";
 import { UserOrderService } from "./user-order.service";
 
 
-describe("UserOrderService.getCompletedUserOrder", () => {
-	it("requests only an active completed order belonging to the current user", async () => {
+describe("UserOrderService.getUserOrder", () => {
+	it("requests an active placed order belonging to the current user and excludes OPEN carts", async () => {
 		const findOne = jest.fn().mockResolvedValue(null);
 
 		const service = await testService(UserOrderService, [
@@ -41,7 +41,7 @@ describe("UserOrderService.getCompletedUserOrder", () => {
 			},
 		]);
 
-		await expect(service.getCompletedUserOrder(42, 17)).rejects.toMatchObject({
+		await expect(service.getUserOrder(42, 17)).rejects.toMatchObject({
 			status: 400,
 			response: {
 				code: ApiErrorCodes.NOT_EXIST,
@@ -54,7 +54,7 @@ describe("UserOrderService.getCompletedUserOrder", () => {
 					id: 17,
 					user: { id: 42 },
 					state: ModelState.ACTIVE,
-					status: OrderStatus.PAID,
+					status: Not(OrderStatus.OPEN),
 				},
 			}),
 		);
@@ -115,7 +115,7 @@ describe("UserOrderService.getCompletedUserOrder", () => {
 			},
 		]);
 
-		const result = await service.getCompletedUserOrder(42, 17);
+		const result = await service.getUserOrder(42, 17);
 
 		expect(result).toMatchObject({
 			id: 17,

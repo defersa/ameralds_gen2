@@ -1,3 +1,5 @@
+import type { UserOrderFilters } from '../types/user-order-filters';
+import type { UserOrdersPageDto } from '@am-back/modules/orders/dto/user-orders-list.dto';
 import { ApiEntityNames, ApiErrorCodes } from "@ameralds/utils";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import { OrderStatus } from "@am-back/db/entities/purchases/order.entity";
@@ -28,12 +30,24 @@ export class UserOrderService {
 		private readonly purchases: UserPatternService,
 	) {}
 
+    /** Выдаёт только идентификаторы оформленных заказов владельца и метаданные пагинации без связей и персональных данных. */
+    public async getUserOrders(userId: number, filters: UserOrderFilters): Promise<UserOrdersPageDto> {
+        const result = await this.orders.findPlacedOrders(userId, filters);
+
+        return {
+            page: result.page,
+            count: result.count,
+            items: result.items
+                .map(order => ({ id: order.id })),
+        };
+    }
+
 	/**
-	 * Возвращает DTO активного оплаченного заказа указанного владельца; чужой, отсутствующий или
-	 * незавершённый заказ возвращает NOT_EXIST.
+	 * Возвращает DTO активного оформленного заказа владельца, включая ожидающий оплаты.
+	 * Чужой, отсутствующий, неактивный заказ или OPEN-корзина возвращает NOT_EXIST.
 	 */
-	public async getCompletedUserOrder(userId: number, id: number): Promise<UserOrderDetailsDto> {
-		const order = await this.orders.findCompletedOrder(userId, id);
+	public async getUserOrder(userId: number, id: number): Promise<UserOrderDetailsDto> {
+		const order = await this.orders.findPlacedOrder(userId, id);
 
 		if (!order) {
 			throw new BadRequestException({

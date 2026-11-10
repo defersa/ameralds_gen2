@@ -1,0 +1,30 @@
+<amstore-panel color="primary">
+    <amstore-panel-header class="flex w-full items-center justify-between">
+        Фильтры
+
+        @if (hasFilters()) {
+            <amstore-button (click)="clearFilters($event)">
+                Очистить
+            </amstore-button>
+        }
+    </amstore-panel-header>
+
+    <div class="flex flex-col gap-4">
+        <amstore-select-signal [formField]="filterForm.status" [items]="statusItems" label="Статус"/>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <amstore-datepicker-signal [formField]="filterForm.startDate" label="Дата создания с"/>
+            <amstore-datepicker-signal [formField]="filterForm.endDate" label="Дата создания по"/>
+            <amstore-input-signal [formField]="filterForm.minPrice" type="number" label="Цена от" placeholder="0"/>
+            <amstore-input-signal [formField]="filterForm.maxPrice" type="number" label="Цена до" placeholder="0"/>
+        </div>
+
+        <p>
+            Цена — итоговая сумма в валюте заказа. Заказы с неизвестной ценой не учитываются при фильтрации по цене.
+        </p>
+    </div>
+</amstore-panel>
+
+<ng-content/>
+
+<amstore-paginator (goToPageEvent)="handlePagination($event)" [pageCount]="pagesCount()" [page]="page()"/>

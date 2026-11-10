@@ -15,6 +15,7 @@ import { selectedItemView, toAdminOrder } from "./cart.mapper";
 export function toUserOrderDetails(order: UserOrderEntity): UserOrderDetailsDto {
 	return {
 		id: order.id,
+		placedAt: order.placedAt ?? null,
 		createdAt: order.createdAt,
 		updatedAt: order.updatedAt,
 		status: order.status,
@@ -34,6 +35,9 @@ export function toUserOrderDetails(order: UserOrderEntity): UserOrderDetailsDto 
 				createdAt: item.createdAt,
 				updatedAt: item.updatedAt,
 				snapshot: item.snapshot ?? null,
+				categories: (item.pattern?.categories ?? [])
+					.filter((category) => category.state === ModelState.ACTIVE)
+					.map((category) => category.id),
 				name: item.snapshot
 					? item.snapshot.name
 						? {

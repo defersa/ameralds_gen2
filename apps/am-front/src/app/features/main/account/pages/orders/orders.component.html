@@ -1,0 +1,33 @@
+<amstore-user-orders-filters (filtersUpdate)="filtersUpdate$.next($event)" [pagesCount]="pagesCount()" [page]="page()">
+    <div class="my-4" aria-live="polite" [attr.aria-busy]="load.loading()">
+        @if (load.loading()) {
+            <p>
+                Загрузка заказов…
+            </p>
+        }
+
+        @else if (load.errors()) {
+            <p role="alert">
+                Не удалось загрузить заказы. Попробуйте ещё раз.
+            </p>
+
+            <amstore-button (click)="retry()" [disabled]="load.loading()">
+                Повторить
+            </amstore-button>
+        }
+
+        @else if (load.status() === 'success') {
+            @for (order of orders(); track order.id) {
+                <p>
+                    {{ order.id }}
+                </p>
+            }
+
+            @empty {
+                <p>
+                    Заказы не найдены.
+                </p>
+            }
+        }
+    </div>
+</amstore-user-orders-filters>

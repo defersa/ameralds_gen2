@@ -1,3 +1,6 @@
+import { UserOrdersPageDto, UserOrdersQueryDto } from './dto/user-orders-list.dto';
+import { UserOrdersQueryPipe } from './user-orders-query.pipe';
+import type { UserOrderFilters } from '@am-back/db/service/order/types/user-order-filters';
 import { NumberEntityDto } from "@am-back/common/common.dto";
 import { Auth } from "@am-back/core/guards/auth.guard";
 import { UserCartService } from "@am-back/db/service/order/cart/user-cart.service";
@@ -5,8 +8,8 @@ import { UserOrderService } from "@am-back/db/service/order/user/user-order.serv
 import type { RequestModel } from "@am-back/models/request.model";
 import { ErrorsDto } from "@am-back/modules/errors/errors.dto";
 import { CartDto, InputShortOrderPatternDto, UserOrderDetailsDto } from "@am-back/modules/orders/dto/orders.dto";
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, Query } from "@nestjs/common";
+import { ApiBadRequestResponse, ApiBody, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger";
 
 
 @Controller("orders/cart")
@@ -128,23 +131,32 @@ export class LocalCartController {
 @ApiTags("orders")
 @Auth()
 export class UserOrdersController {
-	/** Подключает сервис просмотра завершённых пользовательских заказов. */
+	/** Подключает сервис просмотра оформленных пользовательских заказов. */
 	constructor(private readonly orderService: UserOrderService) {}
 
+    /** Возвращает страницу собственных оформленных заказов; идентификатор владельца берётся только из проверенного контекста. */
+    @Get()
+    @ApiQuery({ type: UserOrdersQueryDto })
+    @ApiOkResponse({ type: UserOrdersPageDto })
+    @ApiBadRequestResponse({ type: ErrorsDto, description: 'Некорректные фильтры или номер страницы.' })
+    public getOrders(@Req() request: RequestModel, @Query(UserOrdersQueryPipe) filters: UserOrderFilters): Promise<UserOrdersPageDto> {
+        return this.orderService.getUserOrders(request.user.id, filters);
+    }
+
 	/**
-	 * Возвращает завершённый активный заказ, принадлежащий текущему пользователю; проверка владельца
+	 * Возвращает оформленный активный заказ, включая ожидающий оплаты, принадлежащий текущему пользователю; проверка владельца
 	 * выполняется в сервисе.
 	 */
 	@Get(":id")
 	@ApiOkResponse({
-		description: "Completed personal order belonging to the authenticated user.",
+		description: "Placed personal order belonging to the authenticated user, including pending payment.",
 		type: UserOrderDetailsDto,
 	})
 	@ApiBadRequestResponse({
-		description: "Order is missing, incomplete, inactive or belongs to another user.",
+		description: "Order is missing, still OPEN, inactive or belongs to another user.",
 		type: ErrorsDto,
 	})
 	public getOrder(@Req() request: RequestModel, @Param("id", ParseIntPipe) id: number): Promise<UserOrderDetailsDto> {
-		return this.orderService.getCompletedUserOrder(request.user.id, id);
+		return this.orderService.getUserOrder(request.user.id, id);
 	}
 }

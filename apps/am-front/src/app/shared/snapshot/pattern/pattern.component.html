@@ -7,7 +7,13 @@
 <div class="amstore-snapshot-container">
     <div class="amstore-snapshot-container-header mb-2">
         <h2 [routerLink]="routerLink()">
-            <amstore-lang-text [text]="pattern().name"/>
+            @if (pattern().name) {
+                <amstore-lang-text [text]="pattern().name"/>
+            }
+
+            @else {
+                Схема недоступна
+            }
         </h2>
     </div>
 

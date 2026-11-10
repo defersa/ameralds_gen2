@@ -20,6 +20,7 @@
         "am:front:lint": "npx nx run am-front:lint",
         "am:front:generate:icons": "node apps/am-front/tools/generate-icon-map.js",
         "am:front:generate:api": "node tools/generate-front-api.cjs",
+        "am:bd:migrate": "bash tools/migrate-db.sh",
         "am:bd:up": "sudo bash apps/am-bd/_up.sh",
         "am:bd:down": "sudo bash apps/am-bd/_down.sh"
     },

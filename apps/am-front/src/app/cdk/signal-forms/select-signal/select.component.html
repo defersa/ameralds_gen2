@@ -1,0 +1,48 @@
+<div
+    class="amstore-input-signal"
+    [hidden]="hidden()"
+    [class.is-disabled]="disabled()"
+    [class.is-invalid]="showErrors()"
+>
+    <div class="amstore-input-signal__field">
+        @if (label()) {
+            <span class="amstore-input-signal__label" [id]="labelId">
+                {{ label() }}
+            </span>
+        }
+
+        <mat-select
+            class="amstore-input-signal__input"
+            [id]="inputId"
+            [value]="value()"
+            [multiple]="multiple()"
+            [disabled]="disabled() || readonly()"
+            [required]="required()"
+            [placeholder]="placeholder()"
+            [canSelectNullableOptions]="true"
+            [aria-labelledby]="label() ? labelId : null"
+            [attr.aria-describedby]="hint() || showErrors() ? messageId : null"
+            [attr.aria-invalid]="showErrors()"
+            [attr.aria-readonly]="readonly()"
+            (selectionChange)="changeValue($event)"
+            (blur)="markAsTouched()"
+            (closed)="markAsTouched()"
+        >
+            @for (item of items(); track item.value) {
+                <mat-option [value]="item.value">
+                    {{ item.label }}
+                </mat-option>
+            }
+        </mat-select>
+    </div>
+
+    @if (showErrors() || hint()) {
+        <div
+            class="amstore-input-signal__message"
+            [class.is-error]="showErrors()"
+            [id]="messageId"
+        >
+            {{ showErrors() ? (errors() | errors) : hint() }}
+        </div>
+    }
+</div>

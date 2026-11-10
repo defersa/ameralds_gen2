@@ -176,6 +176,67 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 		}
 	});
 
+    it('lists only active placed orders of the owner with stable pagination and clamps excessive pages', async () => {
+        await apply();
+
+        const createdAt = new Date('2026-11-09T12:00:00Z');
+
+        const stored = await orderRepository.save(Array.from({ length: 12 }, () => ({
+            user,
+            status: OrderStatus.PAID,
+            createdAt,
+        })));
+
+        await orderRepository.save([
+            { user: other, status: OrderStatus.PAID },
+            { user, status: OrderStatus.OPEN },
+            { user, status: OrderStatus.PAID, state: ModelState.INACTIVE },
+        ]);
+
+        const first = await orders.getUserOrders(user.id, { page: 1 });
+        const second = await orders.getUserOrders(user.id, { page: 999 });
+
+        expect(first.count).toBe(2);
+        expect(first.items).toEqual(stored
+            .slice()
+            .reverse()
+            .slice(0, 10)
+            .map(order => ({ id: order.id })));
+        expect(second.page).toBe(2);
+        expect(second.items).toEqual(stored
+            .slice()
+            .reverse()
+            .slice(10)
+            .map(order => ({ id: order.id })));
+    });
+
+    it('combines status, inclusive price limits and a half-open creation period, excluding unknown prices', async () => {
+        await apply();
+
+        const start = new Date('2026-11-09T00:00:00Z');
+        const end = new Date('2026-11-10T00:00:00Z');
+
+        const stored = await orderRepository.save([
+            { user, status: OrderStatus.PAID, createdAt: start, totalAmount: 0 },
+            { user, status: OrderStatus.PAID, createdAt: start, totalAmount: 100 },
+            { user, status: OrderStatus.PAID, createdAt: end, totalAmount: 50 },
+            { user, status: OrderStatus.CANCELLED, createdAt: start, totalAmount: 50 },
+            { user, status: OrderStatus.PAID, createdAt: start, totalAmount: null },
+        ]);
+
+        const result = await orders.getUserOrders(user.id, {
+            page: 1,
+            status: OrderStatus.PAID,
+            createdFrom: start.toISOString(),
+            createdBefore: end.toISOString(),
+            minAmount: 0,
+            maxAmount: 100,
+        });
+
+        expect(result.items).toEqual([{ id: stored[1].id }, { id: stored[0].id }]);
+        expect(await orders.getUserOrders(other.id, { page: 1 })).toEqual({ page: 1, count: 1, items: [] });
+    });
+
 	/** Обеспечивает существование открытой корзины тестового покупателя и загружает её из репозитория. */
 	async function openCart(buyer: UserEntity): Promise<UserOrderEntity> {
 		await carts.getUserCart(buyer.id);
@@ -402,7 +463,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 		expect(repurchase.cart.patterns[0].sizes).toHaveLength(1);
 	});
 
-	it("checks out once under concurrent retries, keeps snapshots and opens the next cart lazily", async () => {
+	it("checks out once under concurrent retries, keeps snapshots and creates the next empty cart atomically", async () => {
 		await apply();
 
 		const cart = await carts.addToUserCart(user.id, {
@@ -416,7 +477,16 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 		expect(new Set(results
 			.map((result) => result.id)).size).toBe(1);
 		expect(results[0]).toMatchObject({ status: OrderStatus.PENDING_PAYMENT, subtotalAmount: 121, totalAmount: 121, discounts: [] });
-		expect(await orderRepository.findOpenCart(user.id)).toBeNull();
+		const freshCart = await orderRepository.findOpenCart(user.id);
+
+		expect(freshCart.id).not.toBe(input.cartId);
+		expect(freshCart.patterns).toEqual([]);
+
+		const details = await orders.getUserOrder(user.id, input.cartId);
+
+		expect(details).toMatchObject({ status: OrderStatus.PENDING_PAYMENT, totalAmount: 121 });
+		await expect(orders.getUserOrder(other.id, input.cartId)).rejects.toMatchObject({ status: 400 });
+		await expect(orders.getUserOrder(user.id, freshCart.id)).rejects.toMatchObject({ status: 400 });
 		await db.getRepository(NumberLangEntity).update(pattern.basePrice.id, { ru: 999 });
 
 		const settings = new AppSettingsService(new AppSettingsRepository(db), db);
@@ -429,21 +499,34 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 
 		expect(next.cart.id).not.toBe(input.cartId);
 		expect(repeated).toEqual(results[0]);
+
+		await carts.addToUserCart(user.id, {
+			pattern: pattern.id,
+			sizes: [size.size.id],
+			color: false,
+			requiresPatternPurchase: true,
+		});
+		await checkout.place(user.id, input);
+
+		const preservedCart = await orderRepository.findOpenCart(user.id);
+
+		expect(preservedCart.id).toBe(next.cart.id);
+		expect(preservedCart.patterns).toHaveLength(1);
 		await expect(db.getRepository(UserOrderEntity).update(input.cartId, { placedAt: new Date() })).rejects.toThrow("immutable");
 		await expect(db.getRepository(OrderPatternEntity).update(results[0].patterns[0].id, { color: true })).rejects.toThrow("immutable");
 	});
 
-	it("rolls checkout back when payment-window persistence fails", async () => {
+	it.each(["fixPaymentWindow", "ensureOpenCart"] as const)("rolls checkout back when %s fails", async (method) => {
 		await apply();
 
 		const cart = await carts.addToUserCart(user.id, {
 			pattern: pattern.id, sizes: [size.size.id], color: false, requiresPatternPurchase: true,
 		});
 
-		const spy = jest.spyOn(orderRepository, "fixPaymentWindow").mockRejectedValueOnce(new Error("payment-window failure"));
+		const spy = jest.spyOn(orderRepository, method).mockRejectedValueOnce(new Error("checkout persistence failure"));
 
 		try {
-			await expect(checkout.place(user.id, { cartId: cart.cart.id, cartRevision: cart.revision, currency: "RUB" })).rejects.toThrow("payment-window failure");
+			await expect(checkout.place(user.id, { cartId: cart.cart.id, cartRevision: cart.revision, currency: "RUB" })).rejects.toThrow("checkout persistence failure");
 		} finally {
 			spy.mockRestore();
 		}
@@ -561,7 +644,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 		await db.getRepository(NumberLangEntity).update(pattern.basePrice.id, { ru: 9999 });
 		await db.getRepository(SizeEntity).update(size.size.id, { value: 99 });
 
-		const details = await orders.getCompletedUserOrder(user.id, order.id);
+		const details = await orders.getUserOrder(user.id, order.id);
 
 		expect(details).toMatchObject({
 			subtotalAmount: 150,
@@ -584,7 +667,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 		});
 		await db.getRepository(PatternSizeEntity).delete(size.id);
 		await db.getRepository(PatternEntity).delete(pattern.id);
-		expect((await orders.getCompletedUserOrder(user.id, order.id)).patterns).toEqual(details.patterns);
+		expect((await orders.getUserOrder(user.id, order.id)).patterns).toEqual(details.patterns);
 		expect(
 			await db.getRepository(OrderPatternEntity).findOneByOrFail({
 				id: item.id,
@@ -595,7 +678,7 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 				sizes: [{ value: 36 }],
 			},
 		});
-		await expect(orders.getCompletedUserOrder(other.id, order.id)).rejects.toMatchObject({ status: 400 });
+		await expect(orders.getUserOrder(other.id, order.id)).rejects.toMatchObject({ status: 400 });
 	});
 
 	it("rejects placement if the selection changes after capture and permits a new server calculation", async () => {

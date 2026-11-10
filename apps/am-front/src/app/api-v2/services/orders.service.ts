@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderDetailsDto } from "../models";
+import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrdersPageDto, UserOrderDetailsDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiOrdersProducer {
@@ -221,6 +221,53 @@ export class ApiOrdersProducer {
             body: requestBody,
             observe,
             headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    userOrdersControllerGetOrders(page?: number, status?: any, createdFrom?: Date, createdBefore?: Date, minAmount?: number, maxAmount?: number, observe?: 'body', options?: RequestOptions<'json'>): Observable<UserOrdersPageDto>;
+    userOrdersControllerGetOrders(page?: number, status?: any, createdFrom?: Date, createdBefore?: Date, minAmount?: number, maxAmount?: number, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<UserOrdersPageDto>>;
+    userOrdersControllerGetOrders(page?: number, status?: any, createdFrom?: Date, createdBefore?: Date, minAmount?: number, maxAmount?: number, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<UserOrdersPageDto>>;
+    userOrdersControllerGetOrders(page?: number, status?: any, createdFrom?: Date, createdBefore?: Date, minAmount?: number, maxAmount?: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders`;
+
+        let params = new HttpParams();
+        if (page != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, page, 'page');
+        }
+        if (status != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, status, 'status');
+        }
+        if (createdFrom != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, createdFrom, 'createdFrom');
+        }
+        if (createdBefore != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, createdBefore, 'createdBefore');
+        }
+        if (minAmount != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, minAmount, 'minAmount');
+        }
+        if (maxAmount != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, maxAmount, 'maxAmount');
+        }
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('get', url, {
+            observe,
+            headers,
+            params,
             reportProgress: options?.reportProgress,
             withCredentials: options?.withCredentials,
             context: this.createContextWithClientId(options?.context)

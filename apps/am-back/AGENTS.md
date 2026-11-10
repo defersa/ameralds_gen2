@@ -33,4 +33,5 @@
 | Тесты | `npx nx run am-back:test` |
 | Запуск конкретного тестового файла | `npx nx run am-back:test --runInBand --runTestsByPath apps/am-back/src/path/to/file.spec.ts` |
 | Генерация миграции | `npm run am:back:typeorm:migration:generate` |
+| Применение миграций с временным запуском БД, если она остановлена | `npm run am:bd:migrate` |
 | Применение миграций | `npm run am:back:typeorm:migration:run` |

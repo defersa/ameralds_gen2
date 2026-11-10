@@ -71,6 +71,7 @@ describe("PlaceOrderService", () => {
 			{ provide: DataSource, useValue: { transaction: async (work) => work({ queryRunner: { isTransactionActive: true } }) } },
 			{ provide: UserOrderRepository, useValue: {
 				lockOwner, lockForSnapshot: find, lockForPayment: find, fixAmounts, fixPaymentWindow,
+				ensureOpenCart: jest.fn(),
 				databaseTime: jest.fn(async () => now),
 			} },
 			{ provide: OrderPatternRepository, useValue: { fixSnapshots } },
