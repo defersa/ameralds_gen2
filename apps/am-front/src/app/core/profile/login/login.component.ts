@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { disabled, email, form, FormField, maxLength, required } from '@angular/forms/signals';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogState, MatDialogTitle } from '@angular/material/dialog';
-import { ApiErrorCodes } from '@ameralds/utils';
 import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
 import { AmstoreInputSignalComponent } from '@am-front/cdk/signal-forms';
 import { IconsComponent } from '@am-front/cdk/icons/icons.component';
@@ -10,6 +9,7 @@ import { AuthService } from '@am-front/services/auth.service';
 import { ProfileService } from '@am-front/services/profile.service';
 import { createRequestWrapper } from '@am-front/utils/request-wrapper';
 import { RecaptchaDirective } from '../../recaptcha/recaptcha.directive';
+import { RouterLink } from '@angular/router';
 
 
 interface LoginDialogData {
@@ -35,6 +35,7 @@ interface LoginFormModel {
         FormField,
         AmstoreButtonComponent,
         IconsComponent,
+        RouterLink,
     ],
 })
 export class AmstoreLoginComponent extends RecaptchaDirective {
@@ -70,6 +71,7 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
         disabled(path.password, { when: () => this.mode() === 'email' });
     }, { name: 'login' });
 
+    /** Показывает причину отказа запроса; для 401 предлагает проверить данные и подтверждение почты без раскрытия состояния аккаунта. */
     public readonly error = computed(() => {
         const error = this.mode() === 'email' ? this.emailRequest.errors() : this.passwordRequest.errors();
 
@@ -85,17 +87,8 @@ export class AmstoreLoginComponent extends RecaptchaDirective {
             return 'Не удалось принять запрос. Попробуйте ещё раз позже';
         }
 
-        if (error instanceof HttpErrorResponse) {
-            const response: unknown = error.error;
-
-            if (error.status === 401 && response && typeof response === 'object' &&
-                'code' in response && response.code === ApiErrorCodes.EMAIL_CONFIRMATION_REQUIRED) {
-                return 'Проверьте почту и подтвердите регистрацию по ссылке из письма. После подтверждения вы сможете войти с паролем.';
-            }
-
-            if (error.status === 401) {
-                return 'Неверный логин или пароль';
-            }
+        if (error instanceof HttpErrorResponse && error.status === 401) {
+            return 'Не удалось войти. Проверьте email и пароль. Если вы недавно регистрировались, подтвердите почту по ссылке из письма.';
         }
 
         return 'Не удалось войти. Попробуйте ещё раз позже';

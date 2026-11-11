@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { EmailLoginRequestDto, RequestOptions, EmailLoginTokenDto, EmailLoginResponseDto, UserRegistrationCredentialsDto, UserCredentialsDto, UserTokensDTO, UserProfileDto } from "../models";
+import { PasswordResetRequestDto, RequestOptions, PasswordResetTokenDto, PasswordResetDto, EmailLoginRequestDto, EmailLoginTokenDto, EmailLoginResponseDto, UserRegistrationCredentialsDto, UserCredentialsDto, UserTokensDTO, UserProfileDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiUserProducer {
@@ -23,6 +23,87 @@ export class ApiUserProducer {
     private createContextWithClientId(existingContext?: HttpContext): HttpContext {
         const context = existingContext || new HttpContext();
         return context.set(this.clientContextToken, 'default');
+    }
+
+    userControllerRequestPasswordReset(passwordResetRequestDto: PasswordResetRequestDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
+    userControllerRequestPasswordReset(passwordResetRequestDto: PasswordResetRequestDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
+    userControllerRequestPasswordReset(passwordResetRequestDto: PasswordResetRequestDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
+    userControllerRequestPasswordReset(passwordResetRequestDto: PasswordResetRequestDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/user/user/password/request`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('post', url, {
+            body: passwordResetRequestDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    userControllerValidatePasswordReset(passwordResetTokenDto: PasswordResetTokenDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
+    userControllerValidatePasswordReset(passwordResetTokenDto: PasswordResetTokenDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
+    userControllerValidatePasswordReset(passwordResetTokenDto: PasswordResetTokenDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
+    userControllerValidatePasswordReset(passwordResetTokenDto: PasswordResetTokenDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/user/user/password/validate`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('post', url, {
+            body: passwordResetTokenDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    userControllerResetPassword(passwordResetDto: PasswordResetDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;
+    userControllerResetPassword(passwordResetDto: PasswordResetDto, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<any>>;
+    userControllerResetPassword(passwordResetDto: PasswordResetDto, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<any>>;
+    userControllerResetPassword(passwordResetDto: PasswordResetDto, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/user/user/password/reset`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Set Content-Type for JSON requests if not already set
+        if (!headers.has('Content-Type')) {
+            headers = headers.set('Content-Type', 'application/json');
+        }
+
+        return this.httpClient.request('post', url, {
+            body: passwordResetDto,
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
     }
 
     userControllerRequestEmailLogin(emailLoginRequestDto: EmailLoginRequestDto, observe?: 'body', options?: RequestOptions<'json'>): Observable<any>;

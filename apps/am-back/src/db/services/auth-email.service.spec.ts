@@ -4,6 +4,7 @@ import { DataSourceService } from '../data-source.service';
 import { ModelState } from '../abstract/abstract.model';
 import { UserEntity } from '../entities/user.entity';
 import { AuthEmailRequestEntity, AuthEmailRequestKind } from '../entities/tokens/auth-email-request.entity';
+import { PasswordResetService } from './password-reset.service';
 import { AuthEmailService } from './auth-email.service';
 import { EmailLoginService } from './email-login.service';
 import { UserService } from './user.service';
@@ -20,6 +21,7 @@ describe('background authentication emails', () => {
     let users: { getUserByEmail: jest.Mock };
     let links: { createLink: jest.Mock; createRegistrationLink: jest.Mock };
     let mail: { send: jest.Mock };
+    let passwords: { createLink: jest.Mock };
 
     beforeEach(() => {
         jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
@@ -39,10 +41,11 @@ describe('background authentication emails', () => {
         users = { getUserByEmail: jest.fn().mockResolvedValue(user) };
         links = { createLink: jest.fn().mockResolvedValue('https://shop.example/auth/email#token=login'), createRegistrationLink: jest.fn().mockResolvedValue('https://shop.example/auth/email#token=registration') };
         mail = { send: jest.fn().mockResolvedValue(undefined) };
+        passwords = { createLink: jest.fn().mockResolvedValue('https://shop.example/auth/password#token=password') };
         service = new AuthEmailService({
             getRepository: jest.fn(() => repository),
             dataSource: { transaction: async callback => callback({ getRepository: () => repository }) },
-        } as unknown as DataSourceService, links as unknown as EmailLoginService, users as unknown as UserService, mail as unknown as MailService);
+        } as unknown as DataSourceService, links as unknown as EmailLoginService, users as unknown as UserService, mail as unknown as MailService, passwords as unknown as PasswordResetService);
     });
     afterEach(() => { jest.restoreAllMocks(); jest.useRealTimers(); });
 
@@ -65,6 +68,51 @@ describe('background authentication emails', () => {
         expect(JSON.stringify(record)).not.toContain('Password123!');
         expect(users.getUserByEmail).not.toHaveBeenCalled();
         expect(mail.send).not.toHaveBeenCalled();
+    });
+
+    it('enqueues password requests without accessing accounts, tokens or SMTP', async () => {
+        await service.requestPasswordReset(' Buyer@Example.com ');
+
+        expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({
+            email: user.email,
+            kind: AuthEmailRequestKind.PASSWORD_RESET,
+            passwordHash: null,
+        }));
+        expect(users.getUserByEmail).not.toHaveBeenCalled();
+        expect(passwords.createLink).not.toHaveBeenCalled();
+        expect(mail.send).not.toHaveBeenCalled();
+    });
+
+    it('delivers a separate 24-hour password link through the background worker', async () => {
+        job.kind = AuthEmailRequestKind.PASSWORD_RESET;
+        await service.processPendingRequests();
+
+        expect(passwords.createLink).toHaveBeenCalledWith(job.email);
+        expect(links.createLink).not.toHaveBeenCalled();
+        expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({
+            to: user.email,
+            subject: 'Установка пароля в AMSTORE',
+            text: expect.stringContaining('24 часа'),
+        }));
+    });
+
+    it('discards ineligible password requests without sending email', async () => {
+        job.kind = AuthEmailRequestKind.PASSWORD_RESET;
+        passwords.createLink.mockResolvedValue(null);
+        await service.processPendingRequests();
+
+        expect(mail.send).not.toHaveBeenCalled();
+        expect(repository.delete).toHaveBeenCalled();
+    });
+
+    it('sends a success notification without issuing another login or reset token', async () => {
+        job.kind = AuthEmailRequestKind.PASSWORD_CHANGED;
+        await service.processPendingRequests();
+
+        expect(passwords.createLink).not.toHaveBeenCalled();
+        expect(links.createLink).not.toHaveBeenCalled();
+        expect(mail.send).toHaveBeenCalledWith(expect.objectContaining({ subject: 'Пароль AMSTORE изменён' }));
+        expect(JSON.stringify(mail.send.mock.calls)).not.toContain('#token=');
     });
 
     it('rejects an unsafe redirect before enqueuing', async () => {

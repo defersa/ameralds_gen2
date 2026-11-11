@@ -9,6 +9,7 @@ import { EmailLoginLinkEntity } from "../entities/tokens/email-login-link.entity
 import { UserEntity } from "../entities/user.entity";
 import { SessionTokens, TokenService } from "./token.service";
 import { UserService } from "./user.service";
+import { authEmailUrl } from '../utils/auth-email-url';
 
 
 export const EMAIL_LOGIN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -44,6 +45,7 @@ export class EmailLoginService {
 
 		return this.issueLink({
 			user,
+			authVersion: user.authVersion,
 			redirectPath,
 		});
 	}
@@ -55,6 +57,7 @@ export class EmailLoginService {
 		}
 
 		return this.issueLink({
+			authVersion: 0,
 			registrationEmail: email.trim().toLowerCase(),
 			registrationPasswordHash: passwordHash,
 			redirectPath: DEFAULT_LOGIN_REDIRECT,
@@ -66,18 +69,8 @@ export class EmailLoginService {
 	 * fragment URL. Вне dev требует HTTPS.
 	 */
 	private async issueLink(details: DeepPartial<EmailLoginLinkEntity>): Promise<string> {
-		const siteUrl = process.env.SITE_URL || (process.env.NODE_ENV === "dev" ? "http://localhost:4400" : "");
-		const url = new URL("/auth/email", siteUrl);
-
-		if (
-			!["https:", "http:"]
-				.includes(url.protocol) ||
-			(process.env.NODE_ENV !== "dev" && url.protocol !== "https:")
-		) {
-			throw new Error("SITE_URL must use HTTPS outside development");
-		}
-
 		const token = randomBytes(32).toString("base64url");
+		const url = authEmailUrl('/auth/email', token);
 		const repository = this.dataSource.getRepository(EmailLoginLinkEntity);
 
 		await repository.save(
@@ -88,13 +81,12 @@ export class EmailLoginService {
 			}),
 		);
 		// Fragment не попадает в HTTP-запросы, серверные логи и Referer.
-		url.hash = new URLSearchParams({ token }).toString();
-		return url.toString();
+		return url;
 	}
 
 	/**
 	 * В транзакции блокирует и погашает одноразовую ссылку, при необходимости создаёт аккаунт и выдаёт
-	 * сессию. Неверная, использованная или истёкшая ссылка возвращает EXPIRED.
+	 * сессию. Неверная, использованная, истёкшая или отозванная сменой пароля ссылка возвращает EXPIRED.
 	 */
 	public async signIn(token: string): Promise<SessionTokens & { redirectPath: string }> {
 		if (typeof token !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(token)) {
@@ -113,6 +105,7 @@ export class EmailLoginService {
 				select: {
 					id: true,
 					state: true,
+					authVersion: true,
 					expiredAt: true,
 					redirectPath: true,
 					registrationEmail: true,
@@ -150,7 +143,7 @@ export class EmailLoginService {
 				});
 			}
 
-			const session = await this.tokens.createSession(link.user.id, manager);
+			const session = await this.tokens.createSession(link.user.id, manager, { authVersion: link.authVersion });
 
 			if (!session) {
 				throw new UnauthorizedException({

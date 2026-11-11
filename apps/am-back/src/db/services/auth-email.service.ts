@@ -13,6 +13,8 @@ import { MailService } from "../../mail/mail.service";
 import { getMailLogo } from "../../mail/mail-assets";
 import { renderEmailLoginMail } from "../../mail/templates/email-login.template";
 import { renderRegistrationMail } from "../../mail/templates/registration.template";
+import { PasswordResetService } from './password-reset.service';
+import { renderPasswordChangedMail, renderPasswordResetMail } from '../../mail/templates/password-reset.template';
 
 
 const MAX_ATTEMPTS = 5;
@@ -34,7 +36,18 @@ export class AuthEmailService {
 		private links: EmailLoginService,
 		private users: UserService,
 		private mail: MailService,
+		private readonly passwordReset: PasswordResetService,
 	) {}
+
+	/** Ставит письмо установки пароля в общую очередь без чтения аккаунтов и изменения их сессий. */
+	public async requestPasswordReset(email: string): Promise<void> {
+		await this.enqueue({
+			kind: AuthEmailRequestKind.PASSWORD_RESET,
+			email,
+			passwordHash: null,
+			redirectPath: '/auth/password',
+		});
+	}
 
 	/**
 	 * Проверяет локальный путь возврата и ставит письмо входа в очередь, не раскрывая существование
@@ -220,17 +233,40 @@ export class AuthEmailService {
 	}
 
 	/**
-	 * Отправляет письмо входа или подтверждения регистрации; пропускает неактивных пользователей и
-	 * неизвестные адреса для входа.
+	 * Отправляет письмо входа, подтверждения или установки пароля и уведомление об успехе.
+	 * Пропускает неактивные аккаунты и неизвестные адреса, кроме новой регистрации.
 	 */
 	private async deliver(job: AuthEmailRequestEntity): Promise<void> {
+		if (job.kind === AuthEmailRequestKind.PASSWORD_RESET) {
+			const url = await this.passwordReset.createLink(job.email);
+
+			if (url) {
+				await this.mail.send({
+					to: job.email,
+					...renderPasswordResetMail(url),
+					attachments: [await getMailLogo()],
+				});
+			}
+
+			return;
+		}
+
 		const user = await this.users.getUserByEmail(job.email);
 
 		if (user && user.state !== ModelState.ACTIVE) {
 			return;
 		}
 
-		if (!user && job.kind === AuthEmailRequestKind.LOGIN) {
+		if (!user && job.kind !== AuthEmailRequestKind.REGISTRATION) {
+			return;
+		}
+
+		if (job.kind === AuthEmailRequestKind.PASSWORD_CHANGED) {
+			await this.mail.send({
+				to: job.email,
+				...renderPasswordChangedMail(),
+				attachments: [await getMailLogo()],
+			});
 			return;
 		}
 

@@ -14,6 +14,7 @@ import { AuthEmailThrottleGuard, AuthThrottleGuard, SessionRequestGuard } from '
 import { UserRole } from '../../db/entities/user.entity';
 import { EmailLoginService } from '../../db/services/email-login.service';
 import { AuthEmailService } from '../../db/services/auth-email.service';
+import { PasswordResetService } from '../../db/services/password-reset.service';
 import { AuthEmailLimitService } from '../../db/services/auth-email-limit.service';
 
 @Module({
@@ -21,7 +22,7 @@ import { AuthEmailLimitService } from '../../db/services/auth-email-limit.servic
     controllers: [UserController],
     providers: [AuthThrottleGuard, SessionRequestGuard, AuthEmailThrottleGuard,
         { provide: UserService, useValue: {} }, { provide: EmailLoginService, useValue: {} },
-        { provide: AuthEmailService, useValue: {} }, { provide: AuthEmailLimitService, useValue: {} }],
+        { provide: PasswordResetService, useValue: {} }, { provide: AuthEmailService, useValue: {} }, { provide: AuthEmailLimitService, useValue: {} }],
 })
 class TestUserModule {}
 
@@ -30,7 +31,8 @@ describe('authentication HTTP contract', () => {
     const users = { signIn: jest.fn(), refreshToken: jest.fn(), logout: jest.fn(), getUserByEmail: jest.fn(), creatUser: jest.fn(), getUser: jest.fn() };
     const categories = { editCategory: jest.fn() };
     const emailLogin = { signIn: jest.fn() };
-    const authEmail = { requestLogin: jest.fn(), requestRegistration: jest.fn() };
+    const authEmail = { requestLogin: jest.fn(), requestRegistration: jest.fn(), requestPasswordReset: jest.fn() };
+    const passwords = { change: jest.fn(), validate: jest.fn() };
     const limits = { consume: jest.fn() };
     const base = '/api/user/user';
 
@@ -40,7 +42,7 @@ describe('authentication HTTP contract', () => {
             controllers: [CategoriesController],
             providers: [{ provide: CategoriesService, useValue: categories }],
         }).overrideProvider(UserService).useValue(users).overrideProvider(EmailLoginService).useValue(emailLogin)
-            .overrideProvider(AuthEmailService).useValue(authEmail).overrideProvider(AuthEmailLimitService).useValue(limits).compile();
+            .overrideProvider(PasswordResetService).useValue(passwords).overrideProvider(AuthEmailService).useValue(authEmail).overrideProvider(AuthEmailLimitService).useValue(limits).compile();
         app = module.createNestApplication();
         app.setGlobalPrefix('api');
         app.use((req, _res, next) => {
@@ -62,11 +64,59 @@ describe('authentication HTTP contract', () => {
         categories.editCategory.mockResolvedValue({ id: 1 });
         authEmail.requestLogin.mockResolvedValue(undefined);
         authEmail.requestRegistration.mockResolvedValue(undefined);
+        authEmail.requestPasswordReset.mockResolvedValue(undefined);
+        passwords.change.mockReset().mockResolvedValue(undefined);
+        passwords.validate.mockReset().mockResolvedValue(undefined);
         limits.consume.mockResolvedValue(0);
         emailLogin.signIn.mockResolvedValue({ access: 'email-access', refresh: 'email-refresh', refreshExpiredAt: new Date(Date.now() + 100_000), redirectPath: '/account/orders/42' });
     });
 
     afterAll(async () => { await app.close(); });
+
+    it('queues a password email without reading or exposing accounts and applies shared limits', async () => {
+        const response = await request(app.getHttpServer()).post(base + '/password/request')
+            .set('X-CSRF-Protection', '1').send({ email: ' Buyer@Example.com ' }).expect(204);
+
+        expect(response.text).toBe('');
+        expect(authEmail.requestPasswordReset).toHaveBeenCalledWith('buyer@example.com');
+        expect(limits.consume).toHaveBeenCalledWith('buyer@example.com', expect.any(String));
+        expect(users.getUserByEmail).not.toHaveBeenCalled();
+        expect(response.headers['set-cookie']).toBeUndefined();
+    });
+
+    it('validates a password link without creating or clearing a browser session', async () => {
+        const response = await request(app.getHttpServer()).post(base + '/password/validate')
+            .set('X-CSRF-Protection', '1').send({ token: 'a'.repeat(43) }).expect(204);
+
+        expect(passwords.validate).toHaveBeenCalledWith('a'.repeat(43));
+        expect(passwords.change).not.toHaveBeenCalled();
+        expect(response.headers['set-cookie']).toBeUndefined();
+    });
+
+    it('uses only the password token even with another account session, clears the cookie and does not sign in', async () => {
+        const body = { token: 'a'.repeat(43), password: 'NewPassword123!', passwordRepeat: 'NewPassword123!' };
+
+        const response = await request(app.getHttpServer()).post(base + '/password/reset')
+            .set('X-CSRF-Protection', '1').set('test-user-role', UserRole.ADMIN)
+            .set('Cookie', 'am_refresh=another-user').send(body).expect(204);
+
+        expect(passwords.change).toHaveBeenCalledWith(body.token, body.password, body.passwordRepeat);
+        expect(users.logout).not.toHaveBeenCalled();
+        expect(users.signIn).not.toHaveBeenCalled();
+        expect(response.headers['set-cookie'][0]).toContain('am_refresh=;');
+        expect(response.headers['cache-control']).toBe('no-store');
+        expect(response.text).toBe('');
+    });
+
+    it('preserves browser cookies on a rejected password reset', async () => {
+        passwords.change.mockRejectedValue(new UnauthorizedException({ code: 'EXPIRED' }));
+
+        const response = await request(app.getHttpServer()).post(base + '/password/reset')
+            .set('X-CSRF-Protection', '1').send({ token: 'old', password: 'NewPassword123!', passwordRepeat: 'NewPassword123!' }).expect(401);
+
+        expect(response.body).toEqual({ code: 'EXPIRED' });
+        expect(response.headers['set-cookie']).toBeUndefined();
+    });
 
     it('returns an access token and an HttpOnly SameSite cookie without exposing refresh in JSON', async () => {
         const response = await request(app.getHttpServer()).post(base + '/sign-in')
@@ -91,15 +141,15 @@ describe('authentication HTTP contract', () => {
         } finally { process.env.NODE_ENV = previous; }
     });
 
-    it('returns the confirmation-required code without setting a session cookie', async () => {
+    it('returns neutral credential errors without setting a session cookie', async () => {
         users.signIn.mockRejectedValueOnce(new UnauthorizedException({
-            code: ApiErrorCodes.EMAIL_CONFIRMATION_REQUIRED,
+            code: ApiErrorCodes.INVALID_CREDENTIALS,
         }));
 
         const response = await request(app.getHttpServer()).post(base + '/sign-in')
             .set('X-CSRF-Protection', '1').send({ email: 'pending@example.com', password: 'Password123!' }).expect(401);
 
-        expect(response.body).toEqual({ code: ApiErrorCodes.EMAIL_CONFIRMATION_REQUIRED });
+        expect(response.body).toEqual({ code: ApiErrorCodes.INVALID_CREDENTIALS });
         expect(response.headers['set-cookie']).toBeUndefined();
     });
 
@@ -125,7 +175,7 @@ describe('authentication HTTP contract', () => {
         expect(response.headers['set-cookie'][0]).toContain('am_refresh=;');
     });
 
-    it.each(['/register', '/sign-in', '/refresh', '/logout', '/email-login/request', '/email-login/consume'])('rejects CSRF attempts to %s', async path => {
+    it.each(['/register', '/sign-in', '/refresh', '/logout', '/email-login/request', '/email-login/consume', '/password/request', '/password/validate', '/password/reset'])('rejects CSRF attempts to %s', async path => {
         await request(app.getHttpServer()).post(base + path).send({}).expect(403);
         await request(app.getHttpServer()).post(base + path).set('X-CSRF-Protection', '1').set('Sec-Fetch-Site', 'cross-site').send({}).expect(403);
         expect(users.signIn).not.toHaveBeenCalled();

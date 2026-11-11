@@ -6,7 +6,6 @@ import { DataSourceService } from "../data-source.service";
 import { UserEntity, UserRole, UserStatus } from "../entities/user.entity";
 import { TokenService } from "./token.service";
 import { UserService } from "./user.service";
-import { PendingRegistrationRepository } from "../repositories/pending-registration.repository";
 
 
 describe("UserService.getOrCreateUserWithoutPassword", () => {
@@ -49,7 +48,6 @@ describe("UserService.getOrCreateUserWithoutPassword", () => {
 				getRepository: jest.fn(),
 			} as unknown as DataSourceService,
 			{} as TokenService,
-			{} as PendingRegistrationRepository,
 		);
 	});
 

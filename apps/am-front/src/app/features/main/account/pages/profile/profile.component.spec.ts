@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
@@ -30,6 +31,7 @@ describe('Profile page', () => {
             imports: [ProfileComponent],
             providers: [
                 provideNoopAnimations(),
+                provideRouter([]),
                 provideApiClient(),
                 provideHttpClient(),
                 provideHttpClientTesting(),
@@ -64,7 +66,7 @@ describe('Profile page', () => {
         expect(fixture.nativeElement.textContent).not.toContain('Адрес');
 
         const buttons = Array.from(fixture.nativeElement.querySelectorAll('amstore-button')) as HTMLElement[];
-        expect(buttons).toHaveLength(2);
+        expect(buttons).toHaveLength(1);
         for (const button of buttons) {
             expect(button.getAttribute('aria-disabled')).toBe('true');
             button.click();

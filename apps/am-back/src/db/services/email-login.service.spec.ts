@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { hashSync } from 'bcrypt';
 import type { EntityManager } from 'typeorm';
 import { ModelState } from '../abstract/abstract.model';
 import { DataSourceService } from '../data-source.service';
@@ -8,6 +9,9 @@ import { TokenService } from './token.service';
 import { UserService } from './user.service';
 import { EMAIL_LOGIN_TTL_MS, EmailLoginService } from './email-login.service';
 
+
+const registrationPasswordHash = hashSync('Password123!', 10);
+
 describe('email login links', () => {
     const token = 'a'.repeat(43);
     const previousSite = process.env.SITE_URL;
@@ -15,22 +19,28 @@ describe('email login links', () => {
     let user: UserEntity;
     let link: EmailLoginLinkEntity;
     let links: { findOne: jest.Mock; save: jest.Mock; create: jest.Mock };
-    let userRepository: { findOneBy: jest.Mock };
+    let userRepository: { findOneBy: jest.Mock; findOne: jest.Mock };
     let tokens: { hashToken: jest.Mock; createSession: jest.Mock };
     let users: { getOrCreateRegisteredUser: jest.Mock };
     let manager: EntityManager;
 
     beforeEach(() => {
         process.env.SITE_URL = 'https://shop.example';
-        user = Object.assign(new UserEntity(), { id: 42, email: 'buyer@example.com', state: ModelState.ACTIVE, passwordHash: null });
+        user = Object.assign(new UserEntity(), { id: 42, email: 'buyer@example.com', state: ModelState.ACTIVE, authVersion: 0, passwordHash: null });
         link = Object.assign(new EmailLoginLinkEntity(), {
-            id: 9, user, state: ModelState.ACTIVE, expiredAt: new Date(Date.now() + 60_000), redirectPath: '/account/orders/17',
+            id: 9, user, authVersion: 0, state: ModelState.ACTIVE, expiredAt: new Date(Date.now() + 60_000), redirectPath: '/account/orders/17',
         });
         links = {
             findOne: jest.fn(async () => link), save: jest.fn(async entity => entity),
-            create: jest.fn(details => Object.assign(new EmailLoginLinkEntity(), details)),
+            create: jest.fn(details => Object.assign(new EmailLoginLinkEntity(), {
+                state: ModelState.ACTIVE,
+                ...details,
+            })),
         };
-        userRepository = { findOneBy: jest.fn(async () => user) };
+        userRepository = {
+            findOneBy: jest.fn(async () => user),
+            findOne: jest.fn().mockResolvedValue(null),
+        };
         manager = { getRepository: jest.fn(() => links) } as unknown as EntityManager;
         tokens = {
             hashToken: jest.fn(value => createHash('sha256').update(value).digest('hex')),
@@ -82,13 +92,71 @@ describe('email login links', () => {
         expect(links.save).not.toHaveBeenCalled();
     });
 
+    it.each(['Password123!', 'wrong-password'])(
+        'does not disclose a pending registration or create a session with password %s',
+        async password => {
+            await service.createRegistrationLink(user.email, registrationPasswordHash);
+
+            const accountService = new UserService({
+                getRepository: () => userRepository,
+            } as unknown as DataSourceService, tokens as unknown as TokenService);
+
+            for (const email of [user.email, 'unknown@example.com']) {
+                await expect(accountService.signIn(email, password)).rejects.toMatchObject({
+                    status: 401,
+                    response: {
+                        code: 'INVALID_CREDENTIALS',
+                    },
+                });
+            }
+
+            expect(tokens.createSession).not.toHaveBeenCalled();
+            expect(links.findOne).not.toHaveBeenCalled();
+            expect(users.getOrCreateRegisteredUser).not.toHaveBeenCalled();
+        },
+    );
+
+    it('confirms a repeated registration after the previous link expires and rejects token reuse', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-10-28T12:00:00Z'));
+
+        const originalUrl = new URL(await service.createRegistrationLink(user.email, registrationPasswordHash));
+        const originalToken = new URLSearchParams(originalUrl.hash.slice(1)).get('token');
+        const originalLink: EmailLoginLinkEntity = links.save.mock.calls[0][0];
+
+        jest.advanceTimersByTime(EMAIL_LOGIN_TTL_MS);
+        links.findOne.mockResolvedValue(originalLink);
+
+        await expect(service.signIn(originalToken)).rejects.toMatchObject({
+            status: 401,
+            response: { code: 'EXPIRED' },
+        });
+        expect(tokens.createSession).not.toHaveBeenCalled();
+
+        const replacementUrl = new URL(await service.createRegistrationLink(user.email, registrationPasswordHash));
+        const replacementToken = new URLSearchParams(replacementUrl.hash.slice(1)).get('token');
+        const replacementLink: EmailLoginLinkEntity = links.save.mock.calls[1][0];
+
+        expect(replacementToken).not.toBe(originalToken);
+        expect(replacementLink.expiredAt.valueOf()).toBe(Date.now() + EMAIL_LOGIN_TTL_MS);
+        links.findOne.mockResolvedValue(replacementLink);
+
+        await expect(service.signIn(replacementToken)).resolves.toMatchObject({ access: 'access' });
+        expect(users.getOrCreateRegisteredUser).toHaveBeenCalledWith(user.email, registrationPasswordHash, manager);
+
+        await expect(service.signIn(replacementToken)).rejects.toMatchObject({
+            status: 401,
+            response: { code: 'EXPIRED' },
+        });
+        expect(tokens.createSession).toHaveBeenCalledTimes(1);
+    });
+
     it('creates a confirmed account in the session transaction and removes pending credentials', async () => {
         link.user = null;
         link.registrationEmail = user.email;
         link.registrationPasswordHash = '$2b$10$' + 'a'.repeat(53);
         await expect(service.signIn(token)).resolves.toMatchObject({ access: 'access' });
         expect(users.getOrCreateRegisteredUser).toHaveBeenCalledWith(user.email, '$2b$10$' + 'a'.repeat(53), manager);
-        expect(tokens.createSession).toHaveBeenCalledWith(user.id, manager);
+        expect(tokens.createSession).toHaveBeenCalledWith(user.id, manager, { authVersion: 0 });
         expect(link.user).toBe(user);
         expect(link.registrationEmail).toBeNull();
         expect(link.registrationPasswordHash).toBeNull();
@@ -111,7 +179,7 @@ describe('email login links', () => {
 
     it('consumes a link and creates an ordinary session in the same transaction', async () => {
         await expect(service.signIn(token)).resolves.toMatchObject({ access: 'access', refresh: 'refresh', redirectPath: '/account/orders/17' });
-        expect(tokens.createSession).toHaveBeenCalledWith(user.id, manager);
+        expect(tokens.createSession).toHaveBeenCalledWith(user.id, manager, { authVersion: 0 });
         expect(links.findOne).toHaveBeenCalledWith(expect.objectContaining({ lock: { mode: 'pessimistic_write' }, relationLoadStrategy: 'query' }));
         expect(link.state).toBe(ModelState.INACTIVE);
         await expect(service.signIn(token)).rejects.toMatchObject({ status: 401, response: { code: 'EXPIRED' } });

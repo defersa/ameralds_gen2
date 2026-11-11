@@ -51,6 +51,10 @@
                 {{ message }}
             </p>
         }
+
+        <a [routerLink]="pending() ? null : '/auth/password'" (click)="close()" [attr.aria-disabled]="pending()" [attr.tabindex]="pending() ? -1 : null">
+            Забыли пароль или хотите установить его?
+        </a>
     </mat-dialog-content>
 
     <mat-dialog-actions align="end" class="amstore-dialog-login__actions !flex-col !items-stretch sm:!flex-row sm:!items-center">

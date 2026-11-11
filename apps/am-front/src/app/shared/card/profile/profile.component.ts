@@ -4,6 +4,7 @@ import { UserProfileDto } from '@am-front/root/api-v2';
 import { AmstorePanelExpandComponent, AmstorePanelHeaderComponent } from '@am-front/cdk/panel/panel-expand/panel-expand.component';
 import { AmstoreInputSignalComponent } from '@am-front/cdk/signal-forms';
 import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
+import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'amstore-profile-card',
@@ -17,6 +18,7 @@ import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-bu
         AmstoreInputSignalComponent,
         FormField,
         AmstoreButtonComponent,
+        RouterLink,
     ],
     host: { class: 'amstore-profile-card block w-full' },
 })

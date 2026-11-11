@@ -18,7 +18,8 @@ import { Module, type Provider } from "@nestjs/common";
 import { PatternGrantsService } from './services/pattern-grants/pattern-grants.service';
 import { PatternGrantRepository } from './services/pattern-grants/repositories/pattern-grant.repository';
 import { UserPatternRepository } from './services/pattern-grants/repositories/user-pattern.repository';
-import { PendingRegistrationRepository } from "./repositories/pending-registration.repository";
+import { PasswordResetService } from './services/password-reset.service';
+import { PasswordResetRepository } from './repositories/password-reset.repository';
 
 
 const services: Provider[] = [
@@ -39,10 +40,11 @@ const services: Provider[] = [
 	MailService,
 	AuthEmailService,
 	AuthEmailLimitService,
+	PasswordResetService,
 ];
 
 @Module({
-	providers: [...services, PendingRegistrationRepository, PatternGrantRepository, UserPatternRepository],
+	providers: [...services, PatternGrantRepository, UserPatternRepository, PasswordResetRepository],
 	exports: services,
 })
 export class DbInfrastructureModule {}

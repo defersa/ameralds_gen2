@@ -23,6 +23,7 @@ import { EmailLoginLinkEntity } from './entities/tokens/email-login-link.entity'
 import { AuthEmailRequestEntity } from './entities/tokens/auth-email-request.entity';
 import { AuthEmailLimitEntity } from './entities/tokens/auth-email-limit.entity';
 import { AppSettingEntity } from './entities/app-setting.entity';
+import { PasswordResetLinkEntity } from './entities/tokens/password-reset-link.entity';
 
 
 @Module({
@@ -41,6 +42,7 @@ import { AppSettingEntity } from './entities/app-setting.entity';
                 TokenEntity,
                 TokenRefreshEntity,
                 EmailLoginLinkEntity,
+                PasswordResetLinkEntity,
                 AuthEmailRequestEntity,
                 AuthEmailLimitEntity,
                 ImageEntity,

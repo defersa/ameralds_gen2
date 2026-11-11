@@ -54,13 +54,38 @@ export class TokenService {
         }
     }
 
-    public createSession(userId: number, manager?: EntityManager): Promise<SessionTokens> {
+    /**
+     * Создаёт сессию под блокировкой пользователя; отклоняет старый пароль или ссылку прежней версии после смены пароля.
+     * При переданном manager участвует в транзакции вызывающей операции; недействительные данные дают null.
+     */
+    public createSession(
+        userId: number,
+        manager?: EntityManager,
+        expected?: { passwordHash?: string; authVersion?: number },
+    ): Promise<SessionTokens | null> {
         const create = async (manager: EntityManager) => {
+            // Перечитываем проверенные учётные данные под общей с refresh и сменой пароля блокировкой пользователя.
             const user = await manager.getRepository(UserEntity).findOne({
-                where: { id: userId, state: ModelState.ACTIVE }, lock: { mode: 'pessimistic_write' },
+                where: {
+                    id: userId,
+                    state: ModelState.ACTIVE,
+                },
+                select: {
+                    id: true,
+                    passwordHash: true,
+                    authVersion: true,
+                },
+                lock: { mode: 'pessimistic_write' },
             });
-            return user ? this.createPair(manager, userId, randomUUID(), new Date(Date.now() + REFRESH_TOKEN_TTL_SECONDS * 1000)) : null;
+
+            if (!user || (expected?.passwordHash !== undefined && expected.passwordHash !== user.passwordHash) ||
+                (expected?.authVersion !== undefined && expected.authVersion !== user.authVersion)) {
+                return null;
+            }
+
+            return this.createPair(manager, userId, randomUUID(), new Date(Date.now() + REFRESH_TOKEN_TTL_SECONDS * 1000));
         };
+
         return manager ? create(manager) : this.dataSource.dataSource.transaction(create);
     }
 

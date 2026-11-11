@@ -13,10 +13,10 @@
             <amstore-input-signal [formField]="profileForm.email" label="Почта" type="email"
                                   autocomplete="email"/>
 
-            <amstore-button class="self-start uppercase" [stroked]="true" color="accent" size="small"
-                            [disabled]="true" role="button" aria-disabled="true" tabindex="-1">
+            <button amstore-button class="self-start uppercase" [stroked]="true" color="accent" size="small"
+                    type="button" routerLink="/auth/password">
                 Сменить пароль
-            </amstore-button>
+            </button>
         </div>
     </div>
 

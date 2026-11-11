@@ -34,6 +34,9 @@ export class UserEntity extends BaseModel {
     @Column({ type: 'varchar', select: false, nullable: true })
     public passwordHash: string | null;
 
+    @Column({ name: 'auth_version', type: 'integer', default: 0 })
+    public authVersion: number;
+
     @Column({
         type: 'enum',
         enum: UserStatus,

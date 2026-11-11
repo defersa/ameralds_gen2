@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
 import { AuthInterceptor } from '../auth.interceptor';
 import { provideApiClient } from '../api-client.providers';
 
@@ -212,6 +212,82 @@ describe('browser authentication session', () => {
         expect(auth.auth()).toBe(true);
         expect(auth.token()).toBe(oldToken);
         requests.expectNone(base + '/refresh');
+    });
+
+    it('requests and validates password links independently of the active account', () => {
+        login();
+        auth.requestPasswordReset(' Buyer@Example.com ').subscribe();
+
+        const mail = requests.expectOne(base + '/password/request');
+
+        expect(mail.request.body).toEqual({ email: 'buyer@example.com' });
+        expect(mail.request.headers.has('Authorization')).toBe(false);
+        expect(mail.request.headers.get('X-CSRF-Protection')).toBe('1');
+        mail.flush(null);
+        auth.validatePasswordReset('invalid').subscribe({ error: () => undefined });
+
+        const validation = requests.expectOne(base + '/password/validate');
+
+        expect(validation.request.headers.has('Authorization')).toBe(false);
+        validation.flush({ code: 'EXPIRED' }, { status: 401, statusText: 'Unauthorized' });
+        expect(auth.auth()).toBe(true);
+        requests.expectNone(base + '/refresh');
+    });
+
+    it('preserves the active account and does not refresh or retry a rejected password change', async () => {
+        login();
+        const result = firstValueFrom(auth.resetPassword({ token: 'invalid', password: 'NewPassword123!', passwordRepeat: 'NewPassword123!' }));
+        const rejected = expect(result).rejects.toMatchObject({ status: 401 });
+        const change = requests.expectOne(base + '/password/reset');
+
+        expect(change.request.headers.has('Authorization')).toBe(false);
+        expect(change.request.headers.get('X-CSRF-Protection')).toBe('1');
+        change.flush({ code: 'EXPIRED' }, { status: 401, statusText: 'Unauthorized' });
+        await rejected;
+        expect(auth.auth()).toBe(true);
+        expect(auth.token()).toBe(oldToken);
+        expect(navigate).not.toHaveBeenCalled();
+        requests.expectNone(base + '/refresh');
+    });
+
+    it('clears local auth after successful reset without navigating or signing in and cancels pending refresh', async () => {
+        login();
+        auth.refreshAccessToken().subscribe();
+
+        const pendingRefresh = requests.expectOne(base + '/refresh');
+        const body = { token: 'a'.repeat(43), password: 'NewPassword123!', passwordRepeat: 'NewPassword123!' };
+        const result = firstValueFrom(auth.resetPassword(body));
+        const change = requests.expectOne(base + '/password/reset');
+
+        expect(change.request.body).toEqual(body);
+        expect(change.request.headers.has('Authorization')).toBe(false);
+        expect(change.request.withCredentials).toBe(true);
+        change.flush(null);
+        await result;
+        expect(auth.auth()).toBe(false);
+        expect(auth.token()).toBeNull();
+        expect(pendingRefresh.cancelled).toBe(true);
+        expect(navigate).not.toHaveBeenCalled();
+        await auth.initialize();
+        requests.expectNone(base + '/refresh');
+    });
+
+    it('keeps the password success screen when an earlier refresh fails after local session cleanup', () => {
+        login();
+
+        const lateRefresh = new Subject<string>();
+        const refreshing = jest.spyOn(auth, 'refreshAccessToken').mockReturnValue(lateRefresh);
+
+        try {
+            http.get('/api/pending').subscribe({ error: () => undefined });
+            requests.expectOne('/api/pending').flush({}, { status: 401, statusText: 'Unauthorized' });
+            auth.clearAfterPasswordReset();
+            lateRefresh.error(new Error('Late refresh failure'));
+            expect(navigate).not.toHaveBeenCalled();
+            expect(auth.auth()).toBe(false);
+        } finally {
+            refreshing.mockRestore();
+        }
     });
 
     it('falls back to the profile for an unsafe server destination', async () => {

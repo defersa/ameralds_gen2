@@ -47,6 +47,43 @@ export class EmailLoginTokenDto {
     public token: string;
 }
 
+export class PasswordResetRequestDto {
+    @ApiProperty({
+        description: 'Account email; response does not disclose account existence',
+        type: String,
+        maxLength: 254,
+    })
+    public email: string;
+}
+
+export class PasswordResetTokenDto {
+    @ApiProperty({
+        description: 'Single-use password token, valid for 24 hours; independent of the current browser session',
+        type: String,
+        minLength: 43,
+        maxLength: 43,
+    })
+    public token: string;
+}
+
+export class PasswordResetDto extends PasswordResetTokenDto {
+    @ApiProperty({
+        description: 'New password, at most 72 UTF-8 bytes',
+        type: String,
+        minLength: 8,
+        maxLength: 72,
+    })
+    public password: string;
+
+    @ApiProperty({
+        description: 'Must match the new password',
+        type: String,
+        minLength: 8,
+        maxLength: 72,
+    })
+    public passwordRepeat: string;
+}
+
 export class EmailLoginResponseDto extends UserTokensDTO {
     @ApiProperty({ description: 'Local destination saved when issuing the login link', type: String })
     public redirectPath: string;

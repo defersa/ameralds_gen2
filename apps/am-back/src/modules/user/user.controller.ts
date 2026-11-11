@@ -19,6 +19,9 @@ import {
 	UserProfileDto,
 	UserRegistrationCredentialsDto,
 	UserTokensDTO,
+	PasswordResetRequestDto,
+	PasswordResetDto,
+	PasswordResetTokenDto,
 } from "./user.dto";
 import { ErrorsDto } from "../errors/errors.dto";
 import { Auth } from "@am-back/core/guards/auth.guard";
@@ -35,17 +38,77 @@ import {
 import { EmailLoginService } from "../../db/services/email-login.service";
 import { EmailAddressPipe } from "./email-address.pipe";
 import { AuthEmailService } from "../../db/services/auth-email.service";
+import { PasswordResetService } from '../../db/services/password-reset.service';
 
 
 @Controller("user")
 @ApiTags("user")
 export class UserController {
-	/** Подключает операции аккаунта, вход по одноразовым ссылкам и очередь писем авторизации. */
+	/** Подключает операции аккаунта, установку пароля по токену, вход по ссылкам и очередь писем авторизации. */
 	constructor(
 		private userService: UserService,
 		private emailLoginService: EmailLoginService,
 		private authEmail: AuthEmailService,
+		private readonly passwordReset: PasswordResetService,
 	) {}
+
+	/** Принимает запрос письма установки пароля без раскрытия наличия аккаунта; текущая сессия не используется. */
+	@Post('password/request')
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@AuthEmailMutation()
+	@Throttle({
+		default: {
+			limit: 5,
+			ttl: 60_000,
+		},
+	})
+	@ApiBody({ type: PasswordResetRequestDto })
+	@ApiNoContentResponse({ description: 'Queues password setup or recovery email with an identical empty response for all account states.' })
+	@ApiBadRequestResponse({ type: ErrorsDto })
+	public async requestPasswordReset(@Body('email', EmailAddressPipe) email: string): Promise<void> {
+		await this.authEmail.requestPasswordReset(email);
+	}
+
+	/** Проверяет ссылку для показа формы, не меняя пароль, cookie и сессии; для недействительного токена возвращает EXPIRED. */
+	@Post('password/validate')
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@SessionMutation()
+	@Throttle({
+		default: {
+			limit: 10,
+			ttl: 60_000,
+		},
+	})
+	@ApiBody({ type: PasswordResetTokenDto })
+	@ApiNoContentResponse({ description: 'The password token is currently valid. Does not consume it or create a session.' })
+	@ApiUnauthorizedResponse({ type: ErrorsDto })
+	public async validatePasswordReset(@Body('token') token: string): Promise<void> {
+		await this.passwordReset.validate(token);
+	}
+
+	/** Меняет пароль только по токену, отзывает все сессии его владельца и очищает cookie браузера без автоматического входа. */
+	@Post('password/reset')
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@SessionMutation()
+	@Throttle({
+		default: {
+			limit: 10,
+			ttl: 60_000,
+		},
+	})
+	@ApiNoContentResponse({ description: 'Changes the password, consumes all reset links, revokes prior login links and all owner sessions, and clears the browser refresh cookie. Does not sign in.' })
+	@ApiUnauthorizedResponse({
+		type: ErrorsDto,
+		description: 'EXPIRED for invalid, expired, consumed or revoked tokens and inactive accounts.',
+	})
+	@ApiBadRequestResponse({ type: ErrorsDto })
+	public async resetPassword(
+		@Body() body: PasswordResetDto,
+		@Res({ passthrough: true }) response: Response,
+	): Promise<void> {
+		await this.passwordReset.change(body?.token, body?.password, body?.passwordRepeat);
+		clearRefreshCookie(response);
+	}
 
 	/** Принимает запрос письма входа в фоновую очередь без раскрытия существования или состояния аккаунта. */
 	@Post("email-login/request")
@@ -129,8 +192,8 @@ export class UserController {
 
 	/**
 	 * Выполняет вход по email и паролю, устанавливает refresh-cookie и возвращает только access-токен в
-	 * JSON. Если аккаунта ещё нет, но есть действующая ссылка регистрации для почты, сообщает о необходимости
-	 * подтвердить адрес независимо от введённого пароля.
+	 * JSON. Любые отклонённые учётные данные возвращают INVALID_CREDENTIALS без раскрытия наличия
+	 * аккаунта или ожидающей подтверждения регистрации.
 	 */
 	@Post("sign-in")
 	@HttpCode(HttpStatus.OK)
@@ -147,7 +210,7 @@ export class UserController {
 	})
 	@ApiUnauthorizedResponse({
 		type: ErrorsDto,
-		description: "INVALID_CREDENTIALS for rejected credentials; EMAIL_CONFIRMATION_REQUIRED when no account exists but the email has an active registration confirmation link, regardless of the submitted password. No session is created before email confirmation.",
+		description: "INVALID_CREDENTIALS for all rejected credentials, including unknown emails, pending registrations, incorrect passwords and inactive accounts. No session is created before email confirmation.",
 	})
 	@ApiBadRequestResponse({ type: ErrorsDto })
 	public async signIn(

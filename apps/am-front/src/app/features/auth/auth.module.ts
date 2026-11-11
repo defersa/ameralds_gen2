@@ -5,12 +5,17 @@ import { AuthComponent } from './auth.component';
 import { AmstoreRegistrationComponent } from './page/registration/amstore-registration.component';
 import { AmstoreVerifyComponent } from "./page/verify/amstore-verify.component";
 import { EmailLoginComponent } from './page/email-login/email-login.component';
+import { PasswordComponent } from './page/password/password.component';
 
 
 export const routes: Routes = [{
     path: '',
     component: AuthComponent,
     children: [
+        {
+            path: 'password',
+            component: PasswordComponent,
+        },
         {
             path: 'email',
             component: EmailLoginComponent,

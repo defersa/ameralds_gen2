@@ -5,6 +5,9 @@ import { UserEntity } from '../user.entity';
 @Entity({ schema: 'users' })
 @Check('CHK_email_login_link_subject', `("userId" IS NOT NULL AND "registrationEmail" IS NULL AND "registrationPasswordHash" IS NULL) OR ("userId" IS NULL AND "registrationEmail" IS NOT NULL AND "registrationPasswordHash" IS NOT NULL)`)
 export class EmailLoginLinkEntity extends BaseModel {
+    @Column({ name: 'auth_version', type: 'integer', default: 0 })
+    public authVersion: number;
+
     @Index('IDX_email_login_link_hash', { unique: true })
     @Column({ type: 'varchar', length: 64, select: false })
     public tokenHash: string;

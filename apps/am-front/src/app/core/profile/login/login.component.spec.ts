@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogState } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
 import { ApiErrorCodes } from '@ameralds/utils';
 import { UserTokensDTO } from '@am-front/root/api-v2';
@@ -75,6 +76,7 @@ describe('login dialog', () => {
             imports: [AmstoreLoginComponent],
             providers: [
                 provideNoopAnimations(),
+                provideRouter([]),
                 { provide: AuthService, useValue: auth },
                 { provide: ProfileService, useValue: profile },
                 { provide: MatDialogRef, useValue: dialogRef },
@@ -222,18 +224,19 @@ describe('login dialog', () => {
         expect(dialogRef.close).toHaveBeenCalledTimes(1);
     });
 
-    it('asks to confirm email when the backend recognizes a pending registration', () => {
+    it('suggests checking credentials and email confirmation without creating a session and allows correction', () => {
         fillCredentials();
         submitForm();
         passwordSend.error(new HttpErrorResponse({
             status: 401,
-            error: { code: ApiErrorCodes.EMAIL_CONFIRMATION_REQUIRED },
+            error: { code: ApiErrorCodes.INVALID_CREDENTIALS },
         }));
         fixture.detectChanges();
 
         const alert: HTMLElement = fixture.nativeElement.querySelector('[role="alert"]');
 
-        expect(alert.textContent).toContain('Проверьте почту и подтвердите регистрацию');
+        expect(alert.textContent).toContain('Не удалось войти. Проверьте email и пароль.');
+        expect(alert.textContent).toContain('Если вы недавно регистрировались, подтвердите почту по ссылке из письма.');
         expect(alert.textContent).not.toContain('Неверный логин или пароль');
         expect(auth.setToken).not.toHaveBeenCalled();
         expect(dialogRef.close).not.toHaveBeenCalled();
@@ -245,7 +248,7 @@ describe('login dialog', () => {
     });
 
     it.each([
-        { status: 401, message: 'Неверный логин или пароль' },
+        { status: 401, message: 'Не удалось войти. Проверьте email и пароль. Если вы недавно регистрировались, подтвердите почту по ссылке из письма.' },
         { status: 429, message: 'Слишком много попыток' },
         { status: 500, message: 'Не удалось войти. Попробуйте ещё раз позже' },
     ])('shows a suitable password login error for HTTP $status', ({ status, message }) => {

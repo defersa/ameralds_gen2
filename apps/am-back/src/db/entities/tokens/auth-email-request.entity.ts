@@ -3,11 +3,13 @@ import { Check, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn 
 export enum AuthEmailRequestKind {
     LOGIN = 'login',
     REGISTRATION = 'registration',
+    PASSWORD_RESET = 'password_reset',
+    PASSWORD_CHANGED = 'password_changed',
 }
 
 @Entity({ schema: 'users' })
 @Index('IDX_auth_email_request_ready', ['availableAt', 'id'])
-@Check('CHK_auth_email_request_kind', `"kind" IN ('login', 'registration')`)
+@Check('CHK_auth_email_request_kind', `"kind" IN ('login', 'registration', 'password_reset', 'password_changed')`)
 export class AuthEmailRequestEntity {
     @PrimaryGeneratedColumn({ primaryKeyConstraintName: 'PK_auth_email_request' })
     public id: number;

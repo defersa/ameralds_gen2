@@ -3,6 +3,8 @@ import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpRequest } from '@angul
 import { catchError, Observable, switchMap, throwError } from 'rxjs';
 import { AuthService } from './services/auth.service';
 
+
+/** Добавляет авторизацию к API; почтовые операции работают без Bearer и refresh, устаревшие ответы не завершают новую сессию. */
 export function AuthInterceptor(request: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
     const url = new URL(request.url, window.location.origin);
     if (url.origin !== window.location.origin || !url.pathname.startsWith('/api/')) {
@@ -11,7 +13,7 @@ export function AuthInterceptor(request: HttpRequest<unknown>, next: HttpHandler
     const auth = inject(AuthService);
     const token = auth.token();
     const sessionRevision = auth.sessionRevision;
-    const sessionRequest = /^\/api\/user\/user\/(sign-in|register|refresh|logout|email-login\/(request|consume))$/.test(url.pathname);
+    const sessionRequest = /^\/api\/user\/user\/(sign-in|register|refresh|logout|email-login\/(request|consume)|password\/(request|validate|reset))$/.test(url.pathname);
     let authenticated = request.clone({ withCredentials: true });
     if (sessionRequest && request.method === 'POST') {
         authenticated = authenticated.clone({ setHeaders: { 'X-CSRF-Protection': '1' } });
@@ -24,7 +26,7 @@ export function AuthInterceptor(request: HttpRequest<unknown>, next: HttpHandler
         }
         const retry = (access: string) => next(authenticated.clone({ setHeaders: { Authorization: 'Bearer ' + access } })).pipe(
             catchError((retryError: HttpErrorResponse) => {
-                if (retryError.status === 401) {
+                if (retryError.status === 401 && sessionRevision === auth.sessionRevision) {
                     auth.logout();
                 }
                 return throwError(() => retryError);
@@ -36,7 +38,10 @@ export function AuthInterceptor(request: HttpRequest<unknown>, next: HttpHandler
         }
         return auth.refreshAccessToken().pipe(
             catchError(refreshError => {
-                auth.logout();
+                if (sessionRevision === auth.sessionRevision) {
+                    auth.logout();
+                }
+
                 return throwError(() => refreshError);
             }),
             switchMap(retry),

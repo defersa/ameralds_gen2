@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { catchError, defer, finalize, firstValueFrom, from, map, Observable, of, shareReplay, Subject, takeUntil, throwError, timeout } from 'rxjs';
-import { ApiUserProducer, UserTokensDTO } from '@am-front/root/api-v2';
+import { ApiUserProducer, PasswordResetDto, UserTokensDTO } from '@am-front/root/api-v2';
 import { isLocalPath } from '@ameralds/utils';
 
 const LOGGED_OUT_KEY = 'am_logged_out';
@@ -51,6 +51,25 @@ export class AuthService {
         return this.userProducer.userControllerRequestEmailLogin({ email, redirectPath });
     }
 
+    /** Запрашивает письмо установки пароля без проверки текущей сессии; ответ не раскрывает наличие аккаунта. */
+    public requestPasswordReset(email: string): Observable<void> {
+        return this.userProducer.userControllerRequestPasswordReset({ email: email.trim().toLowerCase() });
+    }
+
+    /** Проверяет возможность показать форму по токену, не изменяя текущую сессию и не выполняя refresh при отказе. */
+    public validatePasswordReset(token: string): Observable<void> {
+        return this.userProducer.userControllerValidatePasswordReset({ token });
+    }
+
+    /**
+     * Меняет пароль только по токену ссылки, последовательно с refresh и cookie-операциями других вкладок.
+     * После завершения HTTP-подписки очищает местную авторизацию, сохраняя экран успеха; ошибку передаёт форме.
+     */
+    public resetPassword(body: PasswordResetDto): Observable<void> {
+        return defer(() => from(firstValueFrom(this.withSessionLock(() => this.userProducer.userControllerResetPassword(body)))))
+            .pipe(map(() => this.clearAfterPasswordReset()));
+    }
+
     public signInWithEmailLink(token: string): Observable<string> {
         const version = this.sessionVersion;
         // Сначала завершаем HTTP-подписку: setToken уведомляет об изменении сессии.
@@ -76,10 +95,24 @@ export class AuthService {
         this.auth.set(true);
     }
 
-    private clearSession(): void {
-        this.sessionVersion++;
+    /** Очищает местную авторизацию; явный выход меняет ревизию, а ошибка refresh сохраняет её для обработки вызывающим interceptor. */
+    private clearSession(invalidateRequests = true): void {
+        if (invalidateRequests) {
+            this.sessionVersion++;
+        }
+
         this.token.set(null);
         this.auth.set(false);
+    }
+
+    /** Очищает авторизацию после смены пароля, отменяет refresh и сохраняет текущий экран успеха; cookie очищает ответ API. */
+    public clearAfterPasswordReset(): void {
+        this.sessionChanges.next();
+        this.clearSession();
+
+        try {
+            localStorage.setItem(LOGGED_OUT_KEY, '1');
+        } catch { /* Состояние страницы очищается и при недоступном Storage. */ }
     }
 
     public logout(): void {
@@ -101,6 +134,7 @@ export class AuthService {
             : request());
     }
 
+    /** Объединяет параллельные refresh и отклоняет ответы прежней сессии; при ошибке очищает авторизацию без навигации. */
     public refreshAccessToken(): Observable<string> {
         if (this.refreshRequest) {
             return this.refreshRequest;
@@ -119,7 +153,7 @@ export class AuthService {
                 }),
                 catchError(error => {
                     if (version === this.sessionVersion) {
-                        this.clearSession();
+                        this.clearSession(false);
                     }
                     return throwError(() => error);
                 }),
