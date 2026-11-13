@@ -12,6 +12,98 @@ export class PaymentRepository extends Repository<UserPaymentEntity> {
         super(UserPaymentEntity, source.createEntityManager());
     }
 
+    /** Находит попытку вместе с владельцем для внутренних каналов; финансовая история не фильтруется по state. */
+    public findForVerification(id: number): Promise<UserPaymentEntity | null> {
+        // Авторизация пользовательского API выполняется отдельно до вызова провайдера.
+        return this.findOne({
+            where: { id },
+            relations: {
+                order: { user: true },
+            },
+        });
+    }
+
+    /** Разрешает webhook только в существующую пару провайдер/externalId; неизвестный ID не создаёт платёж. */
+    public findByExternal(provider: string, externalId: string): Promise<UserPaymentEntity | null> {
+        // Уникальный индекс предотвращает неоднозначное сопоставление внешнего платежа.
+        return this.findOneBy({
+            provider,
+            externalId,
+        });
+    }
+
+    /** Возвращает последнюю попытку заказа без legacy-записей; владелец проверяется вызывающим сервисом. */
+    public latest(orderId: number): Promise<UserPaymentEntity | null> {
+        // Историю попыток не выдаём клиенту; для страницы результата достаточно последней попытки.
+        return this.findOne({
+            where: { orderId },
+            order: { id: 'DESC' },
+        });
+    }
+
+    /** Выбирает активные внешние попытки отменённых заказов для создания outbox в общей транзакции. */
+    public findPendingForOrders(orderIds: number[], manager: EntityManager): Promise<UserPaymentEntity[]> {
+        if (!orderIds.length) {
+            return Promise.resolve([]);
+        }
+
+        // Включаем резервы без externalId: после потерянного ответа отмена сначала восстанавливает ID по ключу.
+        return manager.getRepository(UserPaymentEntity).findBy({
+            orderId: In(orderIds),
+            status: PaymentStatus.PENDING,
+        });
+    }
+
+    /** Резервирует проверку на короткую аренду; параллельные вкладки и процессы не опрашивают одну попытку одновременно. */
+    public async claimCheck(id: number, leaseMs: number): Promise<boolean> {
+        // Условный UPDATE атомарно ограничивает частоту даже при нескольких экземплярах backend.
+        const result = await this.createQueryBuilder()
+            .update()
+            .set({
+                nextCheckAt: () => `clock_timestamp() + (${Math.max(1000, leaseMs)} * interval '1 millisecond')`,
+                updatedAt: () => '"updatedAt"',
+            })
+            .where('id = :id AND next_check_at <= clock_timestamp()', { id })
+            .execute();
+
+        return result.affected === 1;
+    }
+
+    /** Выбирает ограниченную порцию сверки, включая неопределённые резервы и недавно отменённые попытки. */
+    public dueChecks(provider: string, limit: number, terminalDays: number): Promise<UserPaymentEntity[]> {
+        // Незавершённые платежи проверяем без ограничения возраста; отказ/отмену — в настраиваемом окне поздних списаний.
+        return this.createQueryBuilder('payment')
+            .where('payment.provider = :provider', { provider })
+            .andWhere('payment.nextCheckAt <= clock_timestamp()')
+            .andWhere(`(payment.status = :pending OR (payment.status = :succeeded AND payment.resolution IS NULL)
+                OR (payment.status IN (:...terminal) AND payment.createdAt > clock_timestamp() - (:days * interval '1 day')))`, {
+                pending: PaymentStatus.PENDING,
+                succeeded: PaymentStatus.SUCCEEDED,
+                terminal: [PaymentStatus.FAILED, PaymentStatus.CANCELLED],
+                days: terminalDays,
+            })
+            .orderBy('payment.nextCheckAt', 'ASC')
+            .take(limit)
+            .getMany();
+    }
+
+    /** Планирует повтор после ошибки провайдера; финансовый статус и snapshot не изменяются. */
+    public async deferCheck(id: number, failures: number): Promise<void> {
+        const delayMs = Math.min(3_600_000, 30_000 * 2 ** Math.min(failures, 7));
+
+        // Не трогаем updatedAt: окно сверки терминальных платежей считается от финансового изменения.
+        await this.createQueryBuilder()
+            .update()
+            .set({
+                checkFailures: failures,
+                errorCode: 'verification_unavailable',
+                nextCheckAt: () => `clock_timestamp() + (${delayMs} * interval '1 millisecond')`,
+                updatedAt: () => '"updatedAt"',
+            })
+            .where('id = :id AND resolution IS NULL', { id })
+            .execute();
+    }
+
     /** Находит исходную попытку по глобальному ключу, включая завершённые и неактивные строки аудита. */
     public async findByKey(key: string, manager: EntityManager): Promise<UserPaymentEntity | null> {
         // Не фильтруем state: удаление из интерфейса не разрешает повторно списывать деньги по тому же ключу.

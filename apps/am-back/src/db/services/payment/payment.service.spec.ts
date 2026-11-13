@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { testService } from '../../../../test/feature-services';
 import { UserOrderRepository } from '../order/repositories/user-order.repository';
 import { PaymentService } from './payment.service';
+import { PaymentCompletionService } from './payment-completion.service';
 import { MockPaymentProvider } from './providers/mock-payment.provider';
 import { PaymentRepository } from './repositories/payment.repository';
 import { PAYMENT_PROVIDER, ProviderPaymentStatus } from './types/payment-provider';
@@ -24,6 +25,7 @@ describe('PaymentService', () => {
         lockOwner: jest.fn(),
         lockForPayment: jest.fn(),
         databaseTime: jest.fn(),
+        findPlacedOrder: jest.fn(),
     };
 
     const payments = {
@@ -61,6 +63,7 @@ describe('PaymentService', () => {
             id === order.id && userId === order.user.id && order.state === ModelState.ACTIVE ? order : null,
         );
         orders.databaseTime.mockResolvedValue(now);
+        orders.findPlacedOrder.mockImplementation(async () => order);
         payments.findByKey.mockImplementation(async (key) => rows
             .find((row) => row.idempotencyKey === key) ?? null);
         payments.findBlocking.mockImplementation(
@@ -101,6 +104,7 @@ describe('PaymentService', () => {
         });
 
         service = await testService(PaymentService, [
+            { provide: PaymentCompletionService, useValue: { completeOrder: jest.fn() } },
             {
                 provide: DataSource,
                 useValue: { transaction: async (work) => work({}) },

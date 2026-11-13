@@ -12,7 +12,7 @@ import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { BASE_PATH_DEFAULT, CLIENT_CONTEXT_TOKEN_DEFAULT } from "../tokens";
 import { HttpParamsBuilder } from "../utils/http-params-builder";
-import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderSummaryDto, UserOrdersPageDto, UserOrderDetailsDto, CreatePaymentDto, PaymentAttemptDto } from "../models";
+import { CheckoutInputDto, RequestOptions, CheckoutOrderDto, CartDto, InputShortOrderPatternDto, NumberEntityDto, UserOrderSummaryDto, UserOrdersPageDto, UserOrderDetailsDto, PaymentStateDto, CreatePaymentDto, PaymentAttemptDto } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class ApiOrdersProducer {
@@ -306,6 +306,32 @@ export class ApiOrdersProducer {
     userOrdersControllerGetOrder(id: number, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<UserOrderDetailsDto>>;
     userOrdersControllerGetOrder(id: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
         const url = `${this.basePath}/api/orders/${id}`;
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('get', url, {
+            observe,
+            headers,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
+    paymentsControllerGetPaymentState(id: number, observe?: 'body', options?: RequestOptions<'json'>): Observable<PaymentStateDto>;
+    paymentsControllerGetPaymentState(id: number, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<PaymentStateDto>>;
+    paymentsControllerGetPaymentState(id: number, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<PaymentStateDto>>;
+    paymentsControllerGetPaymentState(id: number, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/orders/${id}/payment-state`;
 
         let headers: HttpHeaders;
         if (options?.headers instanceof HttpHeaders) {

@@ -17,6 +17,7 @@ export enum PaymentStatus {
     schema: 'users',
 })
 @Index('idx_payment_order', ['orderId'])
+@Index('idx_payment_reconciliation', ['nextCheckAt'], { where: '"provider" <> \'legacy\'' })
 @Index('uq_payment_idempotency', ['idempotencyKey'], { unique: true })
 @Index('uq_payment_external', ['provider', 'externalId'], {
     unique: true,
@@ -29,6 +30,8 @@ export enum PaymentStatus {
 @Check('chk_payment_status', "\"status\" IS NULL OR \"status\" IN ('PENDING', 'SUCCEEDED', 'FAILED', 'CANCELLED')")
 @Check('chk_payment_amount', '"amount" IS NULL OR ("amount" > 0 AND "amount" <= 9007199254740991)')
 @Check('chk_payment_currency', '"currency" IS NULL OR "currency" IN (\'RUB\', \'USD\')')
+@Check('chk_payment_resolution', '"resolution" IS NULL OR ("status" = \'SUCCEEDED\' AND "resolution" IN (\'completed\', \'compensation_required\'))')
+@Check('chk_payment_check_failures', '"check_failures" >= 0')
 @Check(
     'chk_payment_capture',
     '"provider" = \'legacy\' OR (("status" = \'SUCCEEDED\' AND "paid_at" IS NOT NULL) OR ("status" <> \'SUCCEEDED\' AND "paid_at" IS NULL))',
@@ -38,6 +41,15 @@ export enum PaymentStatus {
     '"provider" = \'legacy\' OR ("order_id" IS NOT NULL AND "status" IS NOT NULL AND "amount" IS NOT NULL AND "currency" IS NOT NULL AND "idempotency_key" IS NOT NULL)',
 )
 export class UserPaymentEntity extends BaseModel {
+    @Column({ name: 'resolution', type: 'varchar', length: 40, nullable: true })
+    public resolution: 'completed' | 'compensation_required' | null;
+
+    @Column({ name: 'next_check_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+    public nextCheckAt: Date;
+
+    @Column({ name: 'check_failures', type: 'integer', default: 0 })
+    public checkFailures: number;
+
     // Историческая двуязычная цена сохраняется исключительно для аудита.
     @OneToOne(() => NumberLangEntity, {
         onDelete: 'SET NULL',

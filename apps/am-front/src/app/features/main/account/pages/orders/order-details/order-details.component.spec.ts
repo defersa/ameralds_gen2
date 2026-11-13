@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
@@ -8,16 +8,20 @@ import { ApiOrdersProducer, EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDt
 import { UserOrdersService } from '@am-front/services/user-orders.service';
 import { AuthService } from '@am-front/services/auth.service';
 import { CategoriesService } from '@am-front/services/categories.service';
+import { PurchaseSyncService } from '@am-front/services/purchase-sync.service';
 import { OrderDetailsComponent } from './order-details.component';
 
 
 describe('personal order page', () => {
     const authenticated = signal(true);
+    const accessToken = signal('test-access');
     const getOrder = jest.fn();
     const cancelOrder = jest.fn();
     const createPayment = jest.fn();
     const redirect = jest.fn();
-    const auth = { auth: authenticated, sessionRevision: 0 };
+    const getState = jest.fn();
+    const purchaseConfirmed = jest.fn();
+    const auth = { auth: authenticated, token: accessToken, sessionRevision: 0 };
     let routeParams: BehaviorSubject<ParamMap>;
 
     const cancelled = {
@@ -69,17 +73,23 @@ describe('personal order page', () => {
 
     beforeEach(() => {
         authenticated.set(true);
+        accessToken.set('test-access');
         auth.sessionRevision = 0;
         routeParams = new BehaviorSubject(convertToParamMap({ id: '17' }));
         jest.clearAllMocks();
         getOrder.mockReturnValue(of(stored));
         cancelOrder.mockReturnValue(of(cancelled));
         createPayment.mockReturnValue(of(attempt));
+        getState.mockReturnValue(of({
+            orderId: 17, orderStatus: EnumOrderStatus.PendingPayment, paymentStatus: EnumPaymentStatus.PENDING,
+            resolution: null, checkedAt: new Date(), verificationUnavailable: false,
+        }));
         TestBed.configureTestingModule({ imports: [OrderDetailsComponent], providers: [
             provideRouter([]),
             { provide: ActivatedRoute, useValue: { paramMap: routeParams } },
             { provide: AuthService, useValue: auth },
-            { provide: ApiOrdersProducer, useValue: { userOrdersControllerGetOrder: getOrder, userOrdersControllerCancelOrder: cancelOrder, paymentsControllerCreatePayment: createPayment } },
+            { provide: PurchaseSyncService, useValue: { purchaseConfirmed } },
+            { provide: ApiOrdersProducer, useValue: { userOrdersControllerGetOrder: getOrder, userOrdersControllerCancelOrder: cancelOrder, paymentsControllerCreatePayment: createPayment, paymentsControllerGetPaymentState: getState } },
             { provide: CategoriesService, useValue: { categoriesById: signal({ 4: { value: 4, label: 'Природа' } }) } },
         ] });
         jest.spyOn(TestBed.inject(UserOrdersService), 'redirectToPayment').mockImplementation(redirect);
@@ -381,5 +391,99 @@ describe('personal order page', () => {
         expect(fixture.componentInstance.order()?.status).toBe(EnumOrderStatus.PendingPayment);
         expect(fixture.nativeElement.textContent).toContain('Ожидается подтверждение заказа');
     });
+
+    it('shows success only from the backend and refreshes purchases once', () => {
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        getState.mockReturnValue(of({
+            orderId: 17, orderStatus: EnumOrderStatus.Success, paymentStatus: EnumPaymentStatus.SUCCEEDED,
+            resolution: 'completed', checkedAt: new Date(), verificationUnavailable: false,
+        }));
+        fixture.componentInstance.checkPayment();
+        fixture.componentInstance.checkPayment();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Оплата подтверждена');
+        expect(fixture.nativeElement.querySelector('button[color="primary"]')).toBeNull();
+        expect(purchaseConfirmed).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves uncertainty on provider failure and can check again', () => {
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        getState.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 503 })));
+        fixture.componentInstance.checkPayment();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Пока не удалось проверить оплату');
+        expect(purchaseConfirmed).not.toHaveBeenCalled();
+        fixture.componentInstance.checkPayment();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Ожидаем подтверждение');
+    });
+
+    it('shows a late capture incident without granting success', () => {
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        getState.mockReturnValue(of({
+            orderId: 17, orderStatus: EnumOrderStatus.Cancel, paymentStatus: EnumPaymentStatus.SUCCEEDED,
+            resolution: 'compensation_required', checkedAt: new Date(), verificationUnavailable: false,
+        }));
+        fixture.componentInstance.checkPayment();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Оплата сохранена для проверки');
+        expect(fixture.nativeElement.textContent).not.toContain('Оплата подтверждена');
+        expect(purchaseConfirmed).not.toHaveBeenCalled();
+    });
+
+    it('ignores a status response after logout', () => {
+        const response = new Subject();
+
+        getState.mockReturnValue(response);
+
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        fixture.componentInstance.checkPayment();
+        authenticated.set(false);
+        auth.sessionRevision++;
+        fixture.detectChanges();
+        response.next({ orderId: 17, orderStatus: EnumOrderStatus.Success });
+        expect(fixture.componentInstance.order()).toBeNull();
+        expect(purchaseConfirmed).not.toHaveBeenCalled();
+    });
+
+    it('polls the backend for two minutes and never takes success from return parameters', fakeAsync(() => {
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        tick(120_000);
+        expect(getState).toHaveBeenCalledTimes(24);
+        expect(purchaseConfirmed).not.toHaveBeenCalled();
+        expect(fixture.componentInstance.order()?.status).toBe(EnumOrderStatus.PendingPayment);
+        tick(30_000);
+        expect(getState).toHaveBeenCalledTimes(24);
+        fixture.destroy();
+    }));
+
+    it('ignores an automatic status response after switching accounts without an intermediate logout', fakeAsync(() => {
+        const response = new Subject();
+
+        getState.mockReturnValue(response);
+
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        tick(0);
+        auth.sessionRevision++;
+        accessToken.set('another-account');
+        getOrder.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 400 })));
+        response.next({ orderId: 17, orderStatus: EnumOrderStatus.Success, resolution: 'completed' });
+        fixture.detectChanges();
+        expect(fixture.componentInstance.order()).toBeNull();
+        expect(purchaseConfirmed).not.toHaveBeenCalled();
+        fixture.destroy();
+    }));
 
 });

@@ -12,6 +12,7 @@ import { DataSource, IsNull } from 'typeorm';
 import { PaymentAttempts1794000000000 } from '../../../../database/migrations/1794000000000-payment-attempts';
 import { UserOrderRepository } from '../order/repositories/user-order.repository';
 import { PaymentService } from './payment.service';
+import { PaymentCompletionService } from './payment-completion.service';
 import { MockPaymentProvider } from './providers/mock-payment.provider';
 import { PaymentRepository } from './repositories/payment.repository';
 import { PAYMENT_PROVIDER, ProviderPaymentStatus } from './types/payment-provider';
@@ -100,6 +101,7 @@ postgres('payment migration, idempotency and concurrency on PostgreSQL', () => {
         module = await Test.createTestingModule({
             providers: [
                 PaymentService,
+                { provide: PaymentCompletionService, useValue: { completeOrder: jest.fn() } },
                 PaymentRepository,
                 UserOrderRepository,
                 {
@@ -287,6 +289,7 @@ postgres('payment migration, idempotency and concurrency on PostgreSQL', () => {
                 NODE_ENV: 'test',
                 SITE_URL: 'https://shop.example.test',
             }),
+            module.get(PaymentCompletionService),
         );
         const retried = await restarted.createPayment(user.id, order.id, key);
 

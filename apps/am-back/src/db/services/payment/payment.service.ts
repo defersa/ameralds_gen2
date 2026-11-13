@@ -8,6 +8,7 @@ import { DataSource, QueryFailedError } from 'typeorm';
 import { UserOrderRepository } from '../order/repositories/user-order.repository';
 import { invalidPayment, paymentConflict, paymentUnavailable } from './errors/payment-errors';
 import { PaymentRepository } from './repositories/payment.repository';
+import { PaymentCompletionService } from './payment-completion.service';
 import {
     PAYMENT_PROVIDER,
     ProviderPaymentStatus,
@@ -25,11 +26,12 @@ export class PaymentService {
         private readonly payments: PaymentRepository,
         @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
         private readonly config: ConfigService,
+        private readonly completion: PaymentCompletionService,
     ) {}
 
     /**
      * Создаёт либо восстанавливает попытку владельца с серверной суммой. Резерв коммитится до внешнего запроса;
-     * таймаут оставляет прежний ключ и PENDING. Финансовый результат не выдаёт права и не завершает заказ (AMS-12).
+     * таймаут оставляет прежний ключ и PENDING. Проверенное списание атомарно завершает покупку и выдаёт права.
      */
     public async createPayment(userId: number, orderId: number, key: string): Promise<PaymentAttemptDto> {
         if (this.provider.name === 'mock' && !['dev', 'test']
@@ -54,17 +56,22 @@ export class PaymentService {
                 const order = await this.orders.lockForPayment(orderId, userId, manager);
                 const now = await this.orders.databaseTime(manager);
 
-                this.validateOrder(order, now);
-
                 const previous = await this.payments.findByKey(key, manager);
 
                 if (previous) {
-                    if (previous.orderId !== order.id || previous.provider !== this.provider.name) {
+                    if (!order || previous.orderId !== order.id || previous.provider !== this.provider.name) {
                         paymentConflict();
+                    }
+
+                    // Повтор после потери успешного ответа возвращает покупку; отменённый резерв не запускает новую внешнюю оплату.
+                    if (previous.resolution !== 'completed') {
+                        this.validateOrder(order, now);
                     }
 
                     return previous;
                 }
+
+                this.validateOrder(order, now);
 
                 const active = await this.payments.findBlocking(order.id, manager);
 
@@ -131,49 +138,82 @@ export class PaymentService {
             paymentUnavailable();
         }
 
-        const saved = await this.source.transaction(async (manager) => {
+        const saved = await this.processPaymentResult(userId, orderId, payment.id, result);
+
+        // После коммита инцидента не выдаём ссылку на отменённый заказ; успешная покупка возвращается идемпотентно.
+        if (saved.resolution === 'compensation_required') {
+            invalidPayment();
+        }
+
+        if (saved.resolution !== 'completed') {
+            this.validateOrder(await this.orders.findPlacedOrder(userId, orderId), saved.checkedAt ?? new Date());
+        }
+
+        return this.toDto(saved);
+    }
+
+    /**
+     * Единый вход проверенных результатов create/API/webhook/reconciliation. Сериализует пользователя,
+     * затем заказ и платёж; финансовый статус, права, отмена других заказов и outbox коммитятся вместе.
+     * Неподтверждённые HTTP payload сюда не передаются: адаптер предварительно читает API провайдера.
+     */
+    public async processPaymentResult(
+        userId: number, orderId: number, paymentId: number, result: ProviderPayment,
+    ): Promise<UserPaymentEntity> {
+        return this.source.transaction(async (manager) => {
             await this.orders.lockOwner(userId, manager);
             // Сохраняем финансовый аудит даже при отмене/истечении заказа во время внешнего вызова.
-            const order = await this.orders.lockForPayment(orderId, userId, manager);
+            const order = await this.orders.lockForPayment(orderId, userId, manager, true);
 
-            const current = await this.payments.lock(payment.id, manager);
+            const current = await this.payments.lock(paymentId, manager);
             const now = await this.orders.databaseTime(manager);
+
+            if (!order || current.orderId !== order.id || current.provider !== this.provider.name ||
+                current.amount !== order.totalAmount || current.currency !== order.currency) {
+                invalidPayment();
+            }
 
             this.validateResult(current, result);
 
-            if (current.status !== PaymentStatus.PENDING) {
-                return {
-                    payment: current,
-                    order,
-                    now,
-                };
+            if (current.status !== PaymentStatus.PENDING && result.status !== ProviderPaymentStatus.SUCCEEDED) {
+                current.checkedAt = now;
+                current.nextCheckAt = new Date(now.getTime() + this.checkInterval(false));
+                current.errorCode = null;
+                current.checkFailures = 0;
+
+                return this.payments.saveResult(current, manager);
+            }
+
+            if (current.status === PaymentStatus.SUCCEEDED && current.resolution) {
+                return current;
             }
 
             current.externalId = result.externalId;
             current.providerStatus = result.status;
             current.checkedAt = now;
+            current.checkFailures = 0;
             current.errorCode = null;
             current.confirmationUrl = result.confirmationUrl;
             current.status = this.normalizeStatus(result);
+            current.nextCheckAt = new Date(now.getTime() + this.checkInterval(current.status === PaymentStatus.PENDING));
             current.paidAt = current.status === PaymentStatus.SUCCEEDED ? result.paidAt : null;
 
             if (current.status !== PaymentStatus.PENDING) {
                 current.confirmationUrl = null;
             }
 
-            const updated = await this.payments.saveResult(current, manager);
+            await this.completion.completeOrder(userId, order, current, manager, now);
 
-            return {
-                payment: updated,
-                order,
-                now,
-            };
+            return this.payments.saveResult(current, manager);
         });
+    }
 
-        // Ошибку отменённого заказа выдаём после коммита финансового аудита, не откатывая результат провайдера.
-        this.validateOrder(saved.order, saved.now);
+    /** Задаёт минимальную паузу успешных проверок в миллисекундах; серверный cron запускается раз в минуту. */
+    private checkInterval(pending: boolean): number {
+        const seconds = Number(this.config.get<string>(pending ? 'PAYMENT_RECHECK_SECONDS' : 'PAYMENT_TERMINAL_RECHECK_SECONDS'));
+        const fallback = pending ? 5 : 3600;
 
-        return this.toDto(saved.payment);
+        return (Number.isInteger(seconds) && seconds > 0 ? Math.min(seconds, 86_400) : fallback) * 1000;
     }
 
     /** Проверяет владельца через результат репозитория, статус, источник, срок и безопасную положительную сумму. */

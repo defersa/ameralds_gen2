@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { DbSharedModule } from "../../db/db-shared.module";
 import { LocalCartController, OrdersController, UserOrdersController } from "./orders.controller";
 import { PaymentsController } from './payments.controller';
+import { PaymentWebhookController } from './payment-webhook.controller';
 
 
 @Module({
@@ -15,6 +16,7 @@ import { PaymentsController } from './payments.controller';
         LocalCartController,
         UserOrdersController,
         PaymentsController,
+        PaymentWebhookController,
     ],
 })
 export class OrdersModule {}

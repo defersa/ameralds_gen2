@@ -71,10 +71,20 @@ export class UserCartService extends AbstractCartService {
 
     /** Получает серверный состав для явного подтверждения после конфликта или перехода к новой корзине. */
     public refreshCart(): Observable<CartDto> {
-        return defer(() => this.authService.auth()
-            ? this.orderProducer.ordersControllerCart()
-                .pipe(tap((cart) => this.updateCartAndPrice(cart)))
-            : EMPTY);
+        return defer(() => {
+            const revision = this.authService.sessionRevision;
+
+            if (!this.authService.auth()) {
+                return EMPTY;
+            }
+
+            return this.orderProducer.ordersControllerCart()
+                .pipe(tap((cart) => {
+                    if (this.authService.auth() && revision === this.authService.sessionRevision) {
+                        this.updateCartAndPrice(cart);
+                    }
+                }));
+        });
     }
 
     /** Отправляет выбор на сервер и принимает нормализованную корзину; без входа запрос не выполняется. */

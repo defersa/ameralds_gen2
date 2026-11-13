@@ -633,16 +633,26 @@ export interface UserOrderDetailsDto {
     patterns: Array<PurchasedOrderPatternDto>;
 }
 
-export interface CreatePaymentDto {
-    /** UUID одной попытки; сохраняйте при сетевых ошибках. Новый ключ нужен только после FAILED/CANCELLED. */
-    idempotencyKey: string;
-}
-
 export enum EnumPaymentStatus {
     PENDING = "PENDING",
     SUCCEEDED = "SUCCEEDED",
     FAILED = "FAILED",
     CANCELLED = "CANCELLED"
+}
+
+export interface PaymentStateDto {
+    orderId: number;
+    orderStatus: EnumOrderStatus;
+    paymentStatus: EnumPaymentStatus | null;
+    resolution: 'completed' | 'compensation_required' | null;
+    checkedAt: Date | null;
+    /** API провайдера временно недоступен; успех не подтверждён. */
+    verificationUnavailable: boolean;
+}
+
+export interface CreatePaymentDto {
+    /** UUID одной попытки; сохраняйте при сетевых ошибках. Новый ключ нужен только после FAILED/CANCELLED. */
+    idempotencyKey: string;
 }
 
 export interface PaymentAttemptDto {

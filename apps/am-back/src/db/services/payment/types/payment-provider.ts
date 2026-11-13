@@ -4,6 +4,7 @@ import type { OrderCurrency } from '@am-back/db/entities/purchases/order-snapsho
 export const PAYMENT_PROVIDER = Symbol('PAYMENT_PROVIDER');
 
 export enum ProviderPaymentStatus {
+    UNKNOWN = 'unknown',
     PENDING = 'pending',
     AUTHORIZED = 'authorized',
     SUCCEEDED = 'succeeded',
@@ -44,6 +45,9 @@ export interface ProviderRefund {
 
 export interface PaymentProvider {
     readonly name: string;
+
+    /** Проверяет подлинность уведомления по правилам адаптера и возвращает только ID для чтения API; без адаптера webhook запрещён. */
+    verifyWebhook?(payload: unknown, signature: string | undefined): Promise<string>;
 
     /** Создаёт либо возвращает прежний платёж; ключ обязан переживать таймауты и перезапуски приложения. */
     createPayment(input: CreateProviderPayment): Promise<ProviderPayment>;

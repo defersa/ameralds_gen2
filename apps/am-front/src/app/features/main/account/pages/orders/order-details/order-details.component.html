@@ -67,6 +67,36 @@
                 }
             </div>
 
+            @if (paymentState()?.resolution === 'compensation_required') {
+                <p role="alert">
+                    Списание получено по заказу, который нельзя завершить. Оплата сохранена для проверки службой поддержки. Повторно оплачивать не нужно.
+                </p>
+            }
+
+            @else if (paymentState()?.orderStatus === 'success') {
+                <p role="status">
+                    Оплата подтверждена. Купленные материалы доступны в личном кабинете.
+                </p>
+            }
+
+            @else if (stateRequest.errors() || paymentState()?.verificationUnavailable) {
+                <p role="alert">
+                    Пока не удалось проверить оплату. Если деньги списаны, дождитесь подтверждения и не создавайте новую оплату.
+                </p>
+            }
+
+            @else if (paymentState()?.paymentStatus === paymentStatuses.PENDING) {
+                <p role="status">
+                    Ожидаем подтверждение платёжного сервиса. Возврат на эту страницу сам по себе не подтверждает оплату.
+                </p>
+            }
+
+            @else if (paymentState()?.paymentStatus === paymentStatuses.FAILED || paymentState()?.paymentStatus === paymentStatuses.CANCELLED) {
+                <p role="status">
+                    Платёж не завершён. Проверьте состояние перед повторной оплатой.
+                </p>
+            }
+
             @if (details.status === pendingStatus) {
                 <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3" aria-live="polite">
                     <p class="!m-0 text-xs leading-4">
@@ -94,7 +124,7 @@
                                 type="button"
                                 color="primary"
                                 size="medium"
-                                [disabled]="paymentRequest.loading() || cancelRequest.loading() || payment()?.status === paymentStatuses.SUCCEEDED"
+                                [disabled]="paymentRequest.loading() || cancelRequest.loading() || paymentCaptured()"
                                 (click)="pay()">
                             {{ paymentRequest.loading() ? 'Подготавливаем…' : 'Оплатить' }}
                         </button>
@@ -127,9 +157,19 @@
 
                 @if (payment()?.status === paymentStatuses.PENDING && !payment()?.confirmationUrl) {
                     <p class="amstore-text-caption !m-0" role="status">
-                        Платёж обрабатывается. Проверка статуса доступна при повторном нажатии «Оплатить».
+                        Платёж обрабатывается. Ожидайте подтверждения или нажмите «Проверить оплату».
                     </p>
                 }
+            }
+
+            @if (details.status === pendingStatus || stateRequest.errors()) {
+                <button amstore-button
+                        type="button"
+                        [stroked]="true"
+                        [disabled]="stateRequest.loading()"
+                        (click)="checkPayment()">
+                    {{ stateRequest.loading() ? 'Проверяем…' : 'Проверить оплату' }}
+                </button>
             }
         </div>
 

@@ -24,6 +24,7 @@ import { AuthEmailRequestEntity } from './entities/tokens/auth-email-request.ent
 import { AuthEmailLimitEntity } from './entities/tokens/auth-email-limit.entity';
 import { AppSettingEntity } from './entities/app-setting.entity';
 import { PasswordResetLinkEntity } from './entities/tokens/password-reset-link.entity';
+import { PaymentEffectEntity } from './entities/purchases/payment-effect.entity';
 
 
 @Module({
@@ -66,6 +67,7 @@ import { PasswordResetLinkEntity } from './entities/tokens/password-reset-link.e
                 UserOrderEntity,
                 UserPaymentEntity,
                 PaymentRequestEntity,
+                PaymentEffectEntity,
             ],
             // logging: true,
         }),

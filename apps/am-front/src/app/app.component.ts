@@ -1,4 +1,5 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, inject, ViewEncapsulation } from '@angular/core';
+import { PurchaseSyncService } from '@am-front/services/purchase-sync.service';
 import { RouterOutlet } from '@angular/router';
 import { CartBadgeComponent } from '@am-front/core/cart-badge/cart-badge.component';
 import { HeaderComponent } from '@am-front/core/header/header.component';
@@ -23,4 +24,9 @@ import { ProfileComponent } from '@am-front/core/profile/profile.component';
 })
 export class AppComponent {
     public date: Date = new Date();
+
+    /** Подключает события покупки и возврата во вкладку для обновления корзины и прав без фонового опроса. */
+    constructor() {
+        inject(PurchaseSyncService);
+    }
 }

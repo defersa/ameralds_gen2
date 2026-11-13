@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { UnauthorizedException } from '@nestjs/common';
 import { paymentUnavailable } from '../errors/payment-errors';
 import {
     ProviderPaymentStatus,
@@ -36,6 +37,44 @@ export class MockPaymentProvider implements PaymentProvider {
 
         this.scenarios
             .push(scenario);
+    }
+
+    /** Меняет состояние существующей попытки только из теста; HTTP-управления и реального списания нет. */
+    public async setResult(externalId: string, status: ProviderPaymentStatus): Promise<void> {
+        if (this.config.get<string>('NODE_ENV') !== 'test') {
+            throw new Error('Mock controls are available only in tests');
+        }
+
+        const payment = await this.getPayment(externalId);
+
+        this.payments.set(externalId, {
+            ...payment,
+            status,
+            captured: status === ProviderPaymentStatus.SUCCEEDED,
+            paidAt: status === ProviderPaymentStatus.SUCCEEDED ? new Date() : null,
+            confirmationUrl: status === ProviderPaymentStatus.PENDING ? payment.confirmationUrl : null,
+        });
+    }
+
+    /** Проверяет HMAC-SHA256 внешнего ID в dev/test; статус payload игнорируется и перечитывается через getPayment. */
+    public async verifyWebhook(payload: unknown, signature: string | undefined): Promise<string> {
+        this.ensureEnabled();
+
+        const secret = this.config.get<string>('PAYMENT_MOCK_WEBHOOK_SECRET');
+
+        if (!secret || typeof payload !== 'object' || payload === null || !('externalId' in payload) ||
+            typeof payload.externalId !== 'string' || payload.externalId.length > 255 ||
+            !signature || !/^[a-f0-9]{64}$/i.test(signature)) {
+            throw new UnauthorizedException();
+        }
+
+        const expected = createHmac('sha256', secret).update(payload.externalId).digest();
+
+        if (!timingSafeEqual(expected, Buffer.from(signature, 'hex'))) {
+            throw new UnauthorizedException();
+        }
+
+        return payload.externalId;
     }
 
     /** Возвращает детерминированный mock-платёж по ключу, без списания; повтор не расходует новый сценарий. */

@@ -17,6 +17,7 @@ export class ProfileService {
     private profileRequest: Observable<UserProfileDto | null> | null = null;
     private loadedToken: string | null = null;
     private profileToken = signal<string | null>(null);
+    private profileRevision = 0;
 
     public user$ = new BehaviorSubject<UserProfileDto | null>(null);
     public readonly userStatus = signal<EnumUserRole | null>(null);
@@ -42,24 +43,30 @@ export class ProfileService {
         this.boughtPatterns.set(profile?.ownPatterns ?? []);
     }
 
-    public loadProfile(): Observable<UserProfileDto | null> {
+    /** Загружает профиль; force перечитывает права после покупки, устаревшие ответы не заменяют свежую версию. */
+    public loadProfile(force = false): Observable<UserProfileDto | null> {
         const token = this.authService.token();
         if (!this.authService.auth()) {
             this.setProfile(null);
             return of(null);
         }
-        if (this.profileToken() === token && this.user$.value) {
+        if (!force && this.profileToken() === token && this.user$.value) {
             return of(this.user$.value);
         }
-        if (this.profileRequest && this.loadedToken === token) {
+        if (!force && this.profileRequest && this.loadedToken === token) {
             return this.profileRequest;
         }
-        this.setProfile(null);
+        if (!force) {
+            this.setProfile(null);
+        }
+
+        const revision = ++this.profileRevision;
+
         this.loadedToken = token;
         const request = this.userService.userControllerProfile().pipe(
             catchError(() => of(null)),
             tap(profile => {
-                if (this.authService.token() === token) {
+                if (this.authService.token() === token && this.profileRevision === revision) {
                     this.setProfile(profile);
                 }
             }),

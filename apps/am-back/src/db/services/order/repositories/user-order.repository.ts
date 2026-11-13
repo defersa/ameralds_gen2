@@ -229,15 +229,16 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 
 	/**
 	 * Блокирует строку активного заказа указанного владельца для изменения окна оплаты или отмены и читает
-	 * идентификатор административного источника; требует активную транзакцию.
+	 * идентификатор административного источника; требует активную транзакцию. includeInactive разрешён только
+	 * внутренней сверке для сохранения списания по неактивному заказу как финансового инцидента.
 	 */
-	public lockForPayment(orderId: number, userId: number, manager: EntityManager): Promise<UserOrderEntity | null> {
+	public lockForPayment(orderId: number, userId: number, manager: EntityManager, includeInactive = false): Promise<UserOrderEntity | null> {
 		// Блокируем активный заказ владельца в транзакции; источник загружаем только как идентификатор, без JOIN.
 		return this.using(manager).findOne({
 			where: {
 				id: orderId,
 				user: { id: userId },
-				state: ModelState.ACTIVE,
+				...(includeInactive ? {} : { state: ModelState.ACTIVE }),
 			},
 			lock: { mode: "pessimistic_write" },
 			loadRelationIds: {

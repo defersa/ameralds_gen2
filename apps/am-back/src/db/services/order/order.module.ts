@@ -17,12 +17,22 @@ import { PaymentService } from '../payment/payment.service';
 import { PaymentRepository } from '../payment/repositories/payment.repository';
 import { MockPaymentProvider } from '../payment/providers/mock-payment.provider';
 import { PAYMENT_PROVIDER } from '../payment/types/payment-provider';
+import { PaymentCompletionService } from '../payment/payment-completion.service';
+import { PaymentVerificationService } from '../payment/payment-verification.service';
+import { PaymentEffectsService } from '../payment/payment-effects.service';
+import { PaymentCompletionRepository } from '../payment/repositories/payment-completion.repository';
+import { PaymentEffectRepository } from '../payment/repositories/payment-effect.repository';
 
 
 @Module({
 	imports: [DbInfrastructureModule, AppSettingsDomainModule],
 	providers: [
 		PaymentService,
+		PaymentCompletionService,
+		PaymentVerificationService,
+		PaymentEffectsService,
+		PaymentCompletionRepository,
+		PaymentEffectRepository,
 		PaymentRepository,
 		{ provide: PAYMENT_PROVIDER, useClass: MockPaymentProvider },
 		UserCartService,
@@ -40,6 +50,7 @@ import { PAYMENT_PROVIDER } from '../payment/types/payment-provider';
 	],
 	exports: [
 		PaymentService,
+		PaymentVerificationService,
 		UserCartService,
 		AdminCartService,
 		UserOrderService,

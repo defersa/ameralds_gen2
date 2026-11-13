@@ -2,10 +2,11 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { combineLatest, EMPTY, Subject, switchMap, takeUntil } from 'rxjs';
+import { combineLatest, EMPTY, exhaustMap, filter, Subject, switchMap, take, takeUntil, tap, timer } from 'rxjs';
 import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
 import { IconsComponent } from '@am-front/cdk/icons/icons.component';
-import { EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, UserOrderDetailsDto } from '@am-front/root/api-v2';
+import { EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, PaymentStateDto, UserOrderDetailsDto } from '@am-front/root/api-v2';
+import { PurchaseSyncService } from '@am-front/services/purchase-sync.service';
 import { AuthService } from '@am-front/services/auth.service';
 import { UserOrdersService } from '@am-front/services/user-orders.service';
 import { PatternOrderPreviewComponent } from '@am-front/shared/details/pattern-order-preview/pattern-order-preview.component';
@@ -24,6 +25,7 @@ export class OrderDetailsComponent {
     private readonly orders = inject(UserOrdersService);
     private readonly auth = inject(AuthService);
     private readonly route = inject(ActivatedRoute);
+    private readonly purchaseSync = inject(PurchaseSyncService);
     private readonly contextChanged$ = new Subject<void>();
     private paymentKey: string | null = null;
 
@@ -36,9 +38,17 @@ export class OrderDetailsComponent {
     public readonly paymentRequest = createRequestWrapper<typeof this.orders.createPayment>(this.orders.createPayment.bind(this.orders));
     public readonly payment = signal<PaymentAttemptDto | null>(null);
     public readonly paymentStatuses = EnumPaymentStatus;
+    public readonly paymentState = signal<PaymentStateDto | null>(null);
+
+    public readonly stateRequest = createRequestWrapper<typeof this.orders.getPaymentState>(
+        this.orders.getPaymentState.bind(this.orders),
+    );
 
     public readonly order = signal<UserOrderDetailsDto | null>(null);
     public readonly pendingStatus = EnumOrderStatus.PendingPayment;
+
+    public readonly paymentCaptured = computed(() => this.payment()?.status === EnumPaymentStatus.SUCCEEDED ||
+        this.paymentState()?.paymentStatus === EnumPaymentStatus.SUCCEEDED);
 
     public readonly status = computed(() => {
         const order = this.order();
@@ -48,7 +58,7 @@ export class OrderDetailsComponent {
 
     /** Загружает собственный заказ; при смене маршрута/авторизации очищает попытку и отменяет устаревшие подписки. */
     constructor() {
-        combineLatest([this.route.paramMap, toObservable(this.auth.auth)])
+        combineLatest([this.route.paramMap, toObservable(this.auth.auth), toObservable(this.auth.token)])
             .pipe(
                 switchMap(([params, authenticated]) => {
                     this.contextChanged$.next();
@@ -56,6 +66,8 @@ export class OrderDetailsComponent {
                     this.paymentRequest.clear();
                     this.payment.set(null);
                     this.paymentKey = null;
+                    this.paymentState.set(null);
+                    this.stateRequest.clear();
                     this.order.set(null);
                     this.load.clear();
 
@@ -63,11 +75,66 @@ export class OrderDetailsComponent {
                         return EMPTY;
                     }
 
-                    return this.load.request(Number(params.get('id')));
+                    const revision = this.auth.sessionRevision;
+
+                    return this.load.request(Number(params.get('id')))
+                        .pipe(
+                            filter(() => this.auth.auth() && revision === this.auth.sessionRevision),
+                            tap((order) => this.order.set(order)),
+                            switchMap(() => timer(0, 5000)
+                                .pipe(
+                                    take(24),
+                                    exhaustMap((index) => {
+                                        const current = this.order();
+
+                                        if (!current || (index > 0 && current.status !== this.pendingStatus) ||
+                                            this.stateRequest.loading() || this.paymentState()?.resolution) {
+                                            return EMPTY;
+                                        }
+
+                                        return this.stateRequest.request(current.id)
+                                            .pipe(filter(() => this.auth.auth() && revision === this.auth.sessionRevision));
+                                    }),
+                                )),
+                        );
                 }),
                 takeUntilDestroyed(),
             )
-            .subscribe((order) => this.order.set(order));
+            .subscribe((state) => this.acceptPaymentState(state));
+    }
+
+    /** Проверяет результат по явному действию пользователя после ошибки или окончания двухминутного ожидания. */
+    public checkPayment(): void {
+        const order = this.order();
+        const revision = this.auth.sessionRevision;
+
+        if (!order || !this.auth.auth() || this.stateRequest.loading()) {
+            return;
+        }
+
+        this.stateRequest.request(order.id)
+            .pipe(takeUntil(this.contextChanged$))
+            .subscribe((state) => {
+                if (this.auth.auth() && revision === this.auth.sessionRevision) {
+                    this.acceptPaymentState(state);
+                }
+            });
+    }
+
+    /** Принимает только серверный статус текущего заказа; подтверждённая покупка обновляет права и корзину. */
+    private acceptPaymentState(state: PaymentStateDto): void {
+        if (!this.auth.auth() || state.orderId !== this.order()?.id) {
+            return;
+        }
+
+        const wasPaid = this.paymentState()?.orderStatus === EnumOrderStatus.Success;
+
+        this.paymentState.set(state);
+        this.order.update((order) => order ? { ...order, status: state.orderStatus } : order);
+
+        if (state.orderStatus === EnumOrderStatus.Success && !wasPaid) {
+            this.purchaseSync.purchaseConfirmed();
+        }
     }
 
     /** Отменяет ожидающий оплаты заказ, блокируя запрос во время создания платежа; сохраняет отображаемый состав. */
@@ -99,7 +166,7 @@ export class OrderDetailsComponent {
         const sessionRevision = this.auth.sessionRevision;
 
         if (!this.auth.auth() || !order || order.status !== this.pendingStatus || this.paymentRequest.loading() ||
-            this.cancelRequest.loading() || this.payment()?.status === EnumPaymentStatus.SUCCEEDED) {
+            this.cancelRequest.loading() || this.paymentCaptured()) {
             return;
         }
 

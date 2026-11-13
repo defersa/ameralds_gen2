@@ -1,4 +1,5 @@
 import { PaymentService } from '@am-back/db/service/payment/payment.service';
+import { PaymentVerificationService } from '@am-back/db/service/payment/payment-verification.service';
 import { AuthGuard } from '@am-back/core/guards/auth.guard';
 import { type INestApplication, ServiceUnavailableException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -12,11 +13,13 @@ import { PaymentsController } from './payments.controller';
 describe('order payment API', () => {
     let app: INestApplication;
     const createPayment = jest.fn();
+    const getState = jest.fn();
 
     beforeAll(async () => {
         const module = await Test.createTestingModule({
             controllers: [PaymentsController],
             providers: [
+                { provide: PaymentVerificationService, useValue: { getState } },
                 {
                     provide: PaymentService,
                     useValue: { createPayment },
@@ -128,8 +131,17 @@ describe('order payment API', () => {
             new DocumentBuilder().setTitle('payments').setVersion('1').build(),
         );
 
-        expect(Object.keys(schema.paths)).toEqual(['/orders/{id}/payments']);
+        expect(Object.keys(schema.paths)).toEqual(['/orders/{id}/payment-state', '/orders/{id}/payments']);
         expect(schema.paths['/orders/{id}/payments'].post.responses).toHaveProperty('409');
         expect(schema.paths['/orders/{id}/payments'].post.responses).toHaveProperty('503');
+    });
+
+    it('protects state checks and uses the authenticated owner without caching', async () => {
+        await request(app.getHttpServer()).get('/orders/17/payment-state').expect(401);
+        expect(getState).not.toHaveBeenCalled();
+        getState.mockResolvedValue({ orderId: 17, orderStatus: 'pending_payment' });
+        await request(app.getHttpServer()).get('/orders/17/payment-state?userId=999')
+            .set('test-user', '42').expect(200).expect('Cache-Control', 'no-store');
+        expect(getState).toHaveBeenCalledWith(42, 17);
     });
 });
