@@ -8,7 +8,7 @@ import { UserOrderRepository } from '../order/repositories/user-order.repository
 import { invalidPayment, paymentUnavailable } from './errors/payment-errors';
 import { PaymentService } from './payment.service';
 import { PaymentRepository } from './repositories/payment.repository';
-import { PAYMENT_PROVIDER, type PaymentProvider, type ProviderPayment } from './types/payment-provider';
+import { PAYMENT_PROVIDER, ProviderPaymentStatus, type PaymentProvider, type ProviderPayment } from './types/payment-provider';
 import { INT32_MAX } from '@ameralds/utils';
 
 
@@ -80,7 +80,10 @@ export class PaymentVerificationService {
         }
     }
 
-    /** Сверяет реальный статус, восстанавливая потерянный ответ create прежним ключом; ошибки сохраняют backoff и аудит. */
+    /**
+     * Сверяет реальный статус и восстанавливает потерянный ответ create прежним ключом; ошибки сохраняют backoff.
+     * Отменяет только незавершённые попытки: уже полученное списание передаётся в общий обработчик без запроса отмены.
+     */
     public async verify(paymentId: number, webhook = false, cancel = false): Promise<boolean> {
         const payment = await this.payments.findForVerification(paymentId);
 
@@ -109,7 +112,9 @@ export class PaymentVerificationService {
                 }));
             }
 
-            if (cancel || payment.order.status === OrderStatus.CANCELLED) {
+            if ((cancel || payment.order.status === OrderStatus.CANCELLED) &&
+                (result.status === ProviderPaymentStatus.PENDING || result.status === ProviderPaymentStatus.AUTHORIZED ||
+                    result.status === ProviderPaymentStatus.UNKNOWN)) {
                 result = await this.bounded(this.provider.cancelPayment(result.externalId));
             }
 

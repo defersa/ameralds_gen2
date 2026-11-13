@@ -69,14 +69,18 @@ export class PaymentRepository extends Repository<UserPaymentEntity> {
         return result.affected === 1;
     }
 
-    /** Выбирает ограниченную порцию сверки, включая неопределённые резервы и недавно отменённые попытки. */
+    /**
+     * Выбирает порцию сверки: незавершённые попытки без ограничения возраста, отказы/отмены — terminalDays суток
+     * после первого конечного результата. При неизвестном времени результата сохраняет попытку в сверке.
+     */
     public dueChecks(provider: string, limit: number, terminalDays: number): Promise<UserPaymentEntity[]> {
-        // Незавершённые платежи проверяем без ограничения возраста; отказ/отмену — в настраиваемом окне поздних списаний.
+        // Окно поздних списаний отсчитываем от конечного результата, независимо от возраста попытки и повторных проверок.
         return this.createQueryBuilder('payment')
             .where('payment.provider = :provider', { provider })
             .andWhere('payment.nextCheckAt <= clock_timestamp()')
             .andWhere(`(payment.status = :pending OR (payment.status = :succeeded AND payment.resolution IS NULL)
-                OR (payment.status IN (:...terminal) AND payment.createdAt > clock_timestamp() - (:days * interval '1 day')))`, {
+                OR (payment.status IN (:...terminal) AND (payment.terminalAt IS NULL
+                    OR payment.terminalAt > clock_timestamp() - (:days * interval '1 day'))))`, {
                 pending: PaymentStatus.PENDING,
                 succeeded: PaymentStatus.SUCCEEDED,
                 terminal: [PaymentStatus.FAILED, PaymentStatus.CANCELLED],
@@ -91,7 +95,7 @@ export class PaymentRepository extends Repository<UserPaymentEntity> {
     public async deferCheck(id: number, failures: number): Promise<void> {
         const delayMs = Math.min(3_600_000, 30_000 * 2 ** Math.min(failures, 7));
 
-        // Не трогаем updatedAt: окно сверки терминальных платежей считается от финансового изменения.
+        // Backoff изменяет только план сверки и ошибку; terminalAt и финансовый результат остаются прежними.
         await this.createQueryBuilder()
             .update()
             .set({

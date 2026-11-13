@@ -19,6 +19,7 @@ import { join } from 'node:path';
 import { DataSource } from 'typeorm';
 import { PaymentAttempts1794000000000 } from '../../../../database/migrations/1794000000000-payment-attempts';
 import { PaymentCompletion1794500000000 } from '../../../../database/migrations/1794500000000-payment-completion';
+import { PaymentTerminalTime1794600000000 } from '../../../../database/migrations/1794600000000-payment-terminal-time';
 import { UserOrderRepository } from '../order/repositories/user-order.repository';
 import { PaymentCompletionService } from './payment-completion.service';
 import { PaymentVerificationService } from './payment-verification.service';
@@ -39,6 +40,7 @@ postgres('payment confirmation and completion on PostgreSQL', () => {
     const database = `ams12_test_${randomUUID().replace(/-/g, '')}`;
     const secret = 'test-webhook-secret';
     const migration = new PaymentCompletion1794500000000();
+    const terminalMigration = new PaymentTerminalTime1794600000000();
     let admin: DataSource;
     let db: DataSource;
     let module: TestingModule;
@@ -68,13 +70,15 @@ postgres('payment confirmation and completion on PostgreSQL', () => {
             entities: [join(__dirname, '../../entities/**/*.entity.ts')],
             extra: { max: 12 },
         }).initialize();
-        // Подготавливаем изолированную схему и устанавливаем реальные триггеры двух платёжных миграций.
+        // Подготавливаем изолированную схему и применяем платёжные миграции с реальными триггерами и временем результата.
         await db.query('CREATE SCHEMA users; CREATE SCHEMA patterns');
         await db.synchronize();
+        await db.transaction((manager) => terminalMigration.down(manager.queryRunner));
         await db.transaction((manager) => migration.down(manager.queryRunner));
         await db.transaction((manager) => new PaymentAttempts1794000000000().down(manager.queryRunner));
         await db.transaction((manager) => new PaymentAttempts1794000000000().up(manager.queryRunner));
         await db.transaction((manager) => migration.up(manager.queryRunner));
+        await db.transaction((manager) => terminalMigration.up(manager.queryRunner));
         await db.getRepository(AppSettingEntity).save({
             version: 1,
             snapshot: {},
@@ -234,6 +238,109 @@ postgres('payment confirmation and completion on PostgreSQL', () => {
             kind: 'compensation_required',
             paymentId: payment.id,
         })).toBe(1);
+    });
+
+    it('commits a captured payment and compensation incident without calling an unavailable cancellation API', async () => {
+        const payment = await attempt(order.id);
+        const cancel = jest.spyOn(provider, 'cancelPayment').mockRejectedValue(new Error('Cancellation unavailable'));
+
+        await db.getRepository(UserOrderEntity).update(order.id, { status: OrderStatus.CANCELLED });
+        await provider.setResult(payment.externalId, ProviderPaymentStatus.SUCCEEDED);
+        await webhook(payment.externalId);
+        await verification.verify(payment.id, false, true);
+
+        expect(cancel).not.toHaveBeenCalled();
+        expect(await payments.findOneByOrFail({ id: payment.id })).toMatchObject({
+            status: PaymentStatus.SUCCEEDED,
+            resolution: 'compensation_required',
+            checkFailures: 0,
+            errorCode: null,
+        });
+        expect((await db.getRepository(UserOrderEntity).findOneByOrFail({ id: order.id })).status).toBe(OrderStatus.CANCELLED);
+        expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id })).toBe(0);
+        expect(await db.getRepository(PaymentEffectEntity).countBy({
+            kind: 'compensation_required',
+            paymentId: payment.id,
+        })).toBe(1);
+    });
+
+    it.each([ProviderPaymentStatus.FAILED, ProviderPaymentStatus.CANCELLED])(
+        'reconciles an old attempt recently marked %s without extending its terminal window', async (status) => {
+            const payment = await attempt(order.id);
+
+            await payments.update(payment.id, { createdAt: new Date(Date.now() - 20 * 86_400_000) });
+            await provider.setResult(payment.externalId, status);
+            await verification.verify(payment.id, true);
+
+            const terminal = await payments.findOneByOrFail({ id: payment.id });
+
+            expect(terminal.terminalAt).toBeInstanceOf(Date);
+            expect(terminal.terminalAt.getTime()).toBeGreaterThan(Date.now() - 10_000);
+            await payments.update(payment.id, { nextCheckAt: new Date(0) });
+            expect((await payments.dueChecks('mock', 500, 7))
+                .some((row) => row.id === payment.id)).toBe(true);
+
+            await verification.verify(payment.id, true);
+            expect((await payments.findOneByOrFail({ id: payment.id })).terminalAt).toEqual(terminal.terminalAt);
+
+            const earlier = new Date(Date.now() - 6 * 86_400_000);
+
+            await payments.update(payment.id, {
+                terminalAt: earlier,
+                nextCheckAt: new Date(0),
+            });
+            jest.spyOn(provider, 'getPayment').mockRejectedValueOnce(new Error('Provider unavailable'));
+            expect(await verification.verify(payment.id, true)).toBe(false);
+            expect((await payments.findOneByOrFail({ id: payment.id })).terminalAt).toEqual(earlier);
+
+            await verification.verify(payment.id, true);
+            expect((await payments.findOneByOrFail({ id: payment.id })).terminalAt).toEqual(earlier);
+            await payments.update(payment.id, {
+                terminalAt: new Date(Date.now() - 7 * 86_400_000),
+                nextCheckAt: new Date(0),
+            });
+            expect((await payments.dueChecks('mock', 500, 7))
+                .some((row) => row.id === payment.id)).toBe(false);
+
+            await payments.update(payment.id, {
+                terminalAt: null,
+                nextCheckAt: new Date(0),
+            });
+            expect((await payments.dueChecks('mock', 500, 7))
+                .some((row) => row.id === payment.id)).toBe(true);
+        },
+    );
+
+    it('backfills terminal times from existing audit timestamps while preserving pending and legacy payments', async () => {
+        const pending = await attempt(order.id);
+        const failedOrder = await pendingOrder();
+
+        provider.enqueueScenario({ status: ProviderPaymentStatus.FAILED });
+
+        const failed = await attempt(failedOrder.id);
+        const cancelledOrder = await pendingOrder();
+
+        provider.enqueueScenario({ status: ProviderPaymentStatus.CANCELLED });
+
+        const cancelled = await attempt(cancelledOrder.id);
+        const legacy = await payments.save({ provider: 'legacy' });
+
+        await db.transaction((manager) => terminalMigration.down(manager.queryRunner));
+        // Имитируем существовавшие до миграции конечные результаты, не изменяя их финансовый статус.
+        await db.query(`UPDATE "users"."user_payment_entity"
+            SET "updatedAt" = CURRENT_TIMESTAMP - interval '2 days' WHERE "id" = ANY($1::int[])`, [[failed.id, cancelled.id]]);
+        // Читаем ожидаемое время в часовом поясе БД, как при переносе из прежнего timestamp в timestamptz.
+        const previous: { id: number; terminal_at: Date }[] = await db.query(`SELECT "id", "updatedAt"::timestamptz AS terminal_at
+            FROM "users"."user_payment_entity" WHERE "id" = ANY($1::int[])`, [[failed.id, cancelled.id]]);
+
+        await db.transaction((manager) => terminalMigration.up(manager.queryRunner));
+
+        for (const row of previous) {
+            expect((await payments.findOneByOrFail({ id: row.id })).terminalAt).toEqual(row.terminal_at);
+        }
+
+        expect((await payments.findOneByOrFail({ id: pending.id })).terminalAt).toBeNull();
+        expect((await payments.findOneByOrFail({ id: legacy.id })).terminalAt).toBeNull();
     });
 
     it('does not trust a signed payload status or authorization without capture, and rejects invalid signatures', async () => {

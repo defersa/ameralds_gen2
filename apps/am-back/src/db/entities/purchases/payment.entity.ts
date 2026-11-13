@@ -50,6 +50,14 @@ export class UserPaymentEntity extends BaseModel {
     @Column({ name: 'check_failures', type: 'integer', default: 0 })
     public checkFailures: number;
 
+    // Время первого сохранения конечного статуса; повторная сверка и backoff не продлевают окно поздних списаний.
+    @Column({
+        name: 'terminal_at',
+        type: 'timestamptz',
+        nullable: true,
+    })
+    public terminalAt: Date | null;
+
     // Историческая двуязычная цена сохраняется исключительно для аудита.
     @OneToOne(() => NumberLangEntity, {
         onDelete: 'SET NULL',

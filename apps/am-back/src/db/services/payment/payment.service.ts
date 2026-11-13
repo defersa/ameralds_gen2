@@ -155,6 +155,7 @@ export class PaymentService {
     /**
      * Единый вход проверенных результатов create/API/webhook/reconciliation. Сериализует пользователя,
      * затем заказ и платёж; финансовый статус, права, отмена других заказов и outbox коммитятся вместе.
+     * Время первого конечного результата задаёт окно поздних списаний и не сдвигается повторными проверками.
      * Неподтверждённые HTTP payload сюда не передаются: адаптер предварительно читает API провайдера.
      */
     public async processPaymentResult(
@@ -176,6 +177,7 @@ export class PaymentService {
             this.validateResult(current, result);
 
             if (current.status !== PaymentStatus.PENDING && result.status !== ProviderPaymentStatus.SUCCEEDED) {
+                current.terminalAt ??= now;
                 current.checkedAt = now;
                 current.nextCheckAt = new Date(now.getTime() + this.checkInterval(false));
                 current.errorCode = null;
@@ -199,6 +201,7 @@ export class PaymentService {
             current.paidAt = current.status === PaymentStatus.SUCCEEDED ? result.paidAt : null;
 
             if (current.status !== PaymentStatus.PENDING) {
+                current.terminalAt ??= now;
                 current.confirmationUrl = null;
             }
 

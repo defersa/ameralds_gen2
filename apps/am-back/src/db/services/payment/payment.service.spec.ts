@@ -84,6 +84,7 @@ describe('PaymentService', () => {
                 externalId: null,
                 confirmationUrl: null,
                 paidAt: null,
+                terminalAt: null,
                 createdAt: now,
             });
 
@@ -284,6 +285,32 @@ describe('PaymentService', () => {
         });
         expect(order.status).toBe(OrderStatus.PENDING_PAYMENT);
     });
+
+    it.each([ProviderPaymentStatus.FAILED, ProviderPaymentStatus.CANCELLED])(
+        'starts the late-capture window on %s and preserves it on repeated checks', async (status) => {
+            const attempt = await service.createPayment(42, 17, randomUUID());
+            const payment = rows[0];
+            const terminalTime = new Date(now.getTime() + 86_400_000);
+            const later = new Date(terminalTime.getTime() + 3_600_000);
+
+            expect(payment.terminalAt).toBeNull();
+            payment.createdAt = new Date(now.getTime() - 10 * 86_400_000);
+            await provider.setResult(payment.externalId, status);
+            orders.databaseTime.mockResolvedValue(terminalTime);
+            await service.processPaymentResult(42, 17, attempt.id, await provider.getPayment(payment.externalId));
+            expect(rows[0].terminalAt).toEqual(terminalTime);
+
+            orders.databaseTime.mockResolvedValue(later);
+            await service.processPaymentResult(42, 17, attempt.id, await provider.getPayment(payment.externalId));
+            expect(rows[0].checkedAt).toEqual(later);
+            expect(rows[0].terminalAt).toEqual(terminalTime);
+
+            await provider.setResult(payment.externalId, ProviderPaymentStatus.SUCCEEDED);
+            await service.processPaymentResult(42, 17, attempt.id, await provider.getPayment(payment.externalId));
+            expect(rows[0].status).toBe(PaymentStatus.SUCCEEDED);
+            expect(rows[0].terminalAt).toEqual(terminalTime);
+        },
+    );
 
     it.each(['amount', 'currency', 'orderId', 'externalId', 'confirmationUrl', 'captured'])(
         'rejects a mismatched provider %s without creating a replacement payment',
