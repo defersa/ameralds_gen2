@@ -48,6 +48,7 @@ describe('order payment API', () => {
             amount: 12345,
             currency: 'RUB',
             confirmationUrl: 'https://pay.example.test/1',
+            redirectUrl: 'https://pay.example.test/1',
         });
     });
 
@@ -134,6 +135,10 @@ describe('order payment API', () => {
         expect(Object.keys(schema.paths)).toEqual(['/orders/{id}/payment-state', '/orders/{id}/payments']);
         expect(schema.paths['/orders/{id}/payments'].post.responses).toHaveProperty('409');
         expect(schema.paths['/orders/{id}/payments'].post.responses).toHaveProperty('503');
+        expect(schema.components.schemas.PaymentAttemptDto.properties.redirectUrl).toMatchObject({
+            type: 'string',
+            nullable: true,
+        });
     });
 
     it('protects state checks and uses the authenticated owner without caching', async () => {

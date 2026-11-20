@@ -70,6 +70,7 @@ describe('UserOrdersService payments', () => {
         amount: 12345,
         currency: 'RUB',
         confirmationUrl: 'https://pay.example.test/1',
+        redirectUrl: 'https://pay.example.test/1',
         createdAt: new Date(),
         paidAt: null,
         testMode: true,
@@ -117,17 +118,40 @@ describe('UserOrdersService payments', () => {
 
     it('redirects pending payments without changing their status', () => {
         expect(service.redirectToPayment(attempt)).toBe(true);
-        expect(assign).toHaveBeenCalledWith(attempt.confirmationUrl);
+        expect(assign).toHaveBeenCalledWith(attempt.redirectUrl);
         expect(attempt.status).toBe(EnumPaymentStatus.PENDING);
     });
 
-    it.each(['javascript:alert(1)', 'data:text/html,test', 'invalid', 'http://external.example.test', 'https://user:secret@pay.example.test'])('rejects unsafe confirmation URL %s', confirmationUrl => {
-        expect(service.redirectToPayment({ ...attempt, confirmationUrl })).toBe(false);
+    it.each(['javascript:alert(1)', 'data:text/html,test', 'invalid', 'http://external.example.test', 'https://user:secret@pay.example.test'])('rejects unsafe redirect URL %s', redirectUrl => {
+        expect(service.redirectToPayment({ ...attempt, redirectUrl })).toBe(false);
         expect(assign).not.toHaveBeenCalled();
     });
 
-    it.each([EnumPaymentStatus.SUCCEEDED, EnumPaymentStatus.FAILED, EnumPaymentStatus.CANCELLED])('does not redirect terminal status %s', status => {
-        expect(service.redirectToPayment({ ...attempt, status })).toBe(false);
+    it.each([true, false])('opens exactly the server result URL without selecting it by testMode=%s', testMode => {
+        const redirectUrl = 'http://localhost:4400/server-selected-result';
+
+        expect(service.redirectToPayment({
+            ...attempt,
+            status: EnumPaymentStatus.SUCCEEDED,
+            confirmationUrl: null,
+            redirectUrl,
+            testMode,
+        })).toBe(true);
+        expect(assign).toHaveBeenCalledWith(redirectUrl);
+    });
+
+    it.each([EnumPaymentStatus.FAILED, EnumPaymentStatus.CANCELLED])('does not redirect unsuccessful terminal status %s', status => {
+        expect(service.redirectToPayment({ ...attempt, status, redirectUrl: null })).toBe(false);
+        expect(assign).not.toHaveBeenCalled();
+    });
+
+    it.each([true, false])('does not invent a result URL when the server returns null (testMode=%s)', testMode => {
+        expect(service.redirectToPayment({
+            ...attempt,
+            status: EnumPaymentStatus.SUCCEEDED,
+            testMode,
+            redirectUrl: null,
+        })).toBe(false);
         expect(assign).not.toHaveBeenCalled();
     });
 });

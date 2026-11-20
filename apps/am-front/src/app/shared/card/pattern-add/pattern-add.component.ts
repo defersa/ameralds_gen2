@@ -177,15 +177,16 @@ export class AmstorePatternAddCardComponent extends AmstoreCardDirective {
         this.fillPatternForm(this.data());
     }
 
+    /** Преобразует сохранённые ID и результаты загрузки в числовые идентификаторы файлов для API. */
     private prepareSizesValues(): PatternSizeDto[] {
         return this.sizeArrayForm
             .getRawValue()
-            .map((value: Record<string, { id: number }>) => ({
-                id: value["id"] as unknown as number,
-                size: value["size"] as unknown as number,
-                cbb: value["cbb"].id,
-                png: value["png"].id,
-                pdf: value["pdf"].id,
+            .map((value: { id: number; size: number; cbb: number | { id: number }; png: number | { id: number }; pdf: number | { id: number } }) => ({
+                id: value.id,
+                size: value.size,
+                cbb: typeof value.cbb === 'number' ? value.cbb : value.cbb.id,
+                png: typeof value.png === 'number' ? value.png : value.png.id,
+                pdf: typeof value.pdf === 'number' ? value.pdf : value.pdf.id,
             }));
     }
 }

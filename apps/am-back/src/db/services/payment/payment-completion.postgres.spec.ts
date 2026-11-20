@@ -440,6 +440,45 @@ postgres('payment confirmation and completion on PostgreSQL', () => {
         expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id })).toBe(2);
     });
 
+    it('completes configured auto-success purchases through the usual transaction and returns the same purchase on retry', async () => {
+        const config = module.get(ConfigService);
+        const get = config.get.bind(config);
+
+        jest.spyOn(config, 'get').mockImplementation((name: string) => name === 'PAYMENT_MOCK_MODE' ? 'auto-success' : get(name));
+
+        const key = randomUUID();
+        const other = await pendingOrder();
+        const cart = await db.getRepository(UserOrderEntity).save({
+            user,
+            status: OrderStatus.OPEN,
+        });
+
+        await item(cart.id, false);
+
+        const payment = await service.createPayment(user.id, order.id, key);
+
+        expect(payment).toMatchObject({
+            status: PaymentStatus.SUCCEEDED,
+            confirmationUrl: null,
+            redirectUrl: `https://shop.example.test/account/orders/${order.id}/auto-success`,
+            testMode: true,
+            amount: 12345,
+        });
+        expect(await verification.getState(user.id, order.id)).toMatchObject({
+            orderStatus: OrderStatus.PAID,
+            resolution: 'completed',
+        });
+        expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id })).toBe(2);
+        expect((await db.getRepository(UserOrderEntity).findOneByOrFail({ id: other.id })).status).toBe(OrderStatus.CANCELLED);
+        expect(await db.getRepository(OrderPatternEntity).countBy({ order: { id: cart.id } })).toBe(0);
+        expect(await db.getRepository(PaymentEffectEntity).countBy({
+            kind: 'purchase_email',
+            orderId: order.id,
+        })).toBe(1);
+        await expect(service.createPayment(user.id, order.id, key)).resolves.toEqual(payment);
+        expect(await payments.countBy({ orderId: order.id })).toBe(1);
+    });
+
     it('cancels even a nonoverlapping pending order when another purchase succeeds', async () => {
         const pattern = await db.getRepository(PatternEntity).save({});
         const otherSize = await db.getRepository(PatternSizeEntity).save({

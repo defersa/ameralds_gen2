@@ -9,20 +9,23 @@ class BasePatternSizeDto extends EntityDto {
     @ApiProperty({
         description: 'Cbb file id',
         type: 'number',
+        nullable: true,
     })
-    public cbb: number;
+    public cbb: number | null;
 
     @ApiProperty({
         description: 'Pdf file id',
         type: 'number',
+        nullable: true,
     })
-    public pdf: number;
+    public pdf: number | null;
 
     @ApiProperty({
         description: 'Png file id',
         type: 'number',
+        nullable: true,
     })
-    public png: number;
+    public png: number | null;
 }
 
 export class PatternSizeDto extends BasePatternSizeDto {
@@ -37,8 +40,9 @@ export class FullPatternSizeDto extends BasePatternSizeDto {
     @ApiProperty({
         description: 'Size id',
         type: SizeDto,
+        nullable: true,
     })
-    public size: SizeDto;
+    public size: SizeDto | null;
 }
 
 export class CreatePatternDto {
@@ -158,10 +162,11 @@ export class BaseEntityDto extends EntityDto {
     public images: ImageDto[];
 
     @ApiProperty({
-        description: 'Color file of pattern',
+        description: 'Метаданные файла подбора. Приватный путь не раскрывается; скачивание выполняется через защищённую ручку.',
         type: FileDto,
+        nullable: true,
     })
-    public color: FileDto;
+    public color: FileDto | null;
 }
 
 

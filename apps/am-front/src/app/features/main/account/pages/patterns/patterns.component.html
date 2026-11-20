@@ -1,0 +1,37 @@
+<h1 class="mb-6!">
+    Купленные схемы
+</h1>
+
+<amstore-pattern-filters (filtersUpdate)="filtersUpdate$.next($event)" [pagesCount]="pagesCount()">
+    <div class="my-4 flex flex-col gap-4" aria-live="polite" [attr.aria-busy]="load.loading()">
+        @if (load.loading()) {
+            <amstore-patterns-skeleton/>
+        }
+
+        @else if (load.errors()) {
+            <p role="alert">
+                Не удалось загрузить купленные схемы. Попробуйте ещё раз.
+            </p>
+
+            <amstore-button (click)="retry()" [disabled]="load.loading()">
+                Повторить
+            </amstore-button>
+        }
+
+        @else if (load.status() === 'success') {
+            @for (pattern of patterns(); track pattern.id) {
+                <amstore-snapshot-pattern [pattern]="pattern" [routerLink]="['/account/patterns', pattern.id]">
+                    <amstore-pattern-preview [pattern]="pattern"
+                                             [routerLink]="['/account/patterns', pattern.id]"
+                                             [downloadOnly]="true"/>
+                </amstore-snapshot-pattern>
+            }
+
+            @empty {
+                <p>
+                    Купленные схемы не найдены.
+                </p>
+            }
+        }
+    </div>
+</amstore-pattern-filters>

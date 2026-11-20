@@ -1,0 +1,81 @@
+@use "spacing";
+@use "theming-var";
+@use "typography";
+@use "utils";
+
+
+:host {
+    display: block;
+}
+
+.result-card {
+    border: 1px solid theming-var.get-amstore-color(green, light);
+    background: theming-var.get-amstore-color(gray, white);
+}
+
+.result-icon,
+.result-badge {
+    background: theming-var.get-amstore-color(green, slight);
+}
+
+.result-icon-warning {
+    background: theming-var.get-amstore-color(red, slight);
+}
+
+.result-badge {
+    color: theming-var.get-amstore-color(green, deep);
+    @include typography.get-amstore-font("body", 12, regular);
+}
+
+.result-title {
+    margin: 0;
+    color: theming-var.get-amstore-color(green, deep);
+    @include typography.get-amstore-font("body", 28, regular);
+
+    @include utils.mobile {
+        @include typography.get-amstore-font("body", 24, regular);
+    }
+}
+
+.result-description {
+    color: theming-var.get-amstore-color(gray, dark);
+    @include typography.get-amstore-font("body", 16, regular);
+    line-height: 1.6;
+
+    p {
+        margin: 0;
+    }
+}
+
+.result-notice {
+    color: theming-var.get-amstore-color(green, deep);
+    background: theming-var.get-amstore-color(green, slight);
+
+    p {
+        margin: 0;
+        @include typography.get-amstore-font("body", 14, regular);
+        line-height: 1.5;
+    }
+}
+
+.result-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: spacing.get-spacing(12);
+    text-align: center;
+}
+
+.result-footer {
+    border-top: 1px solid theming-var.get-amstore-color(green, light);
+}
+
+.result-back {
+    color: theming-var.get-amstore-color(green, deep);
+    text-decoration: none;
+    @include typography.get-amstore-font("body", 14, regular);
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

@@ -63,4 +63,58 @@ describe('MockPaymentProvider', () => {
             }),
         ).rejects.toThrow('Refunds are not implemented');
     });
+
+    it('automatically captures dev purchases only with auto-success enabled and preserves the original result on retry', async () => {
+        const provider = new MockPaymentProvider(new ConfigService({
+            NODE_ENV: 'dev',
+            PAYMENT_MOCK_MODE: 'auto-success',
+        }));
+
+        const first = await provider.createPayment(input);
+
+        expect(first).toMatchObject({
+            status: ProviderPaymentStatus.SUCCEEDED,
+            captured: true,
+            confirmationUrl: null,
+            amount: input.amount,
+            currency: input.currency,
+            orderId: input.orderId,
+        });
+        expect(first.paidAt).toBeInstanceOf(Date);
+        expect(await provider.createPayment(input)).toEqual(first);
+        expect(await provider.getPayment(first.externalId)).toEqual(first);
+    });
+
+    it('keeps ordinary dev payments pending when auto-success is disabled', async () => {
+        const provider = new MockPaymentProvider(new ConfigService({ NODE_ENV: 'dev' }));
+
+        await expect(provider.createPayment(input)).resolves.toMatchObject({
+            status: ProviderPaymentStatus.PENDING,
+            captured: false,
+            paidAt: null,
+        });
+    });
+
+    it.each(['production', 'staging', ''])('rejects auto-success in unsupported environment %s', async (environment) => {
+        const provider = new MockPaymentProvider(new ConfigService({
+            NODE_ENV: environment,
+            PAYMENT_MOCK_MODE: 'auto-success',
+        }));
+
+        await expect(provider.createPayment(input)).rejects.toMatchObject({ status: 503 });
+    });
+
+    it('allows explicit automated test scenarios to override auto-success', async () => {
+        const provider = new MockPaymentProvider(new ConfigService({
+            NODE_ENV: 'test',
+            PAYMENT_MOCK_MODE: 'auto-success',
+        }));
+
+        provider.enqueueScenario({ status: ProviderPaymentStatus.FAILED });
+
+        await expect(provider.createPayment(input)).resolves.toMatchObject({
+            status: ProviderPaymentStatus.FAILED,
+            captured: false,
+        });
+    });
 });

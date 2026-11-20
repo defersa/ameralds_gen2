@@ -77,7 +77,10 @@ export class MockPaymentProvider implements PaymentProvider {
         return payload.externalId;
     }
 
-    /** Возвращает детерминированный mock-платёж по ключу, без списания; повтор не расходует новый сценарий. */
+    /**
+     * Возвращает mock-платёж без списания; auto-success сразу подтверждает покупку через общий обработчик.
+     * Явный сценарий автотеста имеет приоритет. Повтор по ключу сохраняет прежний результат и время списания.
+     */
     public async createPayment(input: CreateProviderPayment): Promise<ProviderPayment> {
         this.ensureEnabled();
 
@@ -95,7 +98,9 @@ export class MockPaymentProvider implements PaymentProvider {
 
         const scenario = this.scenarios
             .shift() ?? {};
-        const status = scenario.status ?? ProviderPaymentStatus.PENDING;
+        const status = scenario.status ?? (this.config.get<string>('PAYMENT_MOCK_MODE') === 'auto-success'
+            ? ProviderPaymentStatus.SUCCEEDED
+            : ProviderPaymentStatus.PENDING);
 
         const payment: ProviderPayment = {
             externalId,

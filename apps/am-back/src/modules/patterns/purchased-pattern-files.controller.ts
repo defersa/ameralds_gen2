@@ -3,7 +3,7 @@ import { FilesService } from '@am-back/db/service/files.service';
 import { UserPatternService } from '@am-back/db/service/general/user-pattern.service';
 import type { RequestModel } from '@am-back/models/request.model';
 import { ErrorsDto } from '@am-back/modules/errors/errors.dto';
-import { Controller, Get, Param, ParseIntPipe, Req, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Header, Param, ParseIntPipe, Req, StreamableFile } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOkResponse, ApiProduces, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { extname } from 'node:path';
 
@@ -18,8 +18,9 @@ export class PurchasedPatternFilesController {
         private readonly files: FilesService,
     ) {}
 
-    /** Скачивает материал действующего размера или разрешённый цвет схемы только для авторизованного владельца. */
+    /** Проверяет действующие права владельца перед выдачей файла; запрещает кеширование приватных материалов. */
     @Get(':id/download/:fileId')
+    @Header('Cache-Control', 'private, no-store')
     @ApiProduces('application/pdf', 'image/png', 'application/octet-stream')
     @ApiOkResponse({
         description: 'Материал доступного размера либо цвет схемы при наличии действующего размера.',

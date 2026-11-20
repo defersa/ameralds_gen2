@@ -1,3 +1,6 @@
 @use "spacing";
 @use "theming-var";
 
+.pattern-kind {
+    background: theming-var.get-amstore-color(green, slight);
+}

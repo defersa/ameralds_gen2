@@ -1,6 +1,6 @@
 import { Auth } from '../../core/guards/auth.guard';
-import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags, getSchemaPath } from "@nestjs/swagger";
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse, getSchemaPath } from "@nestjs/swagger";
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from "@nestjs/common";
 import { Roles } from "@am-back/core/guards/role.guard";
 import { ErrorsDto } from "../errors/errors.dto";
 import {
@@ -14,6 +14,8 @@ import { ParamsEntityDto, ParamsPaginatedDto, SuccessCreateDto } from "../../com
 import { PatternsService } from "@am-back/db/service/patterns/patterns.service";
 import { UserRole } from '../../db/entities/user.entity';
 import { toArray, toNumberArray, toString } from '@ameralds/utils';
+import type { RequestModel } from '@am-back/models/request.model';
+import { PurchasedPatternsQueryPipe } from './purchased-patterns-query.pipe';
 
 
 
@@ -50,6 +52,24 @@ export class PatternsController {
         });
     }
 
+    /** Возвращает действующие покупки текущего пользователя с фильтрами каталога; чужой userId из запроса не используется. */
+    @Get('purchased/:page')
+    @Auth()
+    @ApiOkResponse({ description: 'Купленные схемы текущего пользователя с пагинацией и фильтрами каталога.', type: PatternsPaginatedPageDto })
+    @ApiBadRequestResponse({ description: 'Некорректная страница или фильтры.', type: ErrorsDto })
+    @ApiUnauthorizedResponse({ description: 'Требуется авторизация.', type: ErrorsDto })
+    public purchased(
+        @Req() request: RequestModel,
+        @Param('page', ParseIntPipe) page: number,
+        @Query(PurchasedPatternsQueryPipe) filters: PatternsPaginatedFilterDto,
+    ): Promise<PatternsPaginatedPageDto> {
+        return this.patternsService.paginatedPatterns(page, {
+            sizes: filters.sizes ?? [],
+            categories: filters.categories ?? [],
+            query: filters.query ?? '',
+        }, request.user.id);
+    }
+
     @Get('ids')
     @ApiOkResponse({
         description: '',
@@ -81,12 +101,13 @@ export class PatternsController {
         return this.patternsService.editPattern(params.id, value);
     }
 
+    /** Возвращает карточку с числовыми ID файлов размеров; приватные пути файлов в ответ не попадают. */
     @Get(':id')
-    @ApiOkResponse({ description: '', type: FullPatternEntityDto })
+    @ApiOkResponse({ description: 'Карточка схемы с ID доступных файлов размеров; отсутствующие или неактивные файлы равны null.', type: FullPatternEntityDto })
     @ApiBadRequestResponse({ description: 'Something went wrong.', type: ErrorsDto})
     public async entity(
         @Param() params: ParamsEntityDto,
     ): Promise<FullPatternEntityDto> {
-        return await this.patternsService.getPattern(params.id) as unknown as FullPatternEntityDto;
+        return this.patternsService.getPatternDetails(params.id);
     }
 }

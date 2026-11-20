@@ -1,31 +1,58 @@
 @if (form; as form) {
-    <h3>Размеры паттерна</h3>
+    <div class="flex flex-col items-start">
+        <h3>Размеры паттерна</h3>
 
-    <div class="flex flex-row flex-wrap gap-1">
-        @for (size of form.sizes; track $index) {
-            @let label = size.label().value();
+        <div class="flex flex-row flex-wrap items-center gap-2">
+            @for (size of form.sizes; track $index) {
+                @let label = size.label().value();
 
-            @if (size.own().value()) {
-                <amstore-chip [style.order]="1">{{ label }}</amstore-chip>
-            } @else {
-                <amstore-checkbox-signal [style.order]="label" [label]="label" [formField]="size.value" color="primary"/>
+                @if (size.own().value()) {
+                    <amstore-checkbox-signal appearance="chip"
+                                             [style.order]="1"
+                                             [label]="label"
+                                             [checked]="true"
+                                             [readonly]="true"
+                                             title="Размер уже куплен"
+                                             color="primary"/>
+                }
+
+                @else {
+                    <amstore-checkbox-signal [style.order]="label" [label]="label" [formField]="size.value"
+                                             color="primary" />
+                }
             }
-        }
+        </div>
     </div>
 
     @if (form.color.exists().value()) {
-        <h3>Подбор цвета</h3>
+        <div class="flex flex-col items-start gap-1">
+            <h3>
+                Подбор цвета
+            </h3>
 
-        @if (!form.color.exists().value()) {
-            <span>Для этой схемы нет подбора цвета</span>
-        } @else if (form.color.own().value()) {
-            <h4>Куплен</h4>
-        } @else {
-            <amstore-slide-signal [formField]="form.color.value"/>
-        }
+            @if (!form.color.exists().value()) {
+                <span>
+                    Для этой схемы нет подбора цвета
+                </span>
+            }
+
+            @else if (form.color.own().value()) {
+                <span class="purchase-status inline-flex items-center gap-1.5 rounded-full px-3 py-1">
+                    <amstore-icon iconName="apply" [size]="16" aria-hidden="true"/>
+
+                    <span>
+                        Куплен
+                    </span>
+                </span>
+            }
+
+            @else {
+                <amstore-slide-signal [formField]="form.color.value"/>
+            }
+        </div>
     }
 
-    <div class="flex flex-col items-end p-2">
+    <div class="flex flex-col items-end p-2 gap-2">
         <h3>Цена</h3>
 
         <h2>

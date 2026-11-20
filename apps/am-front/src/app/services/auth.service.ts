@@ -13,13 +13,14 @@ export class AuthService {
     private router = inject(Router);
     private refreshRequest: Observable<string> | null = null;
     private sessionChanges = new Subject<void>();
-    private sessionVersion = 0;
+    private readonly sessionVersion = signal(0);
+    public readonly sessionRevisionSignal = this.sessionVersion.asReadonly();
 
     public readonly auth = signal(false);
     public readonly token = signal<string | null>(null);
 
     public get sessionRevision(): number {
-        return this.sessionVersion;
+        return this.sessionVersion();
     }
 
     constructor() {
@@ -42,7 +43,7 @@ export class AuthService {
 
     public setToken(tokens: UserTokensDTO): void {
         this.sessionChanges.next();
-        this.sessionVersion++;
+        this.sessionVersion.update(version => version + 1);
         this.setAuthToken(tokens.access);
         try { localStorage.removeItem(LOGGED_OUT_KEY); } catch { /* Storage недоступен. */ }
     }
@@ -71,13 +72,13 @@ export class AuthService {
     }
 
     public signInWithEmailLink(token: string): Observable<string> {
-        const version = this.sessionVersion;
+        const version = this.sessionVersion();
         // Сначала завершаем HTTP-подписку: setToken уведомляет об изменении сессии.
-        return defer(() => from(firstValueFrom(this.withSessionLock(() => version === this.sessionVersion
+        return defer(() => from(firstValueFrom(this.withSessionLock(() => version === this.sessionVersion()
             ? this.userProducer.userControllerSignInByEmail({ token }).pipe(takeUntil(this.sessionChanges))
             : throwError(() => new Error('The session has changed')))))).pipe(
             map(result => {
-                if (version !== this.sessionVersion) {
+                if (version !== this.sessionVersion()) {
                     throw new Error('The session has changed');
                 }
                 this.setToken(result);
@@ -98,7 +99,7 @@ export class AuthService {
     /** Очищает местную авторизацию; явный выход меняет ревизию, а ошибка refresh сохраняет её для обработки вызывающим interceptor. */
     private clearSession(invalidateRequests = true): void {
         if (invalidateRequests) {
-            this.sessionVersion++;
+            this.sessionVersion.update(version => version + 1);
         }
 
         this.token.set(null);
@@ -139,20 +140,20 @@ export class AuthService {
         if (this.refreshRequest) {
             return this.refreshRequest;
         }
-        const version = this.sessionVersion;
-        const request = this.withSessionLock(() => version === this.sessionVersion
+        const version = this.sessionVersion();
+        const request = this.withSessionLock(() => version === this.sessionVersion()
             ? this.userProducer.userControllerRefresh().pipe(timeout(10_000), takeUntil(this.sessionChanges))
             : throwError(() => new Error('The session has changed')))
             .pipe(
                 map(tokens => {
-                    if (version !== this.sessionVersion) {
+                    if (version !== this.sessionVersion()) {
                         throw new Error('The session has changed');
                     }
                     this.setAuthToken(tokens.access);
                     return tokens.access;
                 }),
                 catchError(error => {
-                    if (version === this.sessionVersion) {
+                    if (version === this.sessionVersion()) {
                         this.clearSession(false);
                     }
                     return throwError(() => error);

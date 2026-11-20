@@ -1,0 +1,73 @@
+@if (auth()) {
+    <section class="amstore-card-container-line flex min-w-0 flex-col gap-4 my-6" aria-label="Купленные материалы">
+        <h3>
+            Купленные материалы
+        </h3>
+
+        <ul class="m-0 flex list-none flex-col gap-3 p-0">
+            @for (size of sizes(); track size.id) {
+                <li class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span>
+                        {{ size.label }}:
+                    </span>
+
+                    @for (file of size.files; track file.label) {
+                        <a [href]="'/api/patterns/' + pattern().id + '/download/' + file.id"
+                           [attr.aria-label]="'Скачать ' + file.label + ', ' + size.label"
+                           [attr.aria-disabled]="downloadRequest.loading() ? 'true' : null"
+                           (click)="download($event, file.id)">
+                            {{ file.label }}
+                        </a>
+                    }
+
+                    @empty {
+                        <span class="amstore-text-secondary">
+                            Файлы недоступны
+                        </span>
+                    }
+                </li>
+            }
+
+            @empty {
+                <li class="amstore-text-secondary">
+                    Нет доступных купленных размеров.
+                </li>
+            }
+        </ul>
+
+        @if (colorOwned()) {
+            <div class="flex flex-col gap-2">
+                <h4>
+                    Подбор цвета куплен
+                </h4>
+
+                @if (colorFile(); as file) {
+                    <a class="self-start"
+                       [href]="'/api/patterns/' + pattern().id + '/download/' + file.id"
+                       [attr.aria-disabled]="downloadRequest.loading() ? 'true' : null"
+                       (click)="download($event, file.id)">
+                        {{ file.label }}
+                    </a>
+                }
+
+                @else {
+                    <p class="amstore-text-secondary">
+                        Подбор недоступен для скачивания. Нужны действующий купленный размер и файл подбора.
+                    </p>
+                }
+            </div>
+        }
+
+        @if (downloadRequest.loading()) {
+            <p role="status">
+                Загрузка файла…
+            </p>
+        }
+
+        @if (downloadRequest.errors()) {
+            <p role="alert">
+                Не удалось скачать файл. Проверьте доступ к покупке и нажмите ссылку ещё раз.
+            </p>
+        }
+    </section>
+}

@@ -237,11 +237,11 @@ export interface PatternSizeDto {
     /** Id of entity */
     id: number;
     /** Cbb file id */
-    cbb: number;
+    cbb: number | null;
     /** Pdf file id */
-    pdf: number;
+    pdf: number | null;
     /** Png file id */
-    png: number;
+    png: number | null;
     /** Size id */
     size: number;
 }
@@ -313,8 +313,8 @@ export interface PatternEntityDto {
     categories: Array<number>;
     /** Pattern images */
     images: Array<ImageDto>;
-    /** Color file of pattern */
-    color: FileDto;
+    /** Метаданные файла подбора. Приватный путь не раскрывается; скачивание выполняется через защищённую ручку. */
+    color: FileDto | null;
     /** Sizes of pattern */
     sizes: Array<PatternSizeDto>;
 }
@@ -332,13 +332,13 @@ export interface FullPatternSizeDto {
     /** Id of entity */
     id: number;
     /** Cbb file id */
-    cbb: number;
+    cbb: number | null;
     /** Pdf file id */
-    pdf: number;
+    pdf: number | null;
     /** Png file id */
-    png: number;
+    png: number | null;
     /** Size id */
-    size: SizeDto;
+    size: SizeDto | null;
 }
 
 export interface FullPatternEntityDto {
@@ -360,8 +360,8 @@ export interface FullPatternEntityDto {
     categories: Array<number>;
     /** Pattern images */
     images: Array<ImageDto>;
-    /** Color file of pattern */
-    color: FileDto;
+    /** Метаданные файла подбора. Приватный путь не раскрывается; скачивание выполняется через защищённую ручку. */
+    color: FileDto | null;
     /** Sizes of pattern */
     sizes: Array<FullPatternSizeDto>;
 }
@@ -664,6 +664,8 @@ export interface PaymentAttemptDto {
     currency: 'RUB' | 'USD';
     /** Ссылка провайдера; переход по ней не подтверждает оплату */
     confirmationUrl: string | null;
+    /** Определённый сервером адрес следующего перехода: оплата у провайдера или результат покупки. NULL означает отсутствие перехода; URL не подтверждает оплату. */
+    redirectUrl: string | null;
     createdAt: Date;
     paidAt: Date | null;
     /** Тестовый провайдер: денежные средства не списываются */

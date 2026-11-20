@@ -1,8 +1,11 @@
 import { signal } from '@angular/core';
+import { EMPTY } from 'rxjs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { FormArray, FormGroup } from '@angular/forms';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { DialogService } from '@am-front/core/dialog/dialog.service';
+import { AmstoreUploadComponent } from '@am-front/cdk/forms/upload/upload.component';
 import { ApiFilesProducer, FullPatternSizeDto } from '@am-front/root/api-v2';
 import { SizesService } from '@am-front/services/sizes.service';
 import { AmstorePatternSizesComponent } from './pattern-sizes.component';
@@ -16,6 +19,7 @@ describe('Pattern size files form', () => {
         png: { id: 14, name: 'pattern.png' },
         pdf: { id: 13, name: 'pattern.pdf' },
     };
+    const download = jest.fn().mockReturnValue(EMPTY);
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
@@ -24,7 +28,7 @@ describe('Pattern size files form', () => {
                 provideNoopAnimations(),
                 { provide: SizesService, useValue: { sizesList: signal([{ value: 3, label: '36' }]) } },
                 { provide: DialogService, useValue: {} },
-                { provide: ApiFilesProducer, useValue: {} },
+                { provide: ApiFilesProducer, useValue: { filesControllerGetPrivateFile: download } },
             ],
         }).compileComponents();
         fixture = TestBed.createComponent(AmstorePatternSizesComponent);
@@ -66,5 +70,10 @@ describe('Pattern size files form', () => {
         expect(form.valid).toBe(true);
         expect(form.getRawValue()).toEqual([{ id: 21, size: 3, cbb: 11, png: 14, pdf: 13 }]);
         expect(form.at(0).get('size').disabled).toBe(true);
+        expect(fixture.nativeElement.textContent).toContain('Файл #11');
+        const upload = fixture.debugElement.queryAll(By.directive(AmstoreUploadComponent))[0].componentInstance as AmstoreUploadComponent;
+
+        upload.downloadFile();
+        expect(download).toHaveBeenCalledWith(11);
     });
 });

@@ -10,6 +10,8 @@ import { PatternsService } from "@am-front/services/patterns.service";
 import { FullPatternEntityDto } from "@am-front/root/api-v2";
 import { PatternCartComponent } from "@am-front/shared/actions/pattern/pattern-cart/pattern-cart.component";
 import { ProfileService } from '@am-front/services/profile.service';
+import { PatternPurchasedDownloadComponent } from '@am-front/shared/details/pattern-purchased-download/pattern-purchased-download.component';
+import { PatternBuyOtherSizesComponent } from '@am-front/shared/details/pattern-buy-other-sizes/pattern-buy-other-sizes.component';
 
 
 @Component({
@@ -22,6 +24,8 @@ import { ProfileService } from '@am-front/services/profile.service';
         AmstorePatternCardComponent,
         PatternCommonComponent,
         PatternCartComponent,
+        PatternPurchasedDownloadComponent,
+        PatternBuyOtherSizesComponent,
         AsyncPipe
     ]
 })
@@ -32,6 +36,9 @@ export class PatternCardComponent {
     private readonly route: ActivatedRoute = inject(ActivatedRoute);
     private readonly patternsService: PatternsService = inject(PatternsService);
     private readonly profileService: ProfileService = inject(ProfileService);
+
+    /** Выбирает блок купленных материалов для маршрута личного кабинета. */
+    public readonly purchased = this.route.snapshot.data['purchased'] === true;
 
     public isAdmin: Signal<boolean> = this.profileService.isAdmin;
 

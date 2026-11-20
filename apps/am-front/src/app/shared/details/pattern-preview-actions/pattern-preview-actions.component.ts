@@ -7,7 +7,6 @@ import {
     PatternSizeDto,
     SizeDto
 } from '@am-front/root/api-v2';
-import { toSignal } from "@angular/core/rxjs-interop";
 import { OptionType } from "@am-front/interface/cdk.interface";
 import { Currency, LangService, SizeUnit } from '@am-front/services/lang.service';
 import { CategoriesService } from "@am-front/services/categories.service";
@@ -54,6 +53,8 @@ const DEFAULT_CART_STATUS: PatternCartStatus = {
 export class PatternPreviewActionsComponent {
     public pattern: InputSignal<PatternEntityDto> = input();
     public routerLink: InputSignal<(string | number)[]> = input();
+    /** Открывает страницу скачивания купленной схемы вместо действий с корзиной. */
+    public readonly downloadOnly: InputSignal<boolean> = input(false);
 
     private langService: LangService = inject(LangService)
     private categoriesService: CategoriesService = inject(CategoriesService);

@@ -334,7 +334,11 @@ export class PaymentService {
         }
     }
 
-    /** Выдаёт безопасный DTO без внешних идентификаторов, ключа идемпотентности и служебных ошибок. */
+    /**
+     * Выдаёт безопасный DTO и выбирает следующий переход: ссылку оплаты для PENDING либо результат завершённой покупки.
+     * У mock свой экран результата; отказ, отмена и неразрешённое списание не получают redirectUrl.
+     * Внешние идентификаторы, ключ идемпотентности и служебные ошибки в ответ не включаются.
+     */
     private toDto(payment: UserPaymentEntity): PaymentAttemptDto {
         if (
             payment.orderId === null ||
@@ -345,6 +349,20 @@ export class PaymentService {
             invalidPayment();
         }
 
+        let redirectUrl: string | null = null;
+
+        if (payment.status === PaymentStatus.PENDING) {
+            redirectUrl = payment.confirmationUrl ?? null;
+        } else if (payment.status === PaymentStatus.SUCCEEDED && payment.resolution === 'completed') {
+            const url = new URL(this.returnUrl(payment.orderId));
+
+            if (payment.provider === 'mock') {
+                url.pathname += '/auto-success';
+            }
+
+            redirectUrl = url.toString();
+        }
+
         return {
             id: payment.id,
             orderId: payment.orderId,
@@ -352,6 +370,7 @@ export class PaymentService {
             amount: payment.amount,
             currency: payment.currency,
             confirmationUrl: payment.confirmationUrl ?? null,
+            redirectUrl,
             createdAt: payment.createdAt,
             paidAt: payment.paidAt ?? null,
             testMode: payment.provider === 'mock',

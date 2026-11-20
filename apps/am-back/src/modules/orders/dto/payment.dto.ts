@@ -47,6 +47,13 @@ export class PaymentAttemptDto {
     })
     public confirmationUrl: string | null;
 
+    @ApiProperty({
+        type: String,
+        nullable: true,
+        description: 'Определённый сервером адрес следующего перехода: оплата у провайдера или результат покупки. NULL означает отсутствие перехода; URL не подтверждает оплату.',
+    })
+    public redirectUrl: string | null;
+
     @ApiProperty({ type: Date })
     public createdAt: Date;
 

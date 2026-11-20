@@ -1,5 +1,7 @@
 import { inject, Injectable } from "@angular/core";
-import { Observable } from "rxjs";
+import { defer, Observable, throwError } from "rxjs";
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '@am-front/services/auth.service';
 import { SnackService } from "@am-front/services/snackbar.service";
 import {
     type CreatePatternDto, FullPatternEntityDto,
@@ -13,6 +15,7 @@ import {
     providedIn: 'root'
 })
 export class PatternsService {
+    private readonly auth = inject(AuthService);
     private patternsProducer: ApiPatternsProducer = inject(ApiPatternsProducer);
     private snack: SnackService = inject(SnackService);
 
@@ -36,6 +39,28 @@ export class PatternsService {
 
     public getPattern(id: number): Observable<FullPatternEntityDto> {
         return this.patternsProducer.patternsControllerEntity(id);
+    }
+
+    /** Загружает страницу действующих покупок с фильтрами каталога; без авторизации запрос не отправляется. */
+    public getPurchasedPatterns(page: number, sizes?: number[], categories?: number[], query?: string): Observable<PatternsPaginatedPageDto> {
+        return defer(() => {
+            if (!this.auth.auth()) {
+                return throwError(() => new HttpErrorResponse({ status: 401 }));
+            }
+
+            return this.patternsProducer.patternsControllerPurchased(page, sizes, categories, query);
+        });
+    }
+
+    /** Скачивает купленный материал через защищённую ручку; без авторизации возвращает 401 без HTTP-запроса. */
+    public downloadPurchasedFile(patternId: number, fileId: number): Observable<Blob> {
+        return defer(() => {
+            if (!this.auth.auth()) {
+                return throwError(() => new HttpErrorResponse({ status: 401 }));
+            }
+
+            return this.patternsProducer.purchasedPatternFilesControllerDownload(patternId, fileId);
+        });
     }
 
     public getPatternsByIds(ids: number[] | string[]): Observable<Record<string, PatternEntityDto>> {

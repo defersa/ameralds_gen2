@@ -1,0 +1,55 @@
+@use "@angular/material" as mat;
+@use "spacing";
+@use "theming-var";
+
+
+@mixin checkbox-chip-color($theme) {
+    background: theming-var.get-amstore-color($theme, dark);
+
+    @include mat.checkbox-overrides((
+        selected-checkmark-color: theming-var.get-amstore-color($theme, deep),
+        disabled-selected-checkmark-color: theming-var.get-amstore-color($theme, deep),
+    ));
+}
+
+.amstore-checkbox.amstore-checkbox-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: spacing.get-spacing(1) spacing.get-spacing(2);
+    border-radius: spacing.get-spacing(1);
+    color: theming-var.get-amstore-color(gray, white);
+
+    @include mat.checkbox-overrides((
+        label-text-color: theming-var.get-amstore-color(gray, white),
+        selected-icon-color: theming-var.get-amstore-color(gray, white),
+        selected-focus-icon-color: theming-var.get-amstore-color(gray, white),
+        selected-hover-icon-color: theming-var.get-amstore-color(gray, white),
+        selected-pressed-icon-color: theming-var.get-amstore-color(gray, white),
+        unselected-icon-color: theming-var.get-amstore-color(gray, white),
+        unselected-focus-icon-color: theming-var.get-amstore-color(gray, white),
+        unselected-hover-icon-color: theming-var.get-amstore-color(gray, white),
+        disabled-label-color: theming-var.get-amstore-color(gray, white),
+        disabled-selected-icon-color: theming-var.get-amstore-color(gray, white),
+        disabled-unselected-icon-color: theming-var.get-amstore-color(gray, white),
+        state-layer-size: spacing.get-spacing(6),
+        touch-target-display: none,
+    ));
+
+    @include checkbox-chip-color(green);
+
+    &.amstore-accent {
+        @include checkbox-chip-color(blue);
+    }
+
+    &.amstore-warn {
+        @include checkbox-chip-color(red);
+    }
+
+    &.amstore-special {
+        @include checkbox-chip-color(turquoise);
+    }
+
+    &.amstore-contrast {
+        @include checkbox-chip-color(gray);
+    }
+}

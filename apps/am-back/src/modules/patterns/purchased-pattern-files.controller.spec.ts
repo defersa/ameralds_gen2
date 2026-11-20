@@ -56,6 +56,7 @@ describe('purchased pattern downloads HTTP access', () => {
             .get('/patterns/7/download/90?userId=999')
             .set('test-user', '42')
             .expect(200)
+            .expect('Cache-Control', 'private, no-store')
             .expect('Content-Type', 'application/pdf');
 
         expect(getPurchasedFile).toHaveBeenCalledWith(42, 7, 90);
@@ -66,6 +67,21 @@ describe('purchased pattern downloads HTTP access', () => {
     it.each(['abc/download/90', '7/download/90.5'])('rejects malformed identifiers (%s)', async (path) => {
         await request(app.getHttpServer()).get(`/patterns/${path}`).set('test-user', '42').expect(400);
         expect(getPurchasedFile).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['size.cbb', 'application/octet-stream'],
+        ['size.png', 'image/png'],
+        ['color.PDF', 'application/pdf'],
+    ])('streams %s with its content type', async (name: string, contentType: string) => {
+        getPurchasedFile.mockResolvedValue({ id: 90, name, path: '/private/material' });
+
+        await request(app.getHttpServer())
+            .get('/patterns/7/download/90')
+            .set('test-user', '42')
+            .expect(200)
+            .expect('Content-Type', contentType)
+            .expect('Cache-Control', 'private, no-store');
     });
 
     it('does not open a file when rights have been revoked or the resource belongs to another user', async () => {

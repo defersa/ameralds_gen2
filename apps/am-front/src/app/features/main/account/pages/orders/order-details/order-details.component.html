@@ -166,9 +166,22 @@
                 <button amstore-button
                         type="button"
                         [stroked]="true"
-                        [disabled]="stateRequest.loading()"
+                        [disabled]="showPaymentCheckProgress()"
+                        [attr.aria-busy]="showPaymentCheckProgress()"
                         (click)="checkPayment()">
-                    {{ stateRequest.loading() ? 'Проверяем…' : 'Проверить оплату' }}
+                    <span class="inline-grid">
+                        <span class="col-start-1 row-start-1"
+                              [class.invisible]="showPaymentCheckProgress()"
+                              [attr.aria-hidden]="showPaymentCheckProgress()">
+                            Проверить оплату
+                        </span>
+
+                        <span class="col-start-1 row-start-1"
+                              [class.invisible]="!showPaymentCheckProgress()"
+                              [attr.aria-hidden]="!showPaymentCheckProgress()">
+                            Проверяем…
+                        </span>
+                    </span>
                 </button>
             }
         </div>

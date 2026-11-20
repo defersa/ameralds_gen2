@@ -94,6 +94,44 @@ export class ApiPatternsProducer {
         });
     }
 
+    patternsControllerPurchased(page: number, sizes?: Array<number>, categories?: Array<number>, query?: string, observe?: 'body', options?: RequestOptions<'json'>): Observable<PatternsPaginatedPageDto>;
+    patternsControllerPurchased(page: number, sizes?: Array<number>, categories?: Array<number>, query?: string, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<PatternsPaginatedPageDto>>;
+    patternsControllerPurchased(page: number, sizes?: Array<number>, categories?: Array<number>, query?: string, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<PatternsPaginatedPageDto>>;
+    patternsControllerPurchased(page: number, sizes?: Array<number>, categories?: Array<number>, query?: string, observe?: 'body' | 'events' | 'response', options?: RequestOptions<'arraybuffer' | 'blob' | 'json' | 'text'>): Observable<any> {
+        const url = `${this.basePath}/api/patterns/purchased/${page}`;
+
+        let params = new HttpParams();
+        if (sizes != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, sizes, 'sizes');
+        }
+        if (categories != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, categories, 'categories');
+        }
+        if (query != null) {
+            params = HttpParamsBuilder.addToHttpParams(params, query, 'query');
+        }
+
+        let headers: HttpHeaders;
+        if (options?.headers instanceof HttpHeaders) {
+            headers = options.headers;
+        } else {
+            headers = new HttpHeaders(options?.headers);
+        }
+        // Advertise the response content type declared in the spec
+        if (!headers.has('Accept')) {
+            headers = headers.set('Accept', 'application/json');
+        }
+
+        return this.httpClient.request('get', url, {
+            observe,
+            headers,
+            params,
+            reportProgress: options?.reportProgress,
+            withCredentials: options?.withCredentials,
+            context: this.createContextWithClientId(options?.context)
+        });
+    }
+
     patternsControllerByIds(id: Array<string>, observe?: 'body', options?: RequestOptions<'json'>): Observable<Record<string, any>>;
     patternsControllerByIds(id: Array<string>, observe?: 'response', options?: RequestOptions<'json'>): Observable<HttpResponse<Record<string, any>>>;
     patternsControllerByIds(id: Array<string>, observe?: 'events', options?: RequestOptions<'json'>): Observable<HttpEvent<Record<string, any>>>;

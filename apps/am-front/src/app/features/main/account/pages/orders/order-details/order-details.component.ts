@@ -1,8 +1,8 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { combineLatest, EMPTY, exhaustMap, filter, Subject, switchMap, take, takeUntil, tap, timer } from 'rxjs';
+import { combineLatest, EMPTY, endWith, exhaustMap, filter, map, startWith, Subject, switchMap, take, takeUntil, tap, timer } from 'rxjs';
 import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
 import { IconsComponent } from '@am-front/cdk/icons/icons.component';
 import { EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, PaymentStateDto, UserOrderDetailsDto } from '@am-front/root/api-v2';
@@ -27,6 +27,7 @@ export class OrderDetailsComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly purchaseSync = inject(PurchaseSyncService);
     private readonly contextChanged$ = new Subject<void>();
+    private readonly manualPaymentCheck$ = new Subject<void>();
     private paymentKey: string | null = null;
 
     public readonly load = createRequestWrapper<typeof this.orders.getOrder>(this.orders.getOrder.bind(this.orders));
@@ -42,6 +43,28 @@ export class OrderDetailsComponent {
 
     public readonly stateRequest = createRequestWrapper<typeof this.orders.getPaymentState>(
         this.orders.getPaymentState.bind(this.orders),
+    );
+
+    private readonly paymentCheckLoading$ = toObservable(this.stateRequest.loading);
+
+    /**
+     * Сразу показывает ручную проверку минимум на 500 мс и до завершения запроса; автоматический опрос не меняет кнопку.
+     * Смена заказа или сессии сразу сбрасывает отображение и отменяет таймер минимальной длительности.
+     */
+    public readonly showPaymentCheckProgress = toSignal(
+        this.manualPaymentCheck$
+            .pipe(
+                switchMap(() => combineLatest([timer(500), this.paymentCheckLoading$])
+                    .pipe(
+                        filter(([, loading]) => !loading),
+                        take(1),
+                        map(() => false),
+                        startWith(true),
+                        takeUntil(this.contextChanged$),
+                        endWith(false),
+                    )),
+            ),
+        { initialValue: false },
     );
 
     public readonly order = signal<UserOrderDetailsDto | null>(null);
@@ -88,7 +111,7 @@ export class OrderDetailsComponent {
                                         const current = this.order();
 
                                         if (!current || (index > 0 && current.status !== this.pendingStatus) ||
-                                            this.stateRequest.loading() || this.paymentState()?.resolution) {
+                                            this.stateRequest.loading() || this.showPaymentCheckProgress() || this.paymentState()?.resolution) {
                                             return EMPTY;
                                         }
 
@@ -103,12 +126,18 @@ export class OrderDetailsComponent {
             .subscribe((state) => this.acceptPaymentState(state));
     }
 
-    /** Проверяет результат по явному действию пользователя после ошибки или окончания двухминутного ожидания. */
+    /** Проверяет результат вручную с немедленной обратной связью; при уже идущем опросе ждёт его без дублирования запроса. */
     public checkPayment(): void {
         const order = this.order();
         const revision = this.auth.sessionRevision;
 
-        if (!order || !this.auth.auth() || this.stateRequest.loading()) {
+        if (!order || !this.auth.auth() || this.showPaymentCheckProgress()) {
+            return;
+        }
+
+        this.manualPaymentCheck$.next();
+
+        if (this.stateRequest.loading()) {
             return;
         }
 

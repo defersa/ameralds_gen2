@@ -62,11 +62,19 @@
 
     <ng-content/>
 
-    @if (inCart()) {
+    @if (downloadOnly()) {
+        <amstore-button color="accent" size="small" [routerLink]="routerLink()">
+            Скачать
+        </amstore-button>
+    }
+
+    @else if (inCart()) {
         <amstore-button color="accent" size="small" [routerLink]="routerLink()">
             Изменить
         </amstore-button>
-    } @else {
+    }
+
+    @else {
         <amstore-button color="primary"  size="small" [routerLink]="routerLink()">
             Добавить
         </amstore-button>

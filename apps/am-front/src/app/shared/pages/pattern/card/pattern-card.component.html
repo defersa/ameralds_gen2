@@ -1,7 +1,9 @@
 <div class="flex flex-row gap-4 my-6">
-    <amstore-button [stroked]="true" (click)="getBack()">Назад</amstore-button>
+    <amstore-button [stroked]="true" (click)="getBack()">
+        Назад
+    </amstore-button>
 
-    @if (isAdmin()) {
+    @if (isAdmin() && !purchased) {
         <amstore-button routerLink="edit"
                         [stroked]="true"
                         color="accent">
@@ -19,6 +21,15 @@
 @if (pattern$ | async; as pattern) {
     <amstore-pattern-card [pattern]="pattern">
         <amstore-pattern-common [pattern]="pattern"/>
-        <amstore-pattern-cart [pattern]="pattern"/>
+
+        @if (purchased) {
+            <amstore-pattern-purchased-download [pattern]="pattern"/>
+
+            <amstore-pattern-buy-other-sizes [pattern]="pattern"/>
+        }
+
+        @else {
+            <amstore-pattern-cart [pattern]="pattern"/>
+        }
     </amstore-pattern-card>
 }

@@ -1,0 +1,101 @@
+<section class="mx-auto w-full max-w-2xl py-6 sm:py-10" aria-labelledby="payment-title">
+    <div class="result-card flex flex-col gap-6 rounded-2xl p-6 shadow-sm sm:gap-8 sm:p-10">
+        <header class="flex flex-col gap-5">
+            <div class="flex items-center justify-between gap-4">
+                <span class="result-icon inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full"
+                      [class.result-icon-warning]="stateRequest.errors() || state()?.resolution === 'compensation_required'">
+                    <amstore-icon [iconName]="completed() ? 'apply' : stateRequest.loading() ? 'time' : 'info'"
+                                  [size]="28"
+                                  [color]="stateRequest.errors() || state()?.resolution === 'compensation_required' ? 'warn' : 'primary'"
+                                  aria-hidden="true"/>
+                </span>
+
+                <span class="result-badge rounded-full px-3 py-1">
+                    Тестовый режим
+                </span>
+            </div>
+
+            <h1 id="payment-title" class="result-title">
+                {{ completed() ? 'Покупка завершена' : 'Результат покупки' }}
+            </h1>
+        </header>
+
+        <div class="result-description" aria-live="polite" [attr.aria-busy]="stateRequest.loading()">
+            @if (stateRequest.loading()) {
+                <p role="status">
+                    Проверяем завершение заказа…
+                </p>
+            }
+
+            @else if (completed()) {
+                <p role="status">
+                    Заказ №{{ orderId() }} успешно завершён. Купленные материалы доступны в личном кабинете.
+                </p>
+            }
+
+            @else if (state()?.resolution === 'compensation_required') {
+                <p role="alert">
+                    Тестовый платёж сохранён, но заказ не удалось завершить. Проверьте его состояние. Повторная оплата не требуется.
+                </p>
+            }
+
+            @else if (stateRequest.errors() || !state()) {
+                <p role="alert">
+                    Не удалось проверить заказ. Убедитесь, что вы вошли в нужный аккаунт, и повторите проверку.
+                </p>
+            }
+
+            @else {
+                <p role="status">
+                    Завершение покупки пока не подтверждено. Проверьте состояние заказа перед повторной оплатой.
+                </p>
+            }
+        </div>
+
+        <div class="result-notice flex items-start gap-3 rounded-xl p-4">
+            <amstore-icon class="shrink-0" iconName="info" [size]="20" aria-hidden="true"/>
+
+            <p>
+                В тестовом режиме деньги не списываются.
+            </p>
+        </div>
+
+        <nav class="flex flex-col gap-3 sm:flex-row" aria-label="Действия с заказом">
+            @if (completed()) {
+                <a routerLink="/account/patterns" class="flex min-w-0 flex-1 no-underline">
+                    <amstore-button class="result-action w-full" color="primary">
+                        К купленным материалам
+                    </amstore-button>
+                </a>
+            }
+
+            @else if (orderId()) {
+                <button amstore-button
+                        class="result-action flex-1"
+                        type="button"
+                        [disabled]="stateRequest.loading()"
+                        (click)="check()">
+                    {{ stateRequest.loading() ? 'Проверяем…' : 'Проверить снова' }}
+                </button>
+            }
+
+            @if (orderId()) {
+                <a [routerLink]="['/account/orders', orderId()]" class="flex min-w-0 flex-1 no-underline">
+                    <amstore-button class="result-action w-full" [stroked]="true" color="primary">
+                        К заказу
+                    </amstore-button>
+                </a>
+            }
+        </nav>
+
+        <footer class="result-footer pt-5">
+            <a routerLink="/account/orders" class="result-back inline-flex items-center gap-2">
+                <amstore-icon iconName="left-arrow" [size]="16" aria-hidden="true"/>
+
+                <span>
+                    Все заказы
+                </span>
+            </a>
+        </footer>
+    </div>
+</section>

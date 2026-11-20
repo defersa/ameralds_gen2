@@ -1,0 +1,13 @@
+@use "theming-var";
+@use "typography";
+
+
+.purchase-status {
+    color: theming-var.get-amstore-color(green, deep);
+    background: theming-var.get-amstore-color(green, slight);
+    @include typography.get-amstore-font("body", 12, regular);
+}
+
+h3, h2 {
+    margin: 0;
+}

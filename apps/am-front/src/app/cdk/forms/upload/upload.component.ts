@@ -53,14 +53,14 @@ export class AmstoreUploadComponent extends AmstoreFormsBaseDirective implements
                 startWith(this.control.value),
                 takeUntilDestroyed(this.destroyRef)
             )
-            .subscribe((file: FileDto) => {
+            .subscribe((file: FileDto | number | null) => {
                 if (!file) {
                     this.name = null;
 
                     return;
                 }
 
-                this.name = file.name;
+                this.name = typeof file === 'number' ? `Файл #${file}` : file.name;
             });
 
         this._initFileReader();
@@ -85,8 +85,10 @@ export class AmstoreUploadComponent extends AmstoreFormsBaseDirective implements
         this.control.markAsTouched();
     }
 
+    /** Скачивает загруженный файл или файл, полученный из API только по ID. */
     public downloadFile(): void {
-        const id: number = this.control.value.id;
+        const value: FileDto | number = this.control.value;
+        const id = typeof value === 'number' ? value : value.id;
 
         this.filesProducer.filesControllerGetPrivateFile(id)
             .subscribe(

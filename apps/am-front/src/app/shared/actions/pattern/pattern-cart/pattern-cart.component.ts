@@ -15,7 +15,7 @@ import {
 } from '@am-front/root/api-v2';
 import { AmstoreButtonComponent } from "@am-front/cdk/buttons/default/amstore-button.component";
 import { FormField } from "@angular/forms/signals";
-import { AmstoreChipComponent } from "@am-front/cdk/chip/chip.component";
+import { IconsComponent } from '@am-front/cdk/icons/icons.component';
 import { LangNumberComponent } from "@am-front/shared/lang-text/lang-number.component";
 import { Currency, LangService } from "@am-front/services/lang.service";
 import {
@@ -40,13 +40,16 @@ export enum PatternButtonState {
         AmstoreButtonComponent,
         AmstoreCheckboxSignalComponent,
         FormField,
-        AmstoreChipComponent,
+        IconsComponent,
         LangNumberComponent,
         AmstoreSlideSignalComponent
     ],
     providers: [PatternCartService],
     templateUrl: "./pattern-cart.component.html",
     styleUrl: "./pattern-cart.component.scss",
+    host: {
+        'class': 'flex flex-col gap-2 mt-2',
+    },
 })
 export class PatternCartComponent {
     public readonly pattern: InputSignal<FullPatternEntityDto> = input.required();

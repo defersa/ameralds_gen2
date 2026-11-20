@@ -3,18 +3,21 @@
 </div>
 
 <div class="amstore-card-container">
-    <div class="amstore-card-container-header">
-        <h1>{{ title() }}</h1>
+    <div class="amstore-card-container-header min-w-0 gap-2 sm:gap-3">
+        <span class="pattern-kind inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+              role="img"
+              aria-label="Схема"
+              title="Схема">
+            <amstore-icon iconName="pattern" [size]="24" aria-hidden="true"/>
+        </span>
+
+        <h1 class="min-w-0 break-words">
+            {{ title() }}
+        </h1>
 
         <div class="amstore-card-container-heart">
             <amstore-icon iconName="heart" [size]="32" [isBlack]="true"/>
         </div>
-    </div>
-
-    <div class="amstore-card-container-line amstore-row">
-        <amstore-icon iconName="pattern" [size]="32" [isBlack]="true"/>
-
-        <span>Схема</span>
     </div>
 
     <ng-content/>

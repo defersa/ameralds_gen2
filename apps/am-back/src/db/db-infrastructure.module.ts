@@ -20,6 +20,7 @@ import { PatternGrantRepository } from './services/pattern-grants/repositories/p
 import { UserPatternRepository } from './services/pattern-grants/repositories/user-pattern.repository';
 import { PasswordResetService } from './services/password-reset.service';
 import { PasswordResetRepository } from './repositories/password-reset.repository';
+import { PatternCatalogRepository } from './services/patterns/repositories/pattern-catalog.repository';
 
 
 const services: Provider[] = [
@@ -44,7 +45,7 @@ const services: Provider[] = [
 ];
 
 @Module({
-	providers: [...services, PatternGrantRepository, UserPatternRepository, PasswordResetRepository],
+	providers: [...services, PatternGrantRepository, UserPatternRepository, PasswordResetRepository, PatternCatalogRepository],
 	exports: services,
 })
 export class DbInfrastructureModule {}

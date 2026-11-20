@@ -4,7 +4,7 @@ import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
-import { ApiOrdersProducer, EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, UserOrderSummaryDto } from '@am-front/root/api-v2';
+import { ApiOrdersProducer, EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, PaymentStateDto, UserOrderSummaryDto } from '@am-front/root/api-v2';
 import { UserOrdersService } from '@am-front/services/user-orders.service';
 import { AuthService } from '@am-front/services/auth.service';
 import { CategoriesService } from '@am-front/services/categories.service';
@@ -66,10 +66,20 @@ describe('personal order page', () => {
         amount: 12345,
         currency: 'RUB',
         confirmationUrl: 'https://pay.example.test/1',
+        redirectUrl: 'https://pay.example.test/1',
         createdAt: new Date('2026-11-10T12:00:00Z'),
         paidAt: null,
         testMode: true,
     } satisfies PaymentAttemptDto;
+
+    const pendingState = {
+        orderId: 17,
+        orderStatus: EnumOrderStatus.PendingPayment,
+        paymentStatus: EnumPaymentStatus.PENDING,
+        resolution: null,
+        checkedAt: new Date(),
+        verificationUnavailable: false,
+    } satisfies PaymentStateDto;
 
     beforeEach(() => {
         authenticated.set(true);
@@ -408,19 +418,164 @@ describe('personal order page', () => {
         expect(purchaseConfirmed).toHaveBeenCalledTimes(1);
     });
 
-    it('preserves uncertainty on provider failure and can check again', () => {
+    it('preserves uncertainty on provider failure and can check again after the minimum progress duration', fakeAsync(() => {
         const fixture = TestBed.createComponent(OrderDetailsComponent);
 
         fixture.detectChanges();
+        tick(0);
         getState.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 503 })));
         fixture.componentInstance.checkPayment();
         fixture.detectChanges();
         expect(fixture.nativeElement.textContent).toContain('Пока не удалось проверить оплату');
         expect(purchaseConfirmed).not.toHaveBeenCalled();
+        expect(fixture.componentInstance.showPaymentCheckProgress()).toBe(true);
+        tick(500);
+        fixture.detectChanges();
         fixture.componentInstance.checkPayment();
         fixture.detectChanges();
         expect(fixture.nativeElement.textContent).toContain('Ожидаем подтверждение');
-    });
+        fixture.destroy();
+    }));
+
+    it.each([0, 100, 249])('shows manual progress immediately for at least 500 ms after a %s ms response', fakeAsync((responseMs: number) => {
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        tick(0);
+        fixture.detectChanges();
+        getState.mockClear();
+
+        const response = new Subject<PaymentStateDto>();
+
+        getState.mockReturnValue(response);
+        fixture.componentInstance.checkPayment();
+        fixture.detectChanges();
+
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-busy]');
+
+        expect(button.disabled).toBe(true);
+        expect(button.classList.contains('amstore-button-default-disabled')).toBe(true);
+        expect(button.getAttribute('aria-busy')).toBe('true');
+        expect(button.querySelector('[aria-hidden="false"]')?.textContent.trim()).toBe('Проверяем…');
+        button.click();
+        fixture.componentInstance.checkPayment();
+        expect(getState).toHaveBeenCalledTimes(1);
+        tick(responseMs);
+        response.next(pendingState);
+        response.complete();
+        fixture.detectChanges();
+        tick(499 - responseMs);
+        fixture.detectChanges();
+        expect(button.disabled).toBe(true);
+        expect(button.getAttribute('aria-busy')).toBe('true');
+        fixture.componentInstance.checkPayment();
+        expect(getState).toHaveBeenCalledTimes(1);
+        tick(1);
+        fixture.detectChanges();
+        expect(fixture.componentInstance.showPaymentCheckProgress()).toBe(false);
+        expect(button.classList.contains('amstore-button-default-disabled')).toBe(false);
+        expect(button.getAttribute('aria-busy')).toBe('false');
+        expect(button.querySelector('[aria-hidden="false"]')?.textContent.trim()).toBe('Проверить оплату');
+        expect(button.disabled).toBe(false);
+        fixture.destroy();
+    }));
+
+    it.each(['success', 'error'])('keeps manual progress until a slow request ends with %s', fakeAsync((outcome: string) => {
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        tick(0);
+        fixture.detectChanges();
+        getState.mockClear();
+
+        const response = new Subject<PaymentStateDto>();
+
+        getState.mockReturnValue(response);
+        fixture.componentInstance.checkPayment();
+        fixture.detectChanges();
+
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-busy]');
+
+        expect(fixture.componentInstance.showPaymentCheckProgress()).toBe(true);
+        tick(750);
+        fixture.detectChanges();
+        expect(button.disabled).toBe(true);
+        expect(button.classList.contains('amstore-button-default-disabled')).toBe(true);
+        expect(button.querySelector('[aria-hidden="false"]')?.textContent.trim()).toBe('Проверяем…');
+        fixture.componentInstance.checkPayment();
+        expect(getState).toHaveBeenCalledTimes(1);
+
+        if (outcome === 'success') {
+            response.next(pendingState);
+            response.complete();
+        } else {
+            response.error(new HttpErrorResponse({ status: 503 }));
+        }
+
+        fixture.detectChanges();
+        expect(getState).toHaveBeenCalledTimes(1);
+        expect(button.disabled).toBe(false);
+        expect(button.classList.contains('amstore-button-default-disabled')).toBe(false);
+        expect(button.getAttribute('aria-busy')).toBe('false');
+        expect(button.querySelector('[aria-hidden="false"]')?.textContent.trim()).toBe('Проверить оплату');
+        fixture.destroy();
+    }));
+
+    it('does not change the button during automatic polling and reuses that request after a manual click', fakeAsync(() => {
+        const response = new Subject<PaymentStateDto>();
+
+        getState.mockReturnValue(response);
+
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        tick(0);
+        fixture.detectChanges();
+
+        const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-busy]');
+
+        tick(1000);
+        fixture.detectChanges();
+        expect(fixture.componentInstance.stateRequest.loading()).toBe(true);
+        expect(button.disabled).toBe(false);
+        expect(button.getAttribute('aria-busy')).toBe('false');
+        button.click();
+        fixture.detectChanges();
+        expect(button.disabled).toBe(true);
+        expect(button.getAttribute('aria-busy')).toBe('true');
+        expect(getState).toHaveBeenCalledTimes(1);
+        response.next(pendingState);
+        response.complete();
+        fixture.detectChanges();
+        tick(500);
+        fixture.detectChanges();
+        expect(button.disabled).toBe(false);
+        fixture.destroy();
+    }));
+
+    it.each(['route', 'logout'])('clears manual progress and its timer after %s', fakeAsync((context: string) => {
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        tick(0);
+        fixture.componentInstance.checkPayment();
+        fixture.detectChanges();
+        expect(fixture.componentInstance.showPaymentCheckProgress()).toBe(true);
+
+        if (context === 'route') {
+            getOrder.mockReturnValue(of({ ...stored, id: 99 }));
+            routeParams.next(convertToParamMap({ id: '99' }));
+        } else {
+            authenticated.set(false);
+            auth.sessionRevision++;
+        }
+
+        fixture.detectChanges();
+        expect(fixture.componentInstance.showPaymentCheckProgress()).toBe(false);
+        tick(500);
+        expect(fixture.componentInstance.showPaymentCheckProgress()).toBe(false);
+        fixture.destroy();
+    }));
 
     it('shows a late capture incident without granting success', () => {
         const fixture = TestBed.createComponent(OrderDetailsComponent);

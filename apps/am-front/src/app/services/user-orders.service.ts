@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { DOCUMENT } from '@angular/common';
 import { inject, Injectable } from '@angular/core';
-import { ApiOrdersProducer, EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, PaymentStateDto, UserOrderDetailsDto, UserOrdersPageDto, UserOrderSummaryDto } from '@am-front/root/api-v2';
+import { ApiOrdersProducer, EnumOrderStatus, PaymentAttemptDto, PaymentStateDto, UserOrderDetailsDto, UserOrdersPageDto, UserOrderSummaryDto } from '@am-front/root/api-v2';
 import { AuthService } from '@am-front/services/auth.service';
 import { defer, Observable, throwError } from 'rxjs';
 
@@ -94,16 +94,19 @@ export class UserOrdersService {
         });
     }
 
-    /** Перенаправляет только на безопасную ссылку незавершённой попытки; переход не меняет статус заказа. */
+    /**
+     * Открывает только безопасный redirectUrl из ответа сервера, не выбирая страницу по провайдеру или статусу.
+     * Отсутствие URL запрещает переход; сам переход не подтверждает оплату заказа.
+     */
     public redirectToPayment(payment: PaymentAttemptDto): boolean {
-        if (payment.status !== EnumPaymentStatus.PENDING || !payment.confirmationUrl || !this.auth.auth()) {
+        if (!this.auth.auth() || !payment.redirectUrl) {
             return false;
         }
 
         let url: URL;
 
         try {
-            url = new URL(payment.confirmationUrl);
+            url = new URL(payment.redirectUrl);
         } catch {
             return false;
         }

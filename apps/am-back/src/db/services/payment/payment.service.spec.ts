@@ -142,6 +142,7 @@ describe('PaymentService', () => {
             testMode: true,
         });
         expect(result.confirmationUrl).toBe('https://shop.example.test/account/orders/17');
+        expect(result.redirectUrl).toBe(result.confirmationUrl);
         expect(result).not.toHaveProperty('externalId');
         expect(result).not.toHaveProperty('idempotencyKey');
         expect(create).toHaveBeenCalledWith(
@@ -263,6 +264,7 @@ describe('PaymentService', () => {
             const duplicate = await service.createPayment(42, 17, key);
             const retry = await service.createPayment(42, 17, randomUUID());
 
+            expect(first.redirectUrl).toBeNull();
             expect(duplicate).toEqual(first);
             expect(retry.id).not.toBe(first.id);
             expect(rows).toHaveLength(2);
@@ -284,6 +286,24 @@ describe('PaymentService', () => {
             response: { code: 'PAYMENT_CONFLICT' },
         });
         expect(order.status).toBe(OrderStatus.PENDING_PAYMENT);
+    });
+
+    it.each(['mock', 'external-provider'])('selects the result URL on the server for completed provider %s', async (name) => {
+        Object.defineProperty(provider, 'name', { value: name });
+        provider.enqueueScenario({ status: ProviderPaymentStatus.SUCCEEDED });
+
+        const key = randomUUID();
+        const captured = await service.createPayment(42, 17, key);
+
+        // Заглушка завершения не выдаёт права: одного списания без подтверждённой финализации недостаточно для перехода.
+        expect(captured.redirectUrl).toBeNull();
+        rows[0].resolution = 'completed';
+
+        const completed = await service.createPayment(42, 17, key);
+
+        expect(completed.redirectUrl).toBe(`https://shop.example.test/account/orders/17${name === 'mock' ? '/auto-success' : ''}`);
+        expect(completed.confirmationUrl).toBeNull();
+        expect(rows).toHaveLength(1);
     });
 
     it.each([ProviderPaymentStatus.FAILED, ProviderPaymentStatus.CANCELLED])(

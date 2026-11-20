@@ -1,6 +1,6 @@
-import { ApiErrorCodes, DEFAULT_PAGE_SIZE, FIRST_PAGE } from "@ameralds/utils";
+import { ApiErrorCodes, DEFAULT_PAGE_SIZE, FIRST_PAGE, MAX_PAGE_NUMBER, toNumberArray } from "@ameralds/utils";
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { Brackets, In, Repository, SelectQueryBuilder } from "typeorm";
+import { In, Repository } from "typeorm";
 import { CommonEntitiesService } from "@am-back/db/service/common-entities.service";
 import { ImagesService } from "@am-back/db/service/images.service";
 import { FilesService } from "@am-back/db/service/files.service";
@@ -9,6 +9,7 @@ import { CategoriesService } from "@am-back/db/service/patterns/categories.servi
 import { PatternsSizeService } from "@am-back/db/service/patterns/pattern-sizes.service";
 import {
 	CreatePatternDto,
+	FullPatternEntityDto,
 	PatternEntityDto,
 	PatternSizeDto,
 	PatternsPaginatedPageDto,
@@ -23,25 +24,17 @@ import { CategoryEntity } from "../../entities/patterns/category.entity";
 import { ImageEntity } from "../../entities/image/image.entity";
 import { FileEntity } from "../../entities/files/file.entity";
 import { PatternSizeEntity } from "../../entities/patterns/pattern-size.entity";
+import { PatternCatalogRepository } from './repositories/pattern-catalog.repository';
+import type { PatternsPaginatedFilters } from './patterns-paginated-filters';
 
-
-export interface PatternsPaginatedFilters {
-	sizes: number[];
-	categories: number[];
-	query: string;
-}
-
-type PatternIdRow = {
-	id: number | string;
-};
 
 @Injectable()
 export class PatternsService {
 	private patternsRepository: Repository<PatternEntity>;
 
 	/**
-	 * Подключает репозиторий схем и сервисы локализованных данных, категорий, изображений, файлов и
-	 * размеров.
+	 * Подключает репозитории схем и пагинации, а также сервисы локализованных данных, категорий, изображений,
+	 * файлов и размеров.
 	 */
 	constructor(
 		private dataSource: DataSourceService,
@@ -50,6 +43,7 @@ export class PatternsService {
 		private imagesService: ImagesService,
 		private filesService: FilesService,
 		private patternSizeService: PatternsSizeService,
+		private readonly catalog: PatternCatalogRepository,
 	) {
 		this.patternsRepository = this.dataSource.getRepository<PatternEntity>(PatternEntity);
 	}
@@ -110,6 +104,65 @@ export class PatternsService {
 		await this.patternsRepository.save(pattern);
 
 		return pattern;
+	}
+
+	/**
+	 * Возвращает карточку по контракту API: файлы размеров представлены ID либо null, а приватные пути
+	 * не раскрываются. Категории уже загружены как ID; отсутствие схемы приводит к NOT_EXIST.
+	 */
+	public async getPatternDetails(id: number): Promise<FullPatternEntityDto> {
+		const pattern = await this.getPattern(id);
+
+		return {
+			id: pattern.id,
+			name: {
+				ru: pattern.name?.ru,
+				en: pattern.name?.en,
+			},
+			description: {
+				ru: pattern.description?.ru,
+				en: pattern.description?.en,
+			},
+			basePrice: {
+				ru: pattern.basePrice?.ru,
+				en: pattern.basePrice?.en,
+			},
+			additionalPrice: {
+				ru: pattern.additionalPrice?.ru,
+				en: pattern.additionalPrice?.en,
+			},
+			colorPrice: {
+				ru: pattern.colorPrice?.ru,
+				en: pattern.colorPrice?.en,
+			},
+			hidden: pattern.hidden,
+			categories: toNumberArray(pattern.categories),
+			images: pattern.images
+				.map((image) => ({
+					id: image.id,
+					name: image.name,
+					preview: image.preview,
+					full: image.full,
+				})),
+			color: pattern.color?.state === ModelState.ACTIVE ? {
+				id: pattern.color.id,
+				name: pattern.color.name,
+				path: '',
+			} : null,
+			sizes: pattern.sizes
+				.filter((size) => size.state === ModelState.ACTIVE && size.size?.state === ModelState.ACTIVE)
+				.map((size) => ({
+					id: size.id,
+					size: size.size ? {
+						id: size.size.id,
+						value: size.size.value,
+						createdAt: size.size.createdAt,
+					} : null,
+					cbb: size.cbb?.state === ModelState.ACTIVE ? size.cbb.id : null,
+					pdf: size.pdf?.state === ModelState.ACTIVE ? size.pdf.id : null,
+					png: size.png?.state === ModelState.ACTIVE ? size.png.id : null,
+				})),
+		};
 	}
 
 	/**
@@ -189,20 +242,24 @@ export class PatternsService {
 	}
 
 	/**
-	 * Возвращает страницу доступных схем по фильтрам с отдельной пагинацией идентификаторов, чтобы связи не
-	 * меняли размер страницы.
+	 * Возвращает страницу каталога либо действующих покупок ownerId по общим фильтрам без дублей от связей.
+	 * Некорректная страница отклоняется с BAD_REQUEST до обращения к базе.
 	 */
-	public async paginatedPatterns(page: number, filters: PatternsPaginatedFilters): Promise<PatternsPaginatedPageDto> {
+	public async paginatedPatterns(page: number, filters: PatternsPaginatedFilters, ownerId?: number): Promise<PatternsPaginatedPageDto> {
+		if (!Number.isSafeInteger(page) || page < FIRST_PAGE || page > MAX_PAGE_NUMBER) {
+			throw new HttpException({ code: ApiErrorCodes.INVALID }, HttpStatus.BAD_REQUEST);
+		}
+
 		const take = DEFAULT_PAGE_SIZE;
 		const skip = take * (page - FIRST_PAGE);
 
 		// Выбираем идентификаторы страницы и общее количество по одним фильтрам; связи каталога не должны искажать пагинацию.
 		const [ids, total]: [number[], number] = await Promise.all([
-			this.getPaginatedPatternIds(filters, take, skip),
-			this.getFilteredPatternsQuery(filters).getCount(),
+			this.catalog.findPageIds(filters, take, skip, ownerId),
+			this.catalog.countFiltered(filters, ownerId),
 		]);
 
-		const patterns: PatternEntity[] = await this.getPatternsPageByIds(ids);
+		const patterns: PatternEntity[] = await this.catalog.findPageByIds(ids, ownerId);
 		const count: number = Math.ceil(total / take);
 
 		return {
@@ -321,129 +378,4 @@ export class PatternsService {
 			})) as unknown as PatternEntityDto[];
 	}
 
-	/**
-	 * Выбирает уникальные идентификаторы доступных схем по фильтрам с устойчивой сортировкой по дате и id
-	 * по убыванию.
-	 */
-	private async getPaginatedPatternIds(
-		filters: PatternsPaginatedFilters,
-		take: number,
-		skip: number,
-	): Promise<number[]> {
-		// Ограничиваем страницу уникальных схем до загрузки связей; сортировка по createdAt и id делает порядок устойчивым.
-		const rows: PatternIdRow[] = await this.getFilteredPatternsQuery(filters)
-			.select("pattern.id", "id")
-			.addSelect("pattern.createdAt", "createdAt")
-			.distinct(true)
-			.orderBy("pattern.createdAt", "DESC")
-			.addOrderBy("pattern.id", "DESC")
-			.limit(take)
-			.offset(skip)
-			.getRawMany<PatternIdRow>();
-
-		return rows
-			.map((row: PatternIdRow) => Number(row.id));
-	}
-
-	/** Загружает активные нескрытые схемы для страницы и восстанавливает порядок переданных идентификаторов. */
-	private async getPatternsPageByIds(ids: number[]): Promise<PatternEntity[]> {
-		if (!ids.length) {
-			return [];
-		}
-
-		const patterns: PatternEntity[] = await this.patternsRepository
-			.find({
-				where: {
-					id: In(ids),
-					state: ModelState.ACTIVE,
-					hidden: false,
-				},
-				relations: {
-					name: true,
-					description: true,
-					basePrice: true,
-					additionalPrice: true,
-					colorPrice: true,
-					images: true,
-					color: true,
-					sizes: {
-						size: true,
-					},
-				},
-				order: {
-					images: {
-						index: "ASC",
-					},
-				},
-				select: {
-					sizes: {
-						id: true,
-					},
-				},
-				loadRelationIds: {
-					relations: ["categories"],
-				},
-			});
-
-		const patternsById: Map<number, PatternEntity> = new Map(
-			patterns
-				.map((pattern: PatternEntity) => [pattern.id, pattern]),
-		);
-
-		return ids
-			.map((id: number) => patternsById.get(id))
-			.filter((pattern: PatternEntity | undefined): pattern is PatternEntity => Boolean(pattern));
-	}
-
-	/**
-	 * Строит базовый запрос активных нескрытых схем с фильтрами по категориям, размерам и
-	 * регистронезависимому тексту названия и описания.
-	 */
-	private getFilteredPatternsQuery(filters: PatternsPaginatedFilters): SelectQueryBuilder<PatternEntity> {
-		// Начинаем выборку активных нескрытых схем, присоединяя локализованные названия и описания для
-		// текстового поиска.
-		const queryBuilder: SelectQueryBuilder<PatternEntity> = this.patternsRepository
-			.createQueryBuilder("pattern")
-			.leftJoin("pattern.name", "name")
-			.leftJoin("pattern.description", "description")
-			.where("pattern.state = :state", {
-				state: ModelState.ACTIVE,
-			})
-			.andWhere("pattern.hidden = :hidden", { hidden: false });
-
-		if (filters.categories.length) {
-			// Оставляем схемы хотя бы из одной выбранной категории через параметризованный список идентификаторов.
-			queryBuilder
-				.innerJoin("pattern.categories", "categoryFilter")
-				.andWhere("categoryFilter.id IN (:...categories)", {
-					categories: filters.categories,
-				});
-		}
-
-		if (filters.sizes.length) {
-			// Фильтруем схемы по выбранным размерам каталога через связи размеров схем.
-			queryBuilder
-				.innerJoin("pattern.sizes", "sizeFilter")
-				.innerJoin("sizeFilter.size", "selectedSize")
-				.andWhere("selectedSize.id IN (:...sizes)", {
-					sizes: filters.sizes,
-				});
-		}
-
-		if (filters.query.trim()) {
-			// Объединяем поиск ILIKE по ru/en названия и описания в скобки, сохраняя остальные фильтры через AND.
-			queryBuilder.andWhere(
-				new Brackets((qb: SelectQueryBuilder<PatternEntity>) => {
-					qb.where("name.ru ILIKE :query", {
-						query: `%${filters.query.trim()}%`,
-					})
-						.orWhere("name.en ILIKE :query")
-						.orWhere("description.ru ILIKE :query")
-						.orWhere("description.en ILIKE :query");
-				}),
-			);
-		}
-
-		return queryBuilder;
-	}
 }

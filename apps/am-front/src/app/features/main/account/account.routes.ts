@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { ProfileComponent } from '@am-front/root/features/main/account/pages/profile/profile.component';
 import { PatternRoutes } from '@am-front/shared/pages/pattern/pattern.routes';
+import { PatternCardComponent } from '@am-front/shared/pages/pattern/card/pattern-card.component';
 import { CartComponent } from '@am-front/root/features/main/store/pages/cart/cart.component';
 import { OrdersComponent } from '@am-front/root/features/main/account/pages/orders/orders.component';
 import { PatternsComponent } from '@am-front/root/features/main/account/pages/patterns/patterns.component';
@@ -53,6 +54,10 @@ export const AccountRoutes: Routes = [
         ]
     },
     {
+        path: 'orders/:id/auto-success',
+        loadComponent: () => import('./pages/orders/auto-success/auto-success.component').then(m => m.AutoSuccessComponent),
+    },
+    {
         path: 'orders/:id',
         loadComponent: () => import('./pages/orders/order-details/order-details.component').then(m => m.OrderDetailsComponent),
     },
@@ -62,6 +67,18 @@ export const AccountRoutes: Routes = [
     },
     {
         path: 'patterns',
-        component: PatternsComponent,
+        children: [
+            {
+                path: ':id',
+                component: PatternCardComponent,
+                data: {
+                    purchased: true,
+                },
+            },
+            {
+                path: '',
+                component: PatternsComponent,
+            },
+        ],
     },
 ];
