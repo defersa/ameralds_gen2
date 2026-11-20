@@ -162,6 +162,43 @@ export class PatternGrantsService {
             .map((grant) => grant.patternId)), manager);
     }
 
+    /**
+     * Отзывает все действующие основания подтверждённо возвращённого пользовательского заказа и
+     * пересобирает проекции из оставшихся источников в транзакции вызывающего обработчика.
+     * Инициатор и подтверждение проверяются при принятии возврата; метод не выполняет финансовую операцию.
+     */
+    public async revokeRefundedOrder(
+        userId: number, orderId: number, actorId: number, reason: string, refundReference: string, manager: EntityManager,
+    ): Promise<void> {
+        this.assertTransaction(manager);
+
+        if (![userId, orderId, actorId]
+            .every((id) => Number.isSafeInteger(id) && id > 0) ||
+            typeof reason !== 'string' || !reason.trim() || reason.length > 2000 ||
+            typeof refundReference !== 'string' || !refundReference.trim() || refundReference.length > 255) {
+            invalidGrant();
+        }
+
+        await this.lockOwner(userId, manager);
+
+        const order = await this.grants.lockSourceOrder(userId, orderId, manager);
+
+        if (!order || order.status !== OrderStatus.REFUNDED || order.sourceAdminOrder) {
+            invalidGrant();
+        }
+
+        const selected = await this.grants.findActiveOrderGrants(userId, orderId, manager);
+
+        if (!selected.length) {
+            return;
+        }
+
+        await this.grants.revokeOnce(selected
+            .map((grant) => grant.id), actorId, reason.trim(), refundReference.trim(), manager);
+        await this.project(userId, new Set(selected
+            .map((grant) => grant.patternId)), manager);
+    }
+
     /** Отказывает до запросов к БД, если вызывающий код не передал активную транзакцию. */
     private assertTransaction(manager: EntityManager): void {
         if (!manager.queryRunner?.isTransactionActive) {

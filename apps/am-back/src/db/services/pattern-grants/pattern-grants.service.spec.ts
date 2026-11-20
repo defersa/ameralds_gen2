@@ -24,6 +24,7 @@ describe('pattern grant domain safeguards', () => {
         findEffective: jest.fn(),
         isAdministrator: jest.fn(),
         findSelected: jest.fn(),
+        findActiveOrderGrants: jest.fn(),
         revokeOnce: jest.fn(),
     };
 
@@ -85,6 +86,7 @@ describe('pattern grant domain safeguards', () => {
         grants.findEffective.mockResolvedValue([selected]);
         grants.isAdministrator.mockResolvedValue(true);
         grants.findSelected.mockResolvedValue([selected]);
+        grants.findActiveOrderGrants.mockResolvedValue([selected]);
         service = await testService(PatternGrantsService, [
             { provide: PatternGrantRepository, useValue: grants },
             { provide: UserPatternRepository, useValue: purchases },
@@ -270,5 +272,37 @@ describe('pattern grant domain safeguards', () => {
 
         purchases.project.mockRejectedValue(error);
         await expect(service.grantPaidOrder(42, 17, manager)).rejects.toBe(error);
+    });
+
+    it('revokes all active bases of the refunded order and rebuilds each affected pattern once', async () => {
+        order.status = OrderStatus.REFUNDED;
+        grants.findActiveOrderGrants.mockResolvedValue([
+            selected,
+            { ...selected, id: 2, rightKey: 'color', patternSizeId: null },
+            { ...selected, id: 3, patternId: 8 },
+        ]);
+
+        await service.revokeRefundedOrder(42, 17, 99, ' Полный возврат ', ' refund-1 ', manager);
+
+        expect(grants.findActiveOrderGrants).toHaveBeenCalledWith(42, 17, manager);
+        expect(grants.revokeOnce).toHaveBeenCalledWith([1, 2, 3], 99, 'Полный возврат', 'refund-1', manager);
+        expect(purchases.project).toHaveBeenCalledTimes(2);
+        expect(grants.findEffective).toHaveBeenCalledWith(42, 7, manager);
+        expect(grants.findEffective).toHaveBeenCalledWith(42, 8, manager);
+    });
+
+    it('rejects a non-refunded order and requires an active transaction', async () => {
+        await expect(service.revokeRefundedOrder(42, 17, 99, 'Причина', 'refund-1', manager)).rejects.toMatchObject({ status: 400 });
+        expect(grants.revokeOnce).not.toHaveBeenCalled();
+        Object.defineProperty(runner, 'isTransactionActive', { value: false, configurable: true });
+        await expect(service.revokeRefundedOrder(42, 17, 99, 'Причина', 'refund-1', manager)).rejects.toMatchObject({ status: 400 });
+    });
+
+    it('does not change the audit when the full revocation is repeated', async () => {
+        order.status = OrderStatus.REFUNDED;
+        grants.findActiveOrderGrants.mockResolvedValue([]);
+        await service.revokeRefundedOrder(42, 17, 99, 'Причина', 'refund-1', manager);
+        expect(grants.revokeOnce).not.toHaveBeenCalled();
+        expect(purchases.project).not.toHaveBeenCalled();
     });
 });

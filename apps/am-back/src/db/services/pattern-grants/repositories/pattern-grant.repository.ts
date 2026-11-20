@@ -75,6 +75,17 @@ export class PatternGrantRepository extends Repository<UserPatternGrantEntity> {
         });
     }
 
+    /** Возвращает все действующие основания пользовательского заказа для полного отзыва. */
+    public findActiveOrderGrants(userId: number, orderId: number, manager: EntityManager): Promise<UserPatternGrantEntity[]> {
+        // Владелец уже заблокирован; исключаем административные и legacy-источники и другие заказы.
+        return manager.getRepository(UserPatternGrantEntity).findBy({
+            userId,
+            orderId,
+            sourceType: 'order',
+            revokedAt: IsNull(),
+        });
+    }
+
     /** Возвращает все действующие основания одной схемы, независимо от состояния последнего заказа. */
     public findEffective(userId: number, patternId: number, manager: EntityManager): Promise<UserPatternGrantEntity[]> {
         // Доступ определяется объединением неотозванных оснований, а не статусом одной покупки.
