@@ -24,7 +24,7 @@ export class PaymentEffectEntity extends BaseModel {
         type: 'varchar',
         length: 40,
     })
-    public kind: 'purchase_email' | 'cancel_payment' | 'compensation_required';
+    public kind: 'purchase_email' | 'refund_email' | 'cancel_payment' | 'compensation_required';
 
     @Column({
         name: 'order_id',

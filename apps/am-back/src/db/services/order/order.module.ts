@@ -22,6 +22,10 @@ import { PaymentVerificationService } from '../payment/payment-verification.serv
 import { PaymentEffectsService } from '../payment/payment-effects.service';
 import { PaymentCompletionRepository } from '../payment/repositories/payment-completion.repository';
 import { PaymentEffectRepository } from '../payment/repositories/payment-effect.repository';
+import { RefundResultService } from '../refunds/refund-result.service';
+import { RefundReservationService } from '../refunds/refund-reservation.service';
+import { RefundProcessingService } from '../refunds/refund-processing.service';
+import { RefundRepository } from '../refunds/repositories/refund.repository';
 
 
 @Module({
@@ -34,6 +38,10 @@ import { PaymentEffectRepository } from '../payment/repositories/payment-effect.
 		PaymentCompletionRepository,
 		PaymentEffectRepository,
 		PaymentRepository,
+		RefundResultService,
+		RefundReservationService,
+		RefundProcessingService,
+		RefundRepository,
 		{ provide: PAYMENT_PROVIDER, useClass: MockPaymentProvider },
 		UserCartService,
 		AdminCartService,
@@ -51,6 +59,7 @@ import { PaymentEffectRepository } from '../payment/repositories/payment-effect.
 	exports: [
 		PaymentService,
 		PaymentVerificationService,
+		RefundProcessingService,
 		UserCartService,
 		AdminCartService,
 		UserOrderService,

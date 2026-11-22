@@ -388,7 +388,6 @@ export enum EnumOrderStatus {
     Open = "open",
     PendingPayment = "pending_payment",
     Success = "success",
-    PartiallyRefunded = "partially_refunded",
     Refunded = "refunded"
 }
 

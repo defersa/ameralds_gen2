@@ -19,12 +19,19 @@ export interface MockPaymentScenario {
     timeoutAfterCreate?: boolean;
 }
 
+export interface MockRefundScenario {
+    status?: ProviderRefund['status'];
+    timeoutAfterCreate?: boolean;
+}
+
 @Injectable()
 export class MockPaymentProvider implements PaymentProvider {
     public readonly name = 'mock';
     private readonly payments = new Map<string, ProviderPayment>();
     private readonly requests = new Map<string, string>();
     private readonly scenarios: MockPaymentScenario[] = [];
+    private readonly refunds = new Map<string, ProviderRefund>();
+    private readonly refundScenarios: MockRefundScenario[] = [];
 
     /** Подключает окружение: mock запрещён вне dev/test, управляющие сценарии доступны только в test. */
     constructor(private readonly config: ConfigService) {}
@@ -153,11 +160,89 @@ export class MockPaymentProvider implements PaymentProvider {
         return { ...payment };
     }
 
-    /** Явно отклоняет возврат: это только контракт следующего этапа, а не имитация возврата денег. */
-    public async refundPayment(input: RefundProviderPayment): Promise<ProviderRefund> {
-        void input;
+    /** Задаёт результат следующего mock-возврата только из теста, не выполняя денежную операцию. */
+    public enqueueRefundScenario(scenario: MockRefundScenario): void {
+        if (this.config.get<string>('NODE_ENV') !== 'test') {
+            throw new Error('Mock controls are available only in tests');
+        }
 
-        throw new Error('Refunds are not implemented');
+        this.refundScenarios.push(scenario);
+    }
+
+    /** Меняет результат mock-возврата только из теста для проверки сверки и повторных событий. */
+    public async setRefundResult(externalId: string, status: ProviderRefund['status']): Promise<void> {
+        if (this.config.get<string>('NODE_ENV') !== 'test') {
+            throw new Error('Mock controls are available only in tests');
+        }
+
+        const refund = await this.getRefund(externalId);
+
+        this.refunds.set(externalId, { ...refund, status });
+    }
+
+    /** Создаёт mock полного возврата по исходному платежу без движения денег и сохраняет результат до ответа. */
+    public async refundPayment(input: RefundProviderPayment): Promise<ProviderRefund> {
+        this.ensureEnabled();
+
+        const externalId = `mock_refund_${createHash('sha256').update(input.idempotencyKey).digest('hex')}`;
+        const existing = this.refunds.get(externalId);
+
+        if (existing) {
+            if (existing.paymentExternalId !== input.externalId || existing.amount !== input.amount ||
+                existing.currency !== input.currency || existing.idempotencyKey !== input.idempotencyKey) {
+                throw new Error('Idempotency key has a different payload');
+            }
+
+            return { ...existing };
+        }
+
+        const payment = await this.getPayment(input.externalId);
+
+        if (payment.status !== ProviderPaymentStatus.SUCCEEDED || !payment.captured ||
+            input.amount !== payment.amount || input.currency !== payment.currency) {
+            throw new Error('Only a captured payment can be fully refunded');
+        }
+
+        const scenario = this.refundScenarios.shift() ?? {};
+        const refund: ProviderRefund = {
+            externalId,
+            paymentExternalId: input.externalId,
+            idempotencyKey: input.idempotencyKey,
+            amount: input.amount,
+            currency: input.currency,
+            status: scenario.status ?? 'succeeded',
+        };
+
+        this.refunds.set(externalId, refund);
+
+        if (scenario.timeoutAfterCreate) {
+            throw new Error('Simulated lost refund response');
+        }
+
+        return { ...refund };
+    }
+
+    /** Читает сохранённый результат mock-возврата или сообщает об отсутствии записи. */
+    public async getRefund(externalId: string): Promise<ProviderRefund> {
+        this.ensureEnabled();
+
+        const refund = this.refunds.get(externalId);
+
+        if (!refund) {
+            throw new Error('Unknown mock refund');
+        }
+
+        return { ...refund };
+    }
+
+    /** Находит mock-возврат по исходному ключу после потери ответа; нового запроса на возврат не создаёт. */
+    public async findRefundByKey(idempotencyKey: string): Promise<ProviderRefund | null> {
+        this.ensureEnabled();
+
+        const externalId = `mock_refund_${createHash('sha256').update(idempotencyKey).digest('hex')}`;
+        const refund = this.refunds.get(externalId);
+
+        return refund ? { ...refund } : null;
     }
 
     /** Исключает создание любых mock-платежей в production и при неизвестном окружении. */

@@ -4,6 +4,7 @@ import { DbSharedModule } from "../../db/db-shared.module";
 import { LocalCartController, OrdersController, UserOrdersController } from "./orders.controller";
 import { PaymentsController } from './payments.controller';
 import { PaymentWebhookController } from './payment-webhook.controller';
+import { RefundWebhookController } from './refund-webhook.controller';
 
 
 @Module({
@@ -17,6 +18,7 @@ import { PaymentWebhookController } from './payment-webhook.controller';
         UserOrdersController,
         PaymentsController,
         PaymentWebhookController,
+        RefundWebhookController,
     ],
 })
 export class OrdersModule {}

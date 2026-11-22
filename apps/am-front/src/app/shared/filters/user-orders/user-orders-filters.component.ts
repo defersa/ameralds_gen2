@@ -65,10 +65,6 @@ export class UserOrdersFiltersComponent {
             label: 'Отменён',
         },
         {
-            value: EnumOrderStatus.PartiallyRefunded,
-            label: 'Частичный возврат',
-        },
-        {
             value: EnumOrderStatus.Refunded,
             label: 'Возврат',
         },

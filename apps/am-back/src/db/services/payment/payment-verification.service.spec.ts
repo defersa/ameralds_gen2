@@ -30,6 +30,8 @@ describe('PaymentVerificationService cancellation races', () => {
         getPayment: jest.fn(),
         cancelPayment: jest.fn(),
         refundPayment: jest.fn(),
+        getRefund: jest.fn(),
+        findRefundByKey: jest.fn(),
     } satisfies jest.Mocked<PaymentProvider>;
 
     beforeEach(async () => {

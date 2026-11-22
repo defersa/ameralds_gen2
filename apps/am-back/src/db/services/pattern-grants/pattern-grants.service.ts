@@ -119,7 +119,7 @@ export class PatternGrantsService {
 
     /**
      * Отзывает только выбранные основания одного источника по действующей роли администратора.
-     * Для заказа требует REFUNDED/PARTIALLY_REFUNDED и ссылку на подтверждённый возврат; legacy требует
+     * Для заказа требует REFUNDED и ссылку на подтверждённый возврат; legacy требует
      * явно выбранного исторического основания. Допускает неактивного владельца, чтобы восстановление
      * аккаунта не возвращало отозванный доступ. Финансовые возвраты не выполняет; повтор не меняет аудит.
      */
@@ -142,7 +142,7 @@ export class PatternGrantsService {
         if (input.source.type === 'order') {
             const order = await this.grants.lockSourceOrder(input.userId, input.source.orderId, manager);
 
-            if (!order || (order.status !== OrderStatus.REFUNDED && order.status !== OrderStatus.PARTIALLY_REFUNDED)) {
+            if (!order || order.status !== OrderStatus.REFUNDED) {
                 invalidGrant();
             }
         }

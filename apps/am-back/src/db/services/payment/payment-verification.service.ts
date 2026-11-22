@@ -40,7 +40,7 @@ export class PaymentVerificationService {
         let payment = await this.payments.latest(orderId);
 
         if (payment && payment.provider === this.provider.name && !payment.resolution &&
-            order.status !== OrderStatus.REFUNDED && order.status !== OrderStatus.PARTIALLY_REFUNDED) {
+            order.status !== OrderStatus.REFUNDED) {
             await this.verify(payment.id);
             payment = await this.payments.latest(orderId);
         }

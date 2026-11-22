@@ -1,5 +1,6 @@
 import { CheckoutConflictReason } from "@ameralds/utils";
 import { CheckoutPlacement1793900000000 } from "../../../../database/migrations/1793900000000-checkout-placement";
+import { DisablePartialRefunds1794800000000 } from "../../../../database/migrations/1794800000000-disable-partial-refunds";
 import { PlaceOrderService } from "./checkout/place-order.service";
 import { PrivateFileEntity } from "@am-back/db/entities/files/file.entity";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
@@ -926,9 +927,6 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 			paidAt: new Date(),
 		});
 		await db.getRepository(UserOrderEntity).update(order.id, {
-			status: OrderStatus.PARTIALLY_REFUNDED,
-		});
-		await db.getRepository(UserOrderEntity).update(order.id, {
 			status: OrderStatus.REFUNDED,
 		});
 		await expect(
@@ -944,6 +942,23 @@ postgres("user order migration and invariants on PostgreSQL", () => {
 			status: OrderStatus.REFUNDED,
 			totalAmount: 150,
 		});
+	});
+
+	it("blocks the legacy partial-refund status after the new migration", async () => {
+		await apply();
+		const { order } = await pending();
+
+		await db.getRepository(UserOrderEntity).update(order.id, {
+			status: OrderStatus.PAID,
+			paidAt: new Date(),
+		});
+		await db.transaction((manager) => new DisablePartialRefunds1794800000000().up(manager.queryRunner));
+
+		// Даже прямой SQL не может перевести заказ в частичный возврат после миграции.
+		await expect(db.query('UPDATE "users"."user_order_entity" SET "status" = $1 WHERE "id" = $2', [
+			'partially_refunded', order.id,
+		])).rejects.toThrow();
+		await db.getRepository(UserOrderEntity).update(order.id, { status: OrderStatus.REFUNDED });
 	});
 
 	it("creates a separate immutable admin purchase with snapshots and rights without replacing the active cart", async () => {

@@ -159,7 +159,7 @@ describe('CancelUserOrderService', () => {
         expect(update).not.toHaveBeenCalled();
     });
 
-    it.each([OrderStatus.OPEN, OrderStatus.PAID, OrderStatus.PARTIALLY_REFUNDED, OrderStatus.REFUNDED])(
+    it.each([OrderStatus.OPEN, OrderStatus.PAID, OrderStatus.REFUNDED])(
         'rejects a disallowed status %s',
         async status => {
             order.status = status;

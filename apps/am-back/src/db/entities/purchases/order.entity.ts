@@ -28,7 +28,6 @@ export enum OrderStatus {
 	PENDING_PAYMENT = "pending_payment",
 	// Значения в БД/API сохранены для совместимости старых покупок.
 	PAID = "success",
-	PARTIALLY_REFUNDED = "partially_refunded",
 	REFUNDED = "refunded",
 }
 

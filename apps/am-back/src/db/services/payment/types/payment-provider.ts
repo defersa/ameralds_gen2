@@ -40,7 +40,11 @@ export interface RefundProviderPayment {
 
 export interface ProviderRefund {
     externalId: string;
-    status: 'pending' | 'succeeded' | 'failed';
+    paymentExternalId: string;
+    idempotencyKey: string;
+    amount: number;
+    currency: OrderCurrency;
+    status: 'unknown' | 'pending' | 'succeeded' | 'failed';
 }
 
 export interface PaymentProvider {
@@ -58,6 +62,12 @@ export interface PaymentProvider {
     /** Идемпотентно запрашивает отмену, возвращая фактический результат гонки со списанием. */
     cancelPayment(externalId: string): Promise<ProviderPayment>;
 
-    /** Контракт будущего возврата в минимальных единицах; бизнес-процесс реализуется отдельно. */
+    /** Идемпотентно создаёт возврат в минимальных единицах; ключ и параметры должны переживать повтор. */
     refundPayment(input: RefundProviderPayment): Promise<ProviderRefund>;
+
+    /** Читает фактический результат возврата по внешнему ID, не создавая новую финансовую операцию. */
+    getRefund(externalId: string): Promise<ProviderRefund>;
+
+    /** Находит ранее созданный возврат по ключу; отсутствие результата не доказывает окончательный отказ. */
+    findRefundByKey(idempotencyKey: string): Promise<ProviderRefund | null>;
 }

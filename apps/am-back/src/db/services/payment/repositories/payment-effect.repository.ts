@@ -66,13 +66,13 @@ export class PaymentEffectRepository extends Repository<PaymentEffectEntity> {
         });
     }
 
-    /** Загружает оплаченный заказ с адресатом и immutable snapshot для уведомления после коммита. */
-    public findMailOrder(id: number): Promise<UserOrderEntity | null> {
-        // Письмо не подтверждает оплату; оно отправляется только для уже зафиксированной успешной покупки.
+    /** Загружает заказ с адресатом и snapshot для уведомления о подтверждённой оплате или возврате. */
+    public findMailOrder(id: number, status: OrderStatus = OrderStatus.PAID): Promise<UserOrderEntity | null> {
+        // Письмо не подтверждает финансовую операцию: требуем соответствующий зафиксированный статус заказа.
         return this.source.getRepository(UserOrderEntity).findOne({
             where: {
                 id,
-                status: OrderStatus.PAID,
+                status,
             },
             relations: {
                 user: true,

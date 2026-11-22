@@ -30,10 +30,6 @@ const ORDER_STATUS_APPEARANCE = {
         color: 'warn',
         icon: 'warn',
     },
-    [EnumOrderStatus.PartiallyRefunded]: {
-        color: 'warn',
-        icon: 'warn',
-    },
     [EnumOrderStatus.Refunded]: {
         color: 'warn',
         icon: 'warn',

@@ -16,5 +16,6 @@ export { ApiImagesProducer } from "./images.service";
 export { ApiOrdersProducer } from "./orders.service";
 export { ApiPatternsProducer } from "./patterns.service";
 export { ApiPaymentWebhooksProducer } from "./paymentWebhooks.service";
+export { ApiRefundWebhooksProducer } from "./refundWebhooks.service";
 export { ApiSizesProducer } from "./sizes.service";
 export { ApiUserProducer } from "./user.service";

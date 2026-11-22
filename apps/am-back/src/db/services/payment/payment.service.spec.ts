@@ -163,7 +163,6 @@ describe('PaymentService', () => {
         OrderStatus.PAID,
         OrderStatus.CANCELLED,
         OrderStatus.REFUNDED,
-        OrderStatus.PARTIALLY_REFUNDED,
     ])('rejects order status %s', async (status) => {
         order.status = status;
 

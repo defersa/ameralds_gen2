@@ -237,7 +237,7 @@ describe('pattern grant domain safeguards', () => {
     });
 
     it.each(['owner', 'item', 'order', 'legacy source'] as const)('rejects revocation outside the selected %s', async (target) => {
-        order.status = OrderStatus.PARTIALLY_REFUNDED;
+        order.status = OrderStatus.REFUNDED;
 
         if (target === 'owner') {
             grants.findSelected.mockResolvedValue([]);
@@ -260,7 +260,7 @@ describe('pattern grant domain safeguards', () => {
     });
 
     it('reprojects all remaining sources after an explicitly scoped refund', async () => {
-        order.status = OrderStatus.PARTIALLY_REFUNDED;
+        order.status = OrderStatus.REFUNDED;
         revoke.grantIds = [1, 1];
         await service.revokeSelected(99, revoke, manager);
         expect(grants.revokeOnce).toHaveBeenCalledWith([1], 99, 'Возврат размера', 'confirmed-refund-1', manager);

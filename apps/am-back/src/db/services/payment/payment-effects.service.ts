@@ -1,4 +1,5 @@
 import { MailService } from '@am-back/mail/mail.service';
+import { OrderStatus } from '@am-back/db/entities/purchases/order.entity';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -35,6 +36,8 @@ export class PaymentEffectsService {
                     }
                 } else if (effect.kind === 'purchase_email') {
                     await this.sendPurchaseMail(effect.orderId);
+                } else if (effect.kind === 'refund_email') {
+                    await this.sendRefundMail(effect.orderId);
                 } else {
                     // Сам инцидент остаётся неразрешённым в payment.resolution; здесь подтверждаем доставку в мониторинг.
                     this.logger.error({
@@ -77,6 +80,26 @@ export class PaymentEffectsService {
             messageId: `<purchase-${orderId}@ameralds>`,
             subject: `Заказ №${orderId} оплачен`,
             text: `Спасибо за покупку!\n\n${items}\n\nМатериалы заказа доступны в личном кабинете:\n${url.toString()}`,
+        });
+    }
+
+    /** Уведомляет о подтверждённом возврате после коммита; ошибка доставки остаётся в очереди повторов. */
+    private async sendRefundMail(orderId: number): Promise<void> {
+        const order = await this.effects.findMailOrder(orderId, OrderStatus.REFUNDED);
+
+        if (!order?.user?.email) {
+            throw new Error('Refund recipient unavailable');
+        }
+
+        const origin = this.config.get<string>('SITE_URL') ||
+            (this.config.get<string>('NODE_ENV') === 'dev' ? 'http://localhost:4400' : '');
+        const url = new URL(`/account/orders/${orderId}`, origin);
+
+        await this.mail.send({
+            to: order.user.email,
+            messageId: `<refund-${orderId}@ameralds>`,
+            subject: `Заказ №${orderId} возвращён`,
+            text: `Возврат заказа №${orderId} подтверждён. Доступ к материалам этого заказа отозван.\n\nПодробности: ${url.toString()}`,
         });
     }
 }

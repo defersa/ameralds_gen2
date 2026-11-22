@@ -25,6 +25,7 @@ import { AuthEmailLimitEntity } from './entities/tokens/auth-email-limit.entity'
 import { AppSettingEntity } from './entities/app-setting.entity';
 import { PasswordResetLinkEntity } from './entities/tokens/password-reset-link.entity';
 import { PaymentEffectEntity } from './entities/purchases/payment-effect.entity';
+import { RefundEntity } from './entities/purchases/refund.entity';
 
 
 @Module({
@@ -68,6 +69,7 @@ import { PaymentEffectEntity } from './entities/purchases/payment-effect.entity'
                 UserPaymentEntity,
                 PaymentRequestEntity,
                 PaymentEffectEntity,
+                RefundEntity,
             ],
             // logging: true,
         }),

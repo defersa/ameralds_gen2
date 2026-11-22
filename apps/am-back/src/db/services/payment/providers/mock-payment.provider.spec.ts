@@ -53,15 +53,59 @@ describe('MockPaymentProvider', () => {
         expect(await provider.getPayment(captured.externalId)).toMatchObject({ captured: true });
     });
 
-    it('does not pretend that refund support has been implemented', async () => {
-        await expect(
-            mock().refundPayment({
-                externalId: 'mock',
-                idempotencyKey: randomUUID(),
-                amount: 1,
-                currency: 'RUB',
-            }),
-        ).rejects.toThrow('Refunds are not implemented');
+    it('recovers a lost refund response using the original key and rejects partial refunds', async () => {
+        const provider = mock();
+
+        provider.enqueueScenario({ status: ProviderPaymentStatus.SUCCEEDED });
+
+        const payment = await provider.createPayment(input);
+        const refund = {
+            externalId: payment.externalId,
+            idempotencyKey: randomUUID(),
+            amount: payment.amount,
+            currency: payment.currency,
+        };
+
+        provider.enqueueRefundScenario({ status: 'pending', timeoutAfterCreate: true });
+        await expect(provider.refundPayment(refund)).rejects.toThrow('Simulated lost refund response');
+
+        const recovered = await provider.findRefundByKey(refund.idempotencyKey);
+
+        expect(recovered).toMatchObject({ paymentExternalId: payment.externalId, amount: input.amount, status: 'pending' });
+        expect(await provider.refundPayment(refund)).toEqual(recovered);
+        await provider.setRefundResult(recovered.externalId, 'succeeded');
+        expect(await provider.getRefund(recovered.externalId)).toMatchObject({ status: 'succeeded' });
+        await expect(provider.refundPayment({ ...refund, amount: 1 })).rejects.toThrow('different payload');
+        await expect(provider.refundPayment({ ...refund, idempotencyKey: randomUUID(), amount: 1 }))
+            .rejects.toThrow('Only a captured payment can be fully refunded');
+    });
+
+    it('rejects refunds of uncaptured payments and reports absent operations without creating them', async () => {
+        const provider = mock();
+        const payment = await provider.createPayment(input);
+        const idempotencyKey = randomUUID();
+
+        await expect(provider.refundPayment({
+            externalId: payment.externalId,
+            idempotencyKey,
+            amount: payment.amount,
+            currency: payment.currency,
+        })).rejects.toThrow('Only a captured payment can be fully refunded');
+        expect(await provider.findRefundByKey(idempotencyKey)).toBeNull();
+        await expect(provider.getRefund('missing')).rejects.toThrow('Unknown mock refund');
+    });
+
+    it('forbids mock refund lookups and creation outside dev or test', async () => {
+        const provider = new MockPaymentProvider(new ConfigService({ NODE_ENV: 'production' }));
+
+        await expect(provider.findRefundByKey(randomUUID())).rejects.toMatchObject({ status: 503 });
+        await expect(provider.getRefund('any')).rejects.toMatchObject({ status: 503 });
+        await expect(provider.refundPayment({
+            externalId: 'any',
+            idempotencyKey: randomUUID(),
+            amount: 1,
+            currency: 'RUB',
+        })).rejects.toMatchObject({ status: 503 });
     });
 
     it('automatically captures dev purchases only with auto-success enabled and preserves the original result on retry', async () => {

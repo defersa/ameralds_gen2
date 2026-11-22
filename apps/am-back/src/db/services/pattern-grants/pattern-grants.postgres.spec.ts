@@ -243,7 +243,7 @@ postgres('pattern grants migration, effective rights and security on PostgreSQL'
         const { order, item } = await paidOrder(user);
 
         await db.transaction((manager) => service.grantPaidOrder(user.id, order.id, manager));
-        await db.getRepository(UserOrderEntity).update(order.id, { status: OrderStatus.PARTIALLY_REFUNDED });
+        await db.getRepository(UserOrderEntity).update(order.id, { status: OrderStatus.REFUNDED });
 
         const selected = await db.getRepository(UserPatternGrantEntity).findOneByOrFail({ orderId: order.id, rightKey: `size:${size.id}` });
         const input = refund(order.id, item.id, [selected.id]);
@@ -317,7 +317,7 @@ postgres('pattern grants migration, effective rights and security on PostgreSQL'
 
         await expect(db.transaction((manager) => service.grantPaidOrder(other.id, order.id, manager))).rejects.toMatchObject({ status: 400 });
         await db.transaction((manager) => service.grantPaidOrder(user.id, order.id, manager));
-        await db.getRepository(UserOrderEntity).update(order.id, { status: OrderStatus.PARTIALLY_REFUNDED });
+        await db.getRepository(UserOrderEntity).update(order.id, { status: OrderStatus.REFUNDED });
 
         const selected = await db.getRepository(UserPatternGrantEntity).findOneByOrFail({ orderId: order.id, rightKey: 'color' });
         const input = refund(order.id, item.id, [selected.id]);

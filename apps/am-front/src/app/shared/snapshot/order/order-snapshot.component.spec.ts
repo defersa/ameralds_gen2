@@ -71,11 +71,6 @@ describe('OrderSnapshotComponent', () => {
             icon: 'warn',
         },
         {
-            status: EnumOrderStatus.PartiallyRefunded,
-            label: 'Частичный возврат',
-            icon: 'warn',
-        },
-        {
             status: EnumOrderStatus.Refunded,
             label: 'Возврат',
             icon: 'warn',
