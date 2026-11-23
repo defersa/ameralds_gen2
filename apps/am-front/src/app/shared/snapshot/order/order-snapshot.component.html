@@ -12,17 +12,37 @@
     </h2>
 
     <dl class="m-0 flex min-w-0 flex-col gap-1">
+        @if (customer() !== undefined) {
+            <div class="order-snapshot__line flex min-w-0 flex-wrap items-center gap-x-1">
+                <amstore-icon class="shrink-0" iconName="profile" [size]="24" [color]="appearance().color" aria-hidden="true"/>
+
+                <dt>
+                    Покупатель:
+                </dt>
+
+                <dd class="m-0 min-w-0 break-all">
+                    @if (customer(); as user) {
+                        {{ user.email }} (ID: {{ user.id }})
+                    }
+
+                    @else {
+                        Пользователь удалён
+                    }
+                </dd>
+            </div>
+        }
+
         <div class="order-snapshot__line flex flex-wrap items-center gap-x-1">
             <amstore-icon iconName="time" [size]="24" [color]="appearance().color" aria-hidden="true"/>
 
             <dt>
-                Оформлен:
+                {{ dateField() === 'createdAt' ? 'Создан' : 'Оформлен' }}{{ timezone() ? ' (' + timezone() + ')' : '' }}:
             </dt>
 
             <dd class="m-0">
-                @if (placedAt(); as date) {
-                    <time [attr.datetime]="date | date:'yyyy-MM-ddTHH:mm:ssZZZZZ'">
-                        {{ date | date:'dd.MM.yyyy HH:mm' }}
+                @if (displayDate(); as date) {
+                    <time [attr.datetime]="date | date:'yyyy-MM-ddTHH:mm:ssZZZZZ':timezone()">
+                        {{ date | date:'dd.MM.yyyy HH:mm':timezone() }}
                     </time>
                 }
 
@@ -54,7 +74,9 @@
             <dd class="m-0">
                 @if (snapshot.totalAmount !== null && snapshot.currency !== null) {
                     {{ snapshot.totalAmount / 100 | number:'1.2-2' }} {{ snapshot.currency === 'RUB' ? '₽' : '$' }}
-                } @else {
+                }
+
+                @else {
                     Неизвестна
                 }
             </dd>
@@ -62,7 +84,8 @@
     </dl>
 
     <a class="order-snapshot__link mt-auto self-end no-underline"
-       [routerLink]="['/account/orders', snapshot.id]"
+       [routerLink]="[detailsRoute(), snapshot.id]"
+       [queryParamsHandling]="preserveQueryParams() ? 'preserve' : null"
        [attr.aria-label]="'Подробнее о заказе №' + snapshot.id">
         <amstore-button class="block !min-w-36 uppercase" size="small" [color]="appearance().color">
             Подробнее

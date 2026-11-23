@@ -1,6 +1,5 @@
 import { INT32_MAX } from '@ameralds/utils';
 import { ModelState } from '@am-back/db/abstract/abstract.model';
-import { OrderStatus } from '@am-back/db/entities/purchases/order.entity';
 import type { RefundEntity } from '@am-back/db/entities/purchases/refund.entity';
 import { UserOrderRepository } from '@am-back/db/service/order/repositories/user-order.repository';
 import { invalidPayment } from '@am-back/db/service/payment/errors/payment-errors';
@@ -9,6 +8,7 @@ import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { RefundRepository } from './repositories/refund.repository';
+import { refundUnavailableReason } from './refund-eligibility';
 
 
 export interface RefundReservation {
@@ -63,16 +63,10 @@ export class RefundReservationService {
                 return { refund: existing, created: false };
             }
 
-            if (order.status !== OrderStatus.PAID || !order.paidAt || !order.placedAt ||
-                !Number.isSafeInteger(order.totalAmount) || order.totalAmount < 1 || !order.currency) {
-                invalidPayment();
-            }
-
             const payments = await this.refunds.successfulPayments(orderId, manager);
             const payment = payments[0];
 
-            if (payments.length !== 1 || payment.resolution !== 'completed' || payment.provider !== this.provider.name ||
-                !payment.externalId || !payment.paidAt || payment.amount !== order.totalAmount || payment.currency !== order.currency) {
+            if (refundUnavailableReason(order, payments, this.provider.name)) {
                 invalidPayment();
             }
 

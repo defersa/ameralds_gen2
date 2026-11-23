@@ -23,6 +23,11 @@ export const ADMIN_ROUTES_SECTION: MenuSection = {
             // fontIcon: 'style',
         },
         {
+            label: 'Заказы пользователей',
+            path: ['/', 'admin', 'orders'],
+            icon: 'pattern',
+        },
+        {
             label: 'Заказы админа',
             path: ['/', 'admin', 'orders', 'list'],
             icon: 'pattern',

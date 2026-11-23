@@ -1,0 +1,79 @@
+<h2 mat-dialog-title>
+    {{ data.action === 'refund' ? 'Вернуть весь заказ' : 'Отменить заказ' }} №{{ data.order.id }}
+</h2>
+
+<form (submit)="submit($event)" novalidate>
+    <mat-dialog-content class="flex flex-col gap-4">
+        @if (data.action === 'refund') {
+            <p>
+                Полная оплаченная сумма: {{ (data.order.totalAmount ?? 0) / 100 | number:'1.2-2' }} {{ data.order.currency }}.
+                Вернутся все позиции и опции заказа:
+            </p>
+
+            <ul class="pl-4">
+                @for (item of data.order.patterns; track item.id) {
+                    <li class="mb-2">
+                        {{ item.name?.ru ?? 'Схема недоступна' }}.
+                        Размеры:
+                        @for (size of item.sizes; track size.id) {
+                            <span>
+                                {{ size.size?.value ?? size.id }}
+                            </span>
+                        }
+
+                        @empty {
+                            <span>
+                                Без новых размеров
+                            </span>
+                        }
+
+                        @if (item.color) {
+                            <span>
+                                Подбор цвета включён.
+                            </span>
+                        }
+                    </li>
+                }
+            </ul>
+
+            <p>
+                После подтверждённого возврата права из этого заказа будут отозваны.
+                Другие основания покупки сохранятся. Уже скачанные файлы останутся у покупателя.
+                До подтверждения возврата доступ сохраняется.
+            </p>
+
+            @if (data.order.colorAccessWarnings.length) {
+                <p role="alert">
+                    Для схем с ID {{ data.order.colorAccessWarnings.join(', ') }} будет возвращён последний действующий размер.
+                    Доступ к подбору цвета также прекратится, включая подбор, купленный в другом заказе.
+                </p>
+            }
+        }
+
+        @else {
+            <p>
+                Заказ №{{ data.order.id }} будет отменён. Новые попытки оплаты станут недоступны.
+                Отмена заказа не выполняет финансовый возврат.
+            </p>
+        }
+
+        <amstore-input-signal label="Причина (обязательно)" [formField]="actionForm.reason"/>
+
+        @if (request.errors()) {
+            <p role="alert">
+                Не удалось выполнить действие. Статус заказа мог измениться.
+                Закройте диалог и обновите заказ, чтобы проверить актуальное состояние; причина останется здесь до закрытия.
+            </p>
+        }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button amstore-button type="button" [stroked]="true" [disabled]="request.loading()" (click)="close()">
+            Закрыть
+        </button>
+
+        <button amstore-button type="submit" color="warn" [disabled]="request.loading() || actionForm().invalid() || !access()">
+            {{ request.loading() ? 'Отправляем…' : 'Подтвердить' }}
+        </button>
+    </mat-dialog-actions>
+</form>

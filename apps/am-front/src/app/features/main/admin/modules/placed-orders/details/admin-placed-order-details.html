@@ -1,0 +1,258 @@
+<section class="flex min-w-0 flex-col gap-4">
+    <nav class="flex flex-wrap gap-4" aria-label="Навигация по заказам">
+        <a routerLink="/admin/orders" queryParamsHandling="preserve">
+            Назад к списку
+        </a>
+
+        <button amstore-button type="button" [stroked]="true" [disabled]="load.loading() || !access()" (click)="refresh()">
+            Обновить состояние
+        </button>
+    </nav>
+
+    @if (load.loading()) {
+        <p role="status">
+            Обновление заказа…
+        </p>
+    }
+
+    @if (load.errors()) {
+        <p role="alert">
+            Не удалось загрузить актуальное состояние заказа. Проверьте доступ и нажмите «Обновить состояние».
+        </p>
+    }
+
+    @if (order(); as details) {
+        <h1>
+            Заказ №{{ details.id }}
+        </h1>
+
+        <p aria-live="polite">
+            Статус: {{ labels[details.status] }}
+        </p>
+
+        <p class="break-all">
+            Пользователь: {{ details.user?.email ?? 'Удалён' }}. ID: {{ details.user?.id ?? 'Неизвестен' }}
+        </p>
+
+        <dl class="grid gap-2 sm:grid-cols-2">
+            <dt>
+                Создан (UTC)
+            </dt>
+
+            <dd>
+                {{ details.createdAt | date:'dd.MM.yyyy HH:mm:ss':'UTC' }}
+            </dd>
+
+            @if (details.paidAt) {
+                <dt>
+                    Оплачен (UTC)
+                </dt>
+
+                <dd>
+                    {{ details.paidAt | date:'dd.MM.yyyy HH:mm:ss':'UTC' }}
+                </dd>
+            }
+
+            @if (details.cancelledAt) {
+                <dt>
+                    Отменён (UTC)
+                </dt>
+
+                <dd>
+                    {{ details.cancelledAt | date:'dd.MM.yyyy HH:mm:ss':'UTC' }}. {{ details.cancelReason }}
+                </dd>
+            }
+
+            <dt>
+                Итоговая сумма из снимка заказа
+            </dt>
+
+            <dd>
+                @if (details.totalAmount !== null && details.currency) {
+                    {{ details.totalAmount / 100 | number:'1.2-2' }} {{ details.currency }}
+                }
+
+                @else {
+                    Историческая сумма неизвестна
+                }
+            </dd>
+
+            <dt>
+                Сохранённая скидка
+            </dt>
+
+            <dd>
+                {{ details.discountAmount / 100 | number:'1.2-2' }} {{ details.currency }}
+            </dd>
+        </dl>
+
+        @for (discount of details.discounts; track $index) {
+            <p>
+                {{ discount.name }}: {{ discount.amount / 100 | number:'1.2-2' }} {{ details.currency }}
+            </p>
+        }
+
+        <div class="flex flex-wrap gap-2">
+            @if (details.canCancel) {
+                <button amstore-button type="button" color="warn" [disabled]="load.status() !== 'success' || dialogOpen()" (click)="openAction('cancel')">
+                    Отменить заказ
+                </button>
+            }
+
+            @if (details.refundUnavailableReason === null) {
+                <button amstore-button type="button" color="warn" [disabled]="load.status() !== 'success' || dialogOpen()" (click)="openAction('refund')">
+                    Вернуть весь заказ
+                </button>
+            }
+        </div>
+
+        @if (details.refundUnavailableReason) {
+            <p>
+                {{ details.refundUnavailableReason }}
+            </p>
+        }
+
+        <h2>
+            Состав заказа
+        </h2>
+
+        @for (item of details.patterns; track item.id) {
+            <amstore-snapshot-pattern [pattern]="item">
+                <amstore-pattern-order-preview [item]="item" [currency]="details.currency"/>
+
+                @if (item.snapshot; as snapshot) {
+                    <p class="p-2">
+                        Цена до скидки: {{ snapshot.subtotalAmount / 100 | number:'1.2-2' }} {{ details.currency }}.
+                        Скидка: {{ snapshot.discountAmount / 100 | number:'1.2-2' }} {{ details.currency }}.
+                    </p>
+
+                    @for (component of snapshot.components; track $index) {
+                        <p class="p-2">
+                            {{ component.type === 'base' ? 'Схема' : component.type === 'size' ? 'Размер' : 'Подбор цвета' }}:
+                            {{ component.quantity }} × {{ component.unitAmount / 100 | number:'1.2-2' }} {{ details.currency }}
+                            = {{ component.totalAmount / 100 | number:'1.2-2' }} {{ details.currency }}.
+                        </p>
+                    }
+
+                    @for (discount of snapshot.discounts; track $index) {
+                        <p class="p-2">
+                            {{ discount.name }}: {{ discount.amount / 100 | number:'1.2-2' }} {{ details.currency }}
+                        </p>
+                    }
+                }
+            </amstore-snapshot-pattern>
+        }
+
+        @empty {
+            <p>
+                Состав исторического заказа недоступен.
+            </p>
+        }
+
+        <h2>
+            Платёжные попытки
+        </h2>
+
+        @for (payment of details.payments; track payment.id) {
+            <article class="flex flex-col gap-1 break-all">
+                <h3>
+                    Платёж №{{ payment.id }}: {{ payment.status ?? 'Исторический результат неизвестен' }}
+                </h3>
+
+                <p>
+                    Провайдер: {{ payment.provider }}. Внешний ID: {{ payment.externalId ?? 'Отсутствует' }}.
+                </p>
+
+                <p>
+                    Сумма:
+                    @if (payment.amount !== null) {
+                        {{ payment.amount / 100 | number:'1.2-2' }} {{ payment.currency }}.
+                    }
+
+                    @else {
+                        Неизвестна.
+                    }
+                    Создан: {{ payment.createdAt | date:'dd.MM.yyyy HH:mm:ss':'UTC' }} UTC.
+                </p>
+
+                @if (payment.resolution === 'compensation_required') {
+                    <p role="alert">
+                        Списание сохранено. Требуется ручная компенсация по этому платежу.
+                    </p>
+                }
+            </article>
+        }
+
+        @empty {
+            <p>
+                Подтверждённых данных о платежах нет.
+            </p>
+        }
+
+        <h2>
+            Возвраты
+        </h2>
+
+        @for (refund of details.refunds; track refund.id) {
+            <article class="flex flex-col gap-1 break-all" aria-live="polite">
+                <h3>
+                    Возврат №{{ refund.id }}: {{ refundLabels[refund.status] ?? refund.status }}
+                </h3>
+
+                <p>
+                    {{ refund.amount / 100 | number:'1.2-2' }} {{ refund.currency }}.
+                    Платёж №{{ refund.paymentId }}. Внешний ID: {{ refund.externalId ?? 'Ожидается' }}.
+                </p>
+
+                <p>
+                    Администратор ID: {{ refund.initiatedBy }}. Причина: {{ refund.reason }}
+                </p>
+
+                <p>
+                    Запрошен: {{ refund.createdAt | date:'dd.MM.yyyy HH:mm:ss':'UTC' }} UTC.
+                    @if (refund.completedAt) {
+                        Завершён: {{ refund.completedAt | date:'dd.MM.yyyy HH:mm:ss':'UTC' }} UTC.
+                    }
+                </p>
+
+                @if (refund.status === 'accepted' || refund.status === 'processing' || refund.status === 'unknown') {
+                    <p role="status">
+                        Возврат ещё не подтверждён. Состояние обновляется автоматически; второй возврат заблокирован.
+                    </p>
+                }
+
+                @if (refund.errorCode) {
+                    <p role="alert">
+                        Код состояния: {{ refund.errorCode }}
+                    </p>
+                }
+            </article>
+        }
+
+        @empty {
+            <p>
+                Операций возврата нет.
+            </p>
+        }
+
+        <h2>
+            История действий (UTC)
+        </h2>
+
+        <ol class="pl-4">
+            @for (event of details.history; track $index) {
+                <li class="mb-2">
+                    {{ event.at | date:'dd.MM.yyyy HH:mm:ss':'UTC' }} — {{ event.event }}.
+                    {{ event.actorId ? 'Администратор ID: ' + event.actorId : 'Системное событие' }}.
+                    {{ event.reason }}
+                </li>
+            }
+
+            @empty {
+                <li>
+                    Подробная история для этого заказа отсутствует.
+                </li>
+            }
+        </ol>
+    }
+</section>

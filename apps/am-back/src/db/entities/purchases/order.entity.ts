@@ -33,6 +33,7 @@ export enum OrderStatus {
 
 @Entity({ schema: "users" })
 @Index("IDX_order_payment_expiration", { synchronize: false })
+@Index('idx_placed_order_created_id', { synchronize: false })
 @Index("IDX_user_order_one_open", ["user"], {
 	unique: true,
 	where: `"status" = 'open' AND "state" = 'active' AND "userId" IS NOT NULL`,
@@ -150,4 +151,11 @@ export class UserOrderEntity extends BaseModel {
 		nullable: true,
 	})
 	public cancelReason: string | null;
+
+    @Column({ name: 'cancelled_by', type: 'integer', nullable: true })
+    public cancelledBy: number | null;
+
+    @ManyToOne(() => UserEntity, { nullable: true, onDelete: 'RESTRICT' })
+    @JoinColumn({ name: 'cancelled_by', foreignKeyConstraintName: 'fk_order_cancellation_actor' })
+    public cancellationActor: UserEntity | null;
 }

@@ -26,11 +26,17 @@ import { RefundResultService } from '../refunds/refund-result.service';
 import { RefundReservationService } from '../refunds/refund-reservation.service';
 import { RefundProcessingService } from '../refunds/refund-processing.service';
 import { RefundRepository } from '../refunds/repositories/refund.repository';
+import { AdminPlacedOrderRepository } from './repositories/admin-placed-order.repository';
+import { AdminPlacedOrdersService } from './admin/admin-placed-orders.service';
+import { AdminPlacedOrderActionsService } from './admin/admin-placed-order-actions.service';
 
 
 @Module({
 	imports: [DbInfrastructureModule, AppSettingsDomainModule],
 	providers: [
+        AdminPlacedOrderRepository,
+        AdminPlacedOrdersService,
+        AdminPlacedOrderActionsService,
 		PaymentService,
 		PaymentCompletionService,
 		PaymentVerificationService,
@@ -57,6 +63,8 @@ import { RefundRepository } from '../refunds/repositories/refund.repository';
 		OrderPatternRepository,
 	],
 	exports: [
+        AdminPlacedOrdersService,
+        AdminPlacedOrderActionsService,
 		PaymentService,
 		PaymentVerificationService,
 		RefundProcessingService,

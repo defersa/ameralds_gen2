@@ -810,6 +810,124 @@ export interface CompleteAdminOrderDto {
     vk?: string;
 }
 
+export interface OrderCustomerDto {
+    id: number;
+    email: string;
+}
+
+export interface AdminPlacedOrderSummaryDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Версия настроек при оформлении; null для старых заказов без сохранённой версии */
+    appSettingsVersion: number | null;
+    /** Checkout time; null when unknown for legacy orders */
+    placedAt: Date | null;
+    /** Subtotal in minor units; null when historical price is unknown */
+    subtotalAmount: number | null;
+    /** Discount in minor units */
+    discountAmount: number;
+    /** Total in minor units; null when historical price is unknown */
+    totalAmount: number | null;
+    currency: 'RUB' | 'USD' | null;
+    paymentExpiresAt: Date | null;
+    paidAt: Date | null;
+    cancelledAt: Date | null;
+    cancelReason: string | null;
+    /** Completed order status */
+    status: EnumOrderStatus;
+    user: OrderCustomerDto | null;
+}
+
+export interface AdminPlacedOrdersPageDto {
+    items: Array<AdminPlacedOrderSummaryDto>;
+    page: number;
+    pageSize: number;
+    /** Общее число результатов */
+    total: number;
+    /** Число страниц, минимум 1 */
+    count: number;
+}
+
+export interface AdminOrderPaymentDto {
+    id: number;
+    provider: string;
+    externalId: string | null;
+    status: EnumPaymentStatus | null;
+    amount: number | null;
+    currency: string | null;
+    resolution: string | null;
+    createdAt: Date;
+    paidAt: Date | null;
+}
+
+export interface AdminOrderRefundDto {
+    id: number;
+    status: 'accepted' | 'processing' | 'unknown' | 'succeeded' | 'failed';
+    amount: number;
+    currency: string;
+    paymentId: number;
+    externalId: string | null;
+    initiatedBy: number;
+    reason: string;
+    createdAt: Date;
+    completedAt: Date | null;
+    errorCode: string | null;
+}
+
+export interface AdminOrderHistoryDto {
+    event: string;
+    at: Date;
+    actorId: number | null;
+    reason: string | null;
+}
+
+export interface AdminPlacedOrderDetailsDto {
+    /** Id of entity */
+    id: number;
+    /** Id of entity */
+    createdAt?: Date;
+    /** Id of entity */
+    updatedAt?: Date;
+    /** Версия настроек при оформлении; null для старых заказов без сохранённой версии */
+    appSettingsVersion: number | null;
+    /** Checkout time; null when unknown for legacy orders */
+    placedAt: Date | null;
+    /** Subtotal in minor units; null when historical price is unknown */
+    subtotalAmount: number | null;
+    /** Discount in minor units */
+    discountAmount: number;
+    /** Total in minor units; null when historical price is unknown */
+    totalAmount: number | null;
+    currency: 'RUB' | 'USD' | null;
+    discounts: Array<OrderDiscountSnapshotDto>;
+    paymentExpiresAt: Date | null;
+    paidAt: Date | null;
+    cancelledAt: Date | null;
+    cancelReason: string | null;
+    /** Completed order status */
+    status: EnumOrderStatus;
+    /** Purchased patterns */
+    patterns: Array<PurchasedOrderPatternDto>;
+    user: OrderCustomerDto | null;
+    payments: Array<AdminOrderPaymentDto>;
+    refunds: Array<AdminOrderRefundDto>;
+    history: Array<AdminOrderHistoryDto>;
+    /** Причина недоступности полного возврата; null означает предварительную доступность */
+    refundUnavailableReason: string | null;
+    /** ID схем, теряющих последний размер и доступ к подбору цвета при возврате */
+    colorAccessWarnings: Array<number>;
+    canCancel: boolean;
+}
+
+export interface OrderActionDto {
+    /** Обязательная причина; дополнительные поля, в том числе сумма и позиции, запрещены */
+    reason: string;
+}
+
 export interface AppSettingsAuthorDto {
     id: number;
     username: string | null;

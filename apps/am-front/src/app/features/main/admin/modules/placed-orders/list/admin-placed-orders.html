@@ -1,0 +1,50 @@
+<h1>
+    Заказы пользователей
+</h1>
+
+<amstore-admin-orders-filters (filtersUpdate)="filtersUpdate$.next($event)" [pagesCount]="pagesCount()" [page]="page()">
+    <div class="my-4 flex min-w-0 flex-col gap-4" aria-live="polite" [attr.aria-busy]="load.loading()">
+        @if (!access()) {
+            <p role="alert">
+                Для просмотра заказов требуется доступ администратора.
+            </p>
+        }
+
+        @else if (load.loading()) {
+            <p role="status">
+                Загрузка заказов…
+            </p>
+        }
+
+        @else if (load.errors()) {
+            <p role="alert">
+                Не удалось загрузить заказы. Проверьте фильтры и повторите запрос.
+            </p>
+
+            <amstore-button (click)="retry()">
+                Повторить
+            </amstore-button>
+        }
+
+        @else if (result(); as data) {
+            <p>
+                Всего результатов: {{ data.total }}
+            </p>
+
+            @for (order of data.items; track order.id) {
+                <amstore-order-snapshot [order]="order"
+                                        [customer]="order.user"
+                                        detailsRoute="/admin/orders"
+                                        dateField="createdAt"
+                                        timezone="UTC"
+                                        [preserveQueryParams]="true"/>
+            }
+
+            @empty {
+                <p>
+                    {{ hasAppliedFilters() ? 'По выбранным фильтрам заказы не найдены.' : 'Оформленных заказов пока нет.' }}
+                </p>
+            }
+        }
+    </div>
+</amstore-admin-orders-filters>

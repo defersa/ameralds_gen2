@@ -1,0 +1,33 @@
+<amstore-panel color="special">
+    <amstore-panel-header class="flex w-full items-center justify-between pr-2">
+        Фильтры
+
+        @if (hasFilters()) {
+            <amstore-button (click)="clearFilters($event)" color="special">
+                Очистить
+
+                <amstore-icon [contrast]="true" iconName="cross" [size]="20"/>
+            </amstore-button>
+        }
+    </amstore-panel-header>
+
+    <div class="flex flex-col gap-4">
+        <amstore-input-signal [formField]="filterForm.user" label="Пользователь: email или ID"/>
+
+        <amstore-select-signal [formField]="filterForm.statuses" [items]="statusItems" [multiple]="true" label="Статусы" placeholder="Все статусы"/>
+
+        <amstore-datepicker-signal [formField]="filterForm.startDate" label="Дата создания с"/>
+
+        <amstore-datepicker-signal [formField]="filterForm.endDate" label="Дата создания по"/>
+
+        <amstore-select-signal [formField]="filterForm.pageSize" [items]="pageSizeItems()" label="Заказов на странице"/>
+
+        <p class="amstore-text-caption">
+            Даты и время указаны в UTC. Последний день диапазона включается целиком.
+        </p>
+    </div>
+</amstore-panel>
+
+<ng-content/>
+
+<amstore-paginator (goToPageEvent)="handlePagination($event)" [pageCount]="pagesCount()" [page]="page()" color="special"/>

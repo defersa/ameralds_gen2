@@ -111,4 +111,32 @@ describe('OrderSnapshotComponent', () => {
         expect(element.textContent).not.toContain('0.00');
         expect(element.textContent).toContain('08.11.2026');
     });
+
+    it('supports administrative cards with the customer, UTC creation time and an administrative details link', () => {
+        fixture.componentRef.setInput('customer', {
+            id: 42,
+            email: 'buyer@example.test',
+        });
+        fixture.componentRef.setInput('detailsRoute', '/admin/orders');
+        fixture.componentRef.setInput('dateField', 'createdAt');
+        fixture.componentRef.setInput('timezone', 'UTC');
+        fixture.componentRef.setInput('preserveQueryParams', true);
+        fixture.detectChanges();
+
+        const element: HTMLElement = fixture.nativeElement;
+
+        expect(element.textContent).toContain('buyer@example.test (ID: 42)');
+        expect(element.textContent).toContain('Создан (UTC)');
+        expect(element.textContent).toContain('08.11.2026 10:00');
+        expect(element.querySelector('a')?.getAttribute('href')).toBe('/admin/orders/17');
+    });
+
+    it('distinguishes a deleted customer from an omitted customer row', () => {
+        const element: HTMLElement = fixture.nativeElement;
+
+        expect(element.textContent).not.toContain('Покупатель:');
+        fixture.componentRef.setInput('customer', null);
+        fixture.detectChanges();
+        expect(element.textContent).toContain('Пользователь удалён');
+    });
 });

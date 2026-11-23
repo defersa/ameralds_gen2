@@ -32,13 +32,14 @@ export function toUserOrderSummary(order: UserOrderEntity): UserOrderSummaryDto 
 /**
  * Формирует личный заказ из активных позиций, предпочитая исторические snapshot названий, размеров и цвета.
  * Исключает данные пользователя и приватные пути; неизвестные исторические суммы оставляет null.
+ * includeInactive сохраняет все исторические позиции в административном представлении.
  */
-export function toUserOrderDetails(order: UserOrderEntity): UserOrderDetailsDto {
+export function toUserOrderDetails(order: UserOrderEntity, includeInactive = false): UserOrderDetailsDto {
 	return {
 		...toUserOrderSummary(order),
 		discounts: order.discounts ?? [],
 		patterns: (order.patterns ?? [])
-			.filter((item) => item.state === ModelState.ACTIVE)
+			.filter((item) => includeInactive || item.state === ModelState.ACTIVE)
 			.map((item) => ({
 				id: item.id,
 				createdAt: item.createdAt,

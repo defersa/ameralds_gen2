@@ -59,13 +59,18 @@ export class RefundRepository extends Repository<RefundEntity> {
     /** Атомарно назначает первичную отправку одному воркеру до внешнего вызова и записывает переход. */
     public async claimStart(id: number): Promise<boolean> {
         // Только accepted может быть отправлен впервые; после сбоя processing проверяется по исходному ключу.
-        const rows: { id: number }[] = await this.manager.query(`UPDATE "users"."refund"
-            SET "status" = 'processing', "next_check_at" = clock_timestamp() + interval '1 minute',
-                "transitions" = "transitions" || jsonb_build_array(jsonb_build_object(
-                    'status', 'processing', 'at', clock_timestamp(), 'error', NULL))
-            WHERE "id" = $1 AND "status" = 'accepted' RETURNING "id"`, [id]);
+        const result = await this.createQueryBuilder()
+            .update(RefundEntity)
+            .set({
+                status: 'processing',
+                nextCheckAt: () => "clock_timestamp() + interval '1 minute'",
+                transitions: () => `"transitions" || jsonb_build_array(jsonb_build_object(
+                    'status', 'processing', 'at', clock_timestamp(), 'error', NULL))`,
+            })
+            .where('id = :id AND status = :status', { id, status: 'accepted' })
+            .execute();
 
-        return rows.length === 1;
+        return result.affected === 1;
     }
 
     /** Загружает исходный платёж и запись финансовой операции для обращения к провайдеру. */
@@ -95,12 +100,14 @@ export class RefundRepository extends Repository<RefundEntity> {
     /** Резервирует короткое окно сверки, чтобы параллельные воркеры не обращались к провайдеру одновременно. */
     public async claimCheck(id: number): Promise<boolean> {
         // Условный UPDATE не меняет терминальные операции и допускает восстановление после падения воркера.
-        const rows: { id: number }[] = await this.manager.query(`UPDATE "users"."refund"
-            SET "next_check_at" = clock_timestamp() + interval '1 minute'
-            WHERE "id" = $1 AND "status" IN ('processing', 'unknown') AND "next_check_at" <= clock_timestamp()
-            RETURNING "id"`, [id]);
+        const result = await this.createQueryBuilder()
+            .update(RefundEntity)
+            .set({ nextCheckAt: () => "clock_timestamp() + interval '1 minute'" })
+            .where('id = :id AND status IN (:...statuses)', { id, statuses: ['processing', 'unknown'] })
+            .andWhere('next_check_at <= clock_timestamp()')
+            .execute();
 
-        return rows.length === 1;
+        return result.affected === 1;
     }
 
     /** Фиксирует неопределённость и повторную проверку, не перезаписывая успех или окончательный отказ. */

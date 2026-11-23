@@ -1,5 +1,6 @@
 import { ModelState } from '@am-back/db/abstract/abstract.model';
 import { OrderStatus } from '@am-back/db/entities/purchases/order.entity';
+import { PaymentStatus } from '@am-back/db/entities/purchases/payment.entity';
 import { UserOrderRepository } from '@am-back/db/service/order/repositories/user-order.repository';
 import { PAYMENT_PROVIDER } from '@am-back/db/service/payment/types/payment-provider';
 import { DataSource } from 'typeorm';
@@ -22,6 +23,7 @@ describe('full refund reservation', () => {
         placedAt: new Date(), sourceAdminOrder: null, totalAmount: 1200, currency: 'RUB',
     };
     const payment = {
+        status: PaymentStatus.SUCCEEDED,
         id: 8, resolution: 'completed', provider: 'mock', externalId: 'payment',
         paidAt: new Date(), amount: 1200, currency: 'RUB',
     };
