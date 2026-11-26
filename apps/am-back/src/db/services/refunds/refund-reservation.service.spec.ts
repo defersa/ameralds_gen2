@@ -13,7 +13,7 @@ describe('full refund reservation', () => {
     const manager = {};
     const source = { transaction: jest.fn(async (callback: (value: object) => Promise<unknown>) => callback(manager)) };
     const refunds = {
-        findOwnerId: jest.fn(), isAdministrator: jest.fn(), findBlocking: jest.fn(),
+        findOwnerId: jest.fn(), isAdministrator: jest.fn(), hasIncident: jest.fn(), findBlocking: jest.fn(),
         successfulPayments: jest.fn(), reserve: jest.fn(),
     };
     const orders = { lockOwner: jest.fn(), lockForPayment: jest.fn(), databaseTime: jest.fn() };

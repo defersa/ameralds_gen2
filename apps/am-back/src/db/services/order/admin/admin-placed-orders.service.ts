@@ -50,7 +50,7 @@ export class AdminPlacedOrdersService {
         };
     }
 
-    /** Формирует snapshot, финансовый журнал и аудит; секреты провайдера, URL подтверждения и ключи идемпотентности исключены. */
+    /** Формирует snapshot, финансовый журнал, инциденты и аудит; секреты провайдера, URL подтверждения и ключи идемпотентности исключены. */
     public async details(id: number): Promise<AdminPlacedOrderDetailsDto> {
         const snapshot = await this.orders.details(id);
 
@@ -61,7 +61,7 @@ export class AdminPlacedOrdersService {
             });
         }
 
-        const { order, refunds, grants } = snapshot;
+        const { order, refunds, grants, incidents } = snapshot;
 
         const blocking = refunds
             .find((refund) => refund.status !== 'failed');
@@ -133,7 +133,22 @@ export class AdminPlacedOrdersService {
                 : null,
             canCancel:
                 order.state === ModelState.ACTIVE && !!order.user && order.status === OrderStatus.PENDING_PAYMENT,
-            refundUnavailableReason: blocking
+            refundIncidents: incidents
+                .map(incident => ({
+                    id: incident.id,
+                    paymentId: incident.paymentId,
+                    provider: incident.provider,
+                    externalId: incident.externalId,
+                    kind: incident.kind,
+                    amount: incident.amount,
+                    currency: incident.currency,
+                    providerStatus: incident.providerStatus,
+                    createdAt: incident.createdAt,
+                    lastObservedAt: incident.lastObservedAt,
+                })),
+            refundUnavailableReason: incidents.length
+                ? 'Обнаружено финансовое расхождение с провайдером. Требуется ручная проверка; новый возврат заблокирован.'
+                : blocking
                 ? `Возврат №${blocking.id} уже принят. Повторный запуск запрещён; актуальный результат указан в журнале возвратов.`
                 : !order.user
                   ? 'Пользователь заказа отсутствует. Требуется ручная проверка.'
@@ -160,6 +175,7 @@ export class AdminPlacedOrdersService {
                     paymentId: refund.paymentId,
                     externalId: refund.externalId ?? null,
                     initiatedBy: refund.initiatedBy,
+                    origin: refund.origin,
                     reason: refund.reason,
                     createdAt: refund.createdAt,
                     completedAt: refund.completedAt ?? null,

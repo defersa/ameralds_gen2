@@ -60,6 +60,7 @@ describe('toUserOrderSummary', () => {
         });
 
         expect(toUserOrderSummary(order)).toEqual({
+            refund: null,
             id: 17,
             createdAt: date,
             updatedAt: date,

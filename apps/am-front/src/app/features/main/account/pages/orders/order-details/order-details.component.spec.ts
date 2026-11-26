@@ -4,7 +4,7 @@ import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
-import { ApiOrdersProducer, EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, PaymentStateDto, UserOrderSummaryDto } from '@am-front/root/api-v2';
+import { ApiOrdersProducer, EnumOrderStatus, EnumRefundStatus, EnumPaymentStatus, PaymentAttemptDto, PaymentStateDto, UserOrderSummaryDto } from '@am-front/root/api-v2';
 import { UserOrdersService } from '@am-front/services/user-orders.service';
 import { AuthService } from '@am-front/services/auth.service';
 import { CategoriesService } from '@am-front/services/categories.service';
@@ -25,6 +25,7 @@ describe('personal order page', () => {
     let routeParams: BehaviorSubject<ParamMap>;
 
     const cancelled = {
+        refund: null,
         id: 17,
         status: EnumOrderStatus.Cancel,
         createdAt: new Date('2026-11-09T12:00:00Z'),
@@ -104,6 +105,67 @@ describe('personal order page', () => {
         ] });
         jest.spyOn(TestBed.inject(UserOrdersService), 'redirectToPayment').mockImplementation(redirect);
     });
+
+    it('polls a pending refund until success, keeps its snapshot and refreshes effective rights', fakeAsync(() => {
+        const initial = {
+            ...stored,
+            status: EnumOrderStatus.Success,
+            refund: { status: EnumRefundStatus.Unknown, amount: 12345, currency: 'RUB', completedAt: null },
+        };
+
+        getOrder.mockReturnValue(of(initial));
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        tick(0);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Возврат обрабатывается');
+        expect(fixture.nativeElement.textContent).toContain('Доступ к материалам сохраняется');
+        expect(purchaseConfirmed).not.toHaveBeenCalled();
+        getOrder.mockReturnValue(of({
+            ...initial,
+            status: EnumOrderStatus.Refunded,
+            refund: { ...initial.refund, status: EnumRefundStatus.Succeeded, completedAt: new Date() },
+        }));
+        tick(5000);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Возвращён');
+        expect(fixture.componentInstance.order()?.patterns).toEqual(initial.patterns);
+        expect(purchaseConfirmed).toHaveBeenCalledTimes(1);
+        const calls = getOrder.mock.calls.length;
+
+        tick(5000);
+        expect(getOrder).toHaveBeenCalledTimes(calls);
+        fixture.destroy();
+    }));
+
+    it('keeps a pending refund on refresh failure, supports retry and cancels it after logout', fakeAsync(() => {
+        const initial = {
+            ...stored,
+            status: EnumOrderStatus.Success,
+            refund: { status: EnumRefundStatus.Processing, amount: 12345, currency: 'RUB', completedAt: null },
+        };
+
+        getOrder.mockReturnValueOnce(of(initial)).mockReturnValue(throwError(() => new Error('offline')));
+        const fixture = TestBed.createComponent(OrderDetailsComponent);
+
+        fixture.detectChanges();
+        tick(0);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Повторите проверку');
+        expect(fixture.componentInstance.order()?.status).toBe(EnumOrderStatus.Success);
+        const pending = new Subject<typeof initial>();
+
+        getOrder.mockReturnValue(pending);
+        fixture.componentInstance.checkRefund();
+        fixture.componentInstance.checkRefund();
+        expect(getOrder).toHaveBeenCalledTimes(3);
+        authenticated.set(false);
+        fixture.detectChanges();
+        pending.next(initial);
+        expect(fixture.componentInstance.order()).toBeNull();
+        fixture.destroy();
+    }));
 
     it('loads a pending order using its URL and shows cart-style cards without modification actions', () => {
         const fixture = TestBed.createComponent(OrderDetailsComponent);

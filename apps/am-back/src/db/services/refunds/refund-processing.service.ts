@@ -2,8 +2,9 @@ import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/commo
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PAYMENT_PROVIDER, type PaymentProvider, type ProviderRefund } from '@am-back/db/service/payment/types/payment-provider';
 import { paymentUnavailable } from '@am-back/db/service/payment/errors/payment-errors';
+import type { RefundEntity } from '@am-back/db/entities/purchases/refund.entity';
 import { RefundRepository } from './repositories/refund.repository';
-import { RefundResultService } from './refund-result.service';
+import { RefundDiscoveryService } from './refund-discovery.service';
 
 
 @Injectable()
@@ -13,7 +14,7 @@ export class RefundProcessingService {
     /** Подключает журнал, подтверждённый обработчик и заменяемый платёжный адаптер. */
     constructor(
         private readonly refunds: RefundRepository,
-        private readonly results: RefundResultService,
+        private readonly discovery: RefundDiscoveryService,
         @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
     ) {}
 
@@ -42,7 +43,8 @@ export class RefundProcessingService {
                 currency: refund.currency,
             }));
 
-            await this.results.apply(id, result);
+            this.assertOperation(refund, result);
+            await this.discovery.observe(this.provider.name, result);
 
             return true;
         } catch {
@@ -77,7 +79,8 @@ export class RefundProcessingService {
                 return false;
             }
 
-            await this.results.apply(id, result);
+            this.assertOperation(refund, result);
+            await this.discovery.observe(this.provider.name, result);
 
             return true;
         } catch {
@@ -94,16 +97,15 @@ export class RefundProcessingService {
         }
 
         const externalId = await this.provider.verifyWebhook(payload, signature);
-        const refund = await this.refunds.findByExternal(providerName, externalId);
-
-        if (!refund) {
-            paymentUnavailable();
-        }
 
         try {
             const result = await this.bounded(this.provider.getRefund(externalId));
 
-            await this.results.apply(refund.id, result);
+            if (result.externalId !== externalId) {
+                throw new Error('Refund webhook result mismatch');
+            }
+
+            await this.discovery.observe(providerName, result);
         } catch {
             paymentUnavailable();
         }
@@ -124,6 +126,15 @@ export class RefundProcessingService {
             } catch {
                 this.logger.warn({ event: 'refund_reconciliation_failed', refundId: refund.id });
             }
+        }
+    }
+
+    /** Проверяет, что ответ относится к запрошенной операции; сумма проверяется обработчиком и может стать инцидентом. */
+    private assertOperation(refund: RefundEntity, result: ProviderRefund): void {
+        if (result.paymentExternalId !== refund.payment?.externalId ||
+            (refund.externalId !== null && refund.externalId !== result.externalId) ||
+            (refund.origin !== 'provider' && refund.idempotencyKey !== result.idempotencyKey)) {
+            throw new Error('Refund operation result mismatch');
         }
     }
 

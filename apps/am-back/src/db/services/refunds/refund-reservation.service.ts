@@ -29,7 +29,7 @@ export class RefundReservationService {
     /**
      * Резервирует полный возврат по серверному snapshot либо возвращает существующий активный результат.
      * Требует действующего администратора, одного однозначного списания и оплаченного не-legacy заказа.
-     * Перед внешним вызовом сохраняет UUID и денежные параметры; некорректное состояние отклоняется.
+     * Перед внешним вызовом сохраняет UUID и денежные параметры; некорректное состояние и финансовый инцидент блокируют новый запрос.
      */
     public async reserve(actorId: number, orderId: number, reason: string): Promise<RefundReservation> {
         if (![actorId, orderId]
@@ -61,6 +61,10 @@ export class RefundReservationService {
 
             if (existing) {
                 return { refund: existing, created: false };
+            }
+
+            if (await this.refunds.hasIncident(orderId, manager)) {
+                invalidPayment();
             }
 
             const payments = await this.refunds.successfulPayments(orderId, manager);

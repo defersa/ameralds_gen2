@@ -2,6 +2,7 @@ import { ModelState } from '@am-back/db/abstract/abstract.model';
 import { UserPatternGrantEntity } from '@am-back/db/entities/patterns/user-pattern-grant.entity';
 import { OrderStatus, UserOrderEntity } from '@am-back/db/entities/purchases/order.entity';
 import { PaymentStatus, UserPaymentEntity } from '@am-back/db/entities/purchases/payment.entity';
+import { RefundIncidentEntity } from '@am-back/db/entities/purchases/refund-incident.entity';
 import { RefundEntity } from '@am-back/db/entities/purchases/refund.entity';
 import { Injectable } from '@nestjs/common';
 import { Brackets, DataSource, type EntityManager, IsNull, Not, Repository } from 'typeorm';
@@ -86,7 +87,7 @@ export class AdminPlacedOrderRepository extends Repository<UserOrderEntity> {
     /** Читает оформленный заказ любой активности с историческими позициями и платежами; OPEN не выдаётся. */
     public details(
         id: number,
-    ): Promise<{ order: UserOrderEntity; refunds: RefundEntity[]; grants: UserPatternGrantEntity[] } | null> {
+    ): Promise<{ order: UserOrderEntity; refunds: RefundEntity[]; incidents: RefundIncidentEntity[]; grants: UserPatternGrantEntity[] } | null> {
         return this.source.transaction('REPEATABLE READ', async (manager) => {
             // Единый snapshot исключает сочетание старого PAID с уже завершённым возвратом из соседнего commit.
             // Раздельная загрузка связей исключает декартово произведение позиций, размеров и платежей.
@@ -134,9 +135,18 @@ export class AdminPlacedOrderRepository extends Repository<UserOrderEntity> {
                   })
                 : [];
 
+            // Расхождения провайдера сохраняются независимо от активности заказа и блокируют новый возврат.
+            const incidents = await manager.getRepository(RefundIncidentEntity).find({
+                where: { orderId: id },
+                order: { id: 'ASC' },
+            });
+
+            order.refunds = refunds;
+
             return {
                 order,
                 refunds,
+                incidents,
                 grants,
             };
         });

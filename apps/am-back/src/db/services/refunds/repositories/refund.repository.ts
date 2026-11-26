@@ -1,4 +1,5 @@
 import { ModelState } from '@am-back/db/abstract/abstract.model';
+import { RefundIncidentEntity } from '@am-back/db/entities/purchases/refund-incident.entity';
 import { RefundEntity } from '@am-back/db/entities/purchases/refund.entity';
 import { PaymentStatus, UserPaymentEntity } from '@am-back/db/entities/purchases/payment.entity';
 import { UserOrderEntity } from '@am-back/db/entities/purchases/order.entity';
@@ -38,6 +39,12 @@ export class RefundRepository extends Repository<RefundEntity> {
             orderId,
             status: In(['accepted', 'processing', 'unknown', 'succeeded']),
         });
+    }
+
+    /** Проверяет неразрешённый финансовый инцидент под общей блокировкой владельца и заказа. */
+    public hasIncident(orderId: number, manager: EntityManager): Promise<boolean> {
+        // Расхождение с провайдером запрещает вслепую отправлять следующий полный возврат.
+        return manager.getRepository(RefundIncidentEntity).existsBy({ orderId });
     }
 
     /** Блокирует все подтверждённые платежи заказа для проверки однозначного источника возврата. */

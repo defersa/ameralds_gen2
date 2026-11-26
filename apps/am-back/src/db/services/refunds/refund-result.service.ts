@@ -7,6 +7,7 @@ import { PaymentCompletionRepository } from '@am-back/db/service/payment/reposit
 import type { ProviderRefund } from '@am-back/db/service/payment/types/payment-provider';
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { RefundRepository } from './repositories/refund.repository';
 
 
 @Injectable()
@@ -17,12 +18,13 @@ export class RefundResultService {
         private readonly orders: UserOrderRepository,
         private readonly grants: PatternGrantsService,
         private readonly effects: PaymentCompletionRepository,
+        private readonly refunds: RefundRepository,
     ) {}
 
     /**
      * Применяет проверенный результат провайдера под блокировкой владельца, заказа, платежа и операции.
      * Успех атомарно устанавливает REFUNDED, отзывает только права этого заказа и создаёт письмо.
-     * Неизвестный результат и отказ сохраняют доступ. Некорректные данные отклоняются без изменения БД.
+     * Неизвестный результат, отказ и неразрешённый финансовый инцидент сохраняют доступ. Некорректные данные отклоняются без изменения БД.
      */
     public async apply(refundId: number, result: ProviderRefund): Promise<RefundEntity> {
         // Начальное чтение определяет владельца; финансовые поля и право доступа проверяются после блокировок.
@@ -55,7 +57,8 @@ export class RefundResultService {
                 payment.orderId !== order.id || payment.status !== PaymentStatus.SUCCEEDED || payment.resolution !== 'completed' ||
                 !payment.externalId || refund.provider !== payment.provider || refund.amount !== payment.amount ||
                 refund.currency !== payment.currency || refund.amount !== order.totalAmount || refund.currency !== order.currency ||
-                result.paymentExternalId !== payment.externalId || result.idempotencyKey !== refund.idempotencyKey ||
+                result.paymentExternalId !== payment.externalId ||
+                (refund.origin !== 'provider' && result.idempotencyKey !== refund.idempotencyKey) ||
                 result.amount !== refund.amount || result.currency !== refund.currency || !result.externalId ||
                 (refund.externalId !== null && refund.externalId !== result.externalId) ||
                 !['unknown', 'pending', 'succeeded', 'failed'].includes(result.status)) {
@@ -88,6 +91,10 @@ export class RefundResultService {
             }
 
             if (status === 'succeeded') {
+                if (await this.refunds.hasIncident(order.id, manager)) {
+                    throw new Error('Refund incident requires manual reconciliation');
+                }
+
                 // Статус, отзыв и событие письма коммитятся вместе; сбой любого шага откатывает всё.
                 await manager.getRepository(UserOrderEntity).update(order.id, { status: OrderStatus.REFUNDED });
                 await this.grants.revokeRefundedOrder(userId, order.id, refund.initiatedBy, refund.reason, result.externalId, manager);

@@ -185,8 +185,11 @@ export class AdminOrderRefundDto {
     })
     public externalId: string | null;
 
-    @ApiProperty()
-    public initiatedBy: number;
+    @ApiProperty({ type: Number, nullable: true })
+    public initiatedBy: number | null;
+
+    @ApiProperty({ enum: ['application', 'provider'] })
+    public origin: 'application' | 'provider';
 
     @ApiProperty()
     public reason: string;
@@ -207,7 +210,42 @@ export class AdminOrderRefundDto {
     public errorCode: string | null;
 }
 
+export class AdminRefundIncidentDto {
+    @ApiProperty()
+    public id: number;
+
+    @ApiProperty()
+    public paymentId: number;
+
+    @ApiProperty()
+    public provider: string;
+
+    @ApiProperty()
+    public externalId: string;
+
+    @ApiProperty({ enum: ['partial_refund', 'unexpected_refund', 'conflicting_refund'] })
+    public kind: string;
+
+    @ApiProperty()
+    public amount: number;
+
+    @ApiProperty()
+    public currency: string;
+
+    @ApiProperty()
+    public providerStatus: string;
+
+    @ApiProperty()
+    public createdAt: Date;
+
+    @ApiProperty()
+    public lastObservedAt: Date;
+}
+
 export class AdminPlacedOrderDetailsDto extends UserOrderDetailsDto {
+    @ApiProperty({ type: AdminRefundIncidentDto, isArray: true, description: 'Финансовые расхождения для ручного разбора; автоматический повтор возврата заблокирован' })
+    public refundIncidents: AdminRefundIncidentDto[];
+
     @ApiProperty({
         type: OrderCustomerDto,
         nullable: true,

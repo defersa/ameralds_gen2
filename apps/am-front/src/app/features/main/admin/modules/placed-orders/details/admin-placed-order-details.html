@@ -86,6 +86,36 @@
             </dd>
         </dl>
 
+        @if (details.refundIncidents.length) {
+            <h2>
+                Финансовые инциденты — требуется ручная проверка
+            </h2>
+
+            <p role="alert">
+                Сведения провайдера расходятся с обычным полным возвратом. Новый возврат заблокирован; автоматический отзыв всех прав не выполняется.
+            </p>
+
+            @for (incident of details.refundIncidents; track incident.id) {
+                <div class="flex min-w-0 flex-col gap-2 break-all rounded border p-3">
+                    <p>
+                        Инцидент №{{ incident.id }}: {{ incident.kind === 'partial_refund' ? 'Частичный внешний возврат' : 'Расхождение данных возврата' }}.
+                    </p>
+
+                    <p>
+                        Платёж №{{ incident.paymentId }}, {{ incident.provider }}, возврат {{ incident.externalId }}.
+                    </p>
+
+                    <p>
+                        {{ incident.amount / 100 | number:'1.2-2' }} {{ incident.currency }}; состояние провайдера: {{ incident.providerStatus }}.
+                    </p>
+
+                    <p>
+                        Обнаружен: {{ incident.createdAt | date:'dd.MM.yyyy HH:mm:ss':'UTC' }} UTC.
+                    </p>
+                </div>
+            }
+        }
+
         @for (discount of details.discounts; track $index) {
             <p>
                 {{ discount.name }}: {{ discount.amount / 100 | number:'1.2-2' }} {{ details.currency }}
@@ -205,7 +235,7 @@
                 </p>
 
                 <p>
-                    Администратор ID: {{ refund.initiatedBy }}. Причина: {{ refund.reason }}
+                    Источник: {{ refund.origin === 'provider' ? 'Кабинет провайдера' : 'Администратор ID: ' + refund.initiatedBy }}. Причина: {{ refund.reason }}
                 </p>
 
                 <p>

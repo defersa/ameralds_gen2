@@ -4,6 +4,7 @@ import { AppSettingEntity } from "../app-setting.entity";
 import { OrderPatternEntity } from "../patterns/pattern-order.entity";
 import { UserEntity } from "../user.entity";
 import { orderAmountTransformer, type OrderCurrency, type OrderDiscountSnapshot } from "./order-snapshot.model";
+import { RefundEntity } from "./refund.entity";
 import { UserPaymentEntity } from "./payment.entity";
 
 
@@ -43,6 +44,9 @@ export enum OrderStatus {
 	'"status" <> \'pending_payment\' OR ("paymentExpiresAt" IS NOT NULL AND "appSettingsVersion" IS NOT NULL)',
 )
 export class UserOrderEntity extends BaseModel {
+    @OneToMany(() => RefundEntity, (refund: RefundEntity) => refund.order)
+    public refunds: RefundEntity[];
+
 	@Column({
 		name: "placed_at",
 		type: "timestamptz",

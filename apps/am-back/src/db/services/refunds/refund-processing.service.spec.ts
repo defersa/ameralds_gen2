@@ -2,7 +2,7 @@ import { PAYMENT_PROVIDER } from '@am-back/db/service/payment/types/payment-prov
 import { testService } from '../../../../test/feature-services';
 import { RefundRepository } from './repositories/refund.repository';
 import { RefundProcessingService } from './refund-processing.service';
-import { RefundResultService } from './refund-result.service';
+import { RefundDiscoveryService } from './refund-discovery.service';
 
 
 describe('refund processing and recovery', () => {
@@ -10,7 +10,7 @@ describe('refund processing and recovery', () => {
         claimStart: jest.fn(), claimCheck: jest.fn(), findForProcessing: jest.fn(), markUnknown: jest.fn(), due: jest.fn(),
         findByExternal: jest.fn(),
     };
-    const results = { apply: jest.fn() };
+    const discovery = { observe: jest.fn() };
     const provider = { name: 'mock', refundPayment: jest.fn(), getRefund: jest.fn(), findRefundByKey: jest.fn(), verifyWebhook: jest.fn() };
     const refund = {
         id: 9, provider: 'mock', payment: { externalId: 'payment-1' },
@@ -34,7 +34,7 @@ describe('refund processing and recovery', () => {
         refunds.findByExternal.mockResolvedValue({ id: 9 });
         service = await testService(RefundProcessingService, [
             { provide: RefundRepository, useValue: refunds },
-            { provide: RefundResultService, useValue: results },
+            { provide: RefundDiscoveryService, useValue: discovery },
             { provide: PAYMENT_PROVIDER, useValue: provider },
         ]);
     });
@@ -44,7 +44,7 @@ describe('refund processing and recovery', () => {
         expect(provider.refundPayment).toHaveBeenCalledWith({
             externalId: 'payment-1', idempotencyKey: 'key-1', amount: 1200, currency: 'RUB',
         });
-        expect(results.apply).toHaveBeenCalledWith(9, result);
+        expect(discovery.observe).toHaveBeenCalledWith('mock', result);
         refunds.claimStart.mockResolvedValue(false);
         await expect(service.start(9)).resolves.toBe(false);
         expect(provider.refundPayment).toHaveBeenCalledTimes(1);
@@ -57,7 +57,7 @@ describe('refund processing and recovery', () => {
         await expect(service.verify(9)).resolves.toBe(true);
         expect(provider.findRefundByKey).toHaveBeenCalledWith('key-1');
         expect(provider.refundPayment).toHaveBeenCalledTimes(1);
-        expect(results.apply).toHaveBeenCalledWith(9, result);
+        expect(discovery.observe).toHaveBeenCalledWith('mock', result);
     });
 
     it('leaves an absent lookup unresolved and does not start a new refund', async () => {
@@ -65,7 +65,7 @@ describe('refund processing and recovery', () => {
         await expect(service.verify(9)).resolves.toBe(false);
         expect(refunds.markUnknown).toHaveBeenCalledWith(9);
         expect(provider.refundPayment).not.toHaveBeenCalled();
-        expect(results.apply).not.toHaveBeenCalled();
+        expect(discovery.observe).not.toHaveBeenCalled();
     });
 
     it('reads the previously stored external ID when available', async () => {
@@ -86,13 +86,28 @@ describe('refund processing and recovery', () => {
         await service.webhook('mock', { externalId: 'refund-1', amount: 1 }, 'signature');
         expect(provider.verifyWebhook).toHaveBeenCalledWith({ externalId: 'refund-1', amount: 1 }, 'signature');
         expect(provider.getRefund).toHaveBeenCalledWith('refund-1');
-        expect(results.apply).toHaveBeenCalledWith(9, result);
+        expect(discovery.observe).toHaveBeenCalledWith('mock', result);
+    });
+
+    it('rejects another payment returned for the requested refund without applying its result', async () => {
+        provider.refundPayment.mockResolvedValue({ ...result, paymentExternalId: 'other-payment' });
+        provider.findRefundByKey.mockResolvedValue({ ...result, idempotencyKey: 'another-key' });
+        await expect(service.start(9)).resolves.toBe(false);
+        await expect(service.verify(9)).resolves.toBe(false);
+        expect(discovery.observe).not.toHaveBeenCalled();
+        expect(refunds.markUnknown).toHaveBeenCalledWith(9);
+    });
+
+    it('rejects a different external ID returned for a signed webhook', async () => {
+        provider.getRefund.mockResolvedValue({ ...result, externalId: 'other-refund' });
+        await expect(service.webhook('mock', {}, 'signature')).rejects.toMatchObject({ status: 503 });
+        expect(discovery.observe).not.toHaveBeenCalled();
     });
 
     it('rejects unknown providers and asks for retry on an unknown refund', async () => {
         await expect(service.webhook('other', {}, undefined)).rejects.toMatchObject({ status: 401 });
-        refunds.findByExternal.mockResolvedValue(null);
+        provider.getRefund.mockRejectedValue(new Error('Unknown refund'));
         await expect(service.webhook('mock', {}, 'signature')).rejects.toMatchObject({ status: 503 });
-        expect(results.apply).not.toHaveBeenCalled();
+        expect(discovery.observe).not.toHaveBeenCalled();
     });
 });

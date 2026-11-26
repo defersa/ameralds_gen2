@@ -374,6 +374,22 @@ export interface CheckoutInputDto {
     currency: 'RUB' | 'USD';
 }
 
+export enum EnumRefundStatus {
+    Accepted = "accepted",
+    Processing = "processing",
+    Unknown = "unknown",
+    Succeeded = "succeeded",
+    Failed = "failed"
+}
+
+export interface UserOrderRefundDto {
+    status: EnumRefundStatus;
+    /** Сумма полного возврата в минимальных единицах валюты */
+    amount: number;
+    currency: 'RUB' | 'USD';
+    completedAt: Date | null;
+}
+
 export interface OrderDiscountSnapshotDto {
     type: string;
     name: string;
@@ -451,6 +467,8 @@ export interface CheckoutOrderDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Последняя операция полного возврата без служебных идентификаторов и инициатора */
+    refund: UserOrderRefundDto | null;
     /** Версия настроек срока оплаты при оформлении */
     appSettingsVersion: number;
     /** Зафиксированное время оформления */
@@ -575,6 +593,8 @@ export interface UserOrderSummaryDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Последняя операция полного возврата без служебных идентификаторов и инициатора */
+    refund: UserOrderRefundDto | null;
     /** Версия настроек при оформлении; null для старых заказов без сохранённой версии */
     appSettingsVersion: number | null;
     /** Checkout time; null when unknown for legacy orders */
@@ -610,6 +630,8 @@ export interface UserOrderDetailsDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Последняя операция полного возврата без служебных идентификаторов и инициатора */
+    refund: UserOrderRefundDto | null;
     /** Версия настроек при оформлении; null для старых заказов без сохранённой версии */
     appSettingsVersion: number | null;
     /** Checkout time; null when unknown for legacy orders */
@@ -822,6 +844,8 @@ export interface AdminPlacedOrderSummaryDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Последняя операция полного возврата без служебных идентификаторов и инициатора */
+    refund: UserOrderRefundDto | null;
     /** Версия настроек при оформлении; null для старых заказов без сохранённой версии */
     appSettingsVersion: number | null;
     /** Checkout time; null when unknown for legacy orders */
@@ -852,6 +876,19 @@ export interface AdminPlacedOrdersPageDto {
     count: number;
 }
 
+export interface AdminRefundIncidentDto {
+    id: number;
+    paymentId: number;
+    provider: string;
+    externalId: string;
+    kind: 'partial_refund' | 'unexpected_refund' | 'conflicting_refund';
+    amount: number;
+    currency: string;
+    providerStatus: string;
+    createdAt: Date;
+    lastObservedAt: Date;
+}
+
 export interface AdminOrderPaymentDto {
     id: number;
     provider: string;
@@ -871,7 +908,8 @@ export interface AdminOrderRefundDto {
     currency: string;
     paymentId: number;
     externalId: string | null;
-    initiatedBy: number;
+    initiatedBy: number | null;
+    origin: 'application' | 'provider';
     reason: string;
     createdAt: Date;
     completedAt: Date | null;
@@ -892,6 +930,8 @@ export interface AdminPlacedOrderDetailsDto {
     createdAt?: Date;
     /** Id of entity */
     updatedAt?: Date;
+    /** Последняя операция полного возврата без служебных идентификаторов и инициатора */
+    refund: UserOrderRefundDto | null;
     /** Версия настроек при оформлении; null для старых заказов без сохранённой версии */
     appSettingsVersion: number | null;
     /** Checkout time; null when unknown for legacy orders */
@@ -912,6 +952,8 @@ export interface AdminPlacedOrderDetailsDto {
     status: EnumOrderStatus;
     /** Purchased patterns */
     patterns: Array<PurchasedOrderPatternDto>;
+    /** Финансовые расхождения для ручного разбора; автоматический повтор возврата заблокирован */
+    refundIncidents: Array<AdminRefundIncidentDto>;
     user: OrderCustomerDto | null;
     payments: Array<AdminOrderPaymentDto>;
     refunds: Array<AdminOrderRefundDto>;

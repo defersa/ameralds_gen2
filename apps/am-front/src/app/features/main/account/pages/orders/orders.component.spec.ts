@@ -1,11 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { of, Subject, throwError } from 'rxjs';
-import { ApiOrdersProducer, EnumOrderStatus, UserOrderSummaryDto, UserOrdersPageDto } from '@am-front/root/api-v2';
+import { ApiOrdersProducer, EnumOrderStatus, EnumRefundStatus, UserOrderSummaryDto, UserOrdersPageDto } from '@am-front/root/api-v2';
 import { AuthService } from '@am-front/services/auth.service';
 import { UserOrdersFiltersComponent } from '@am-front/shared/filters/user-orders/user-orders-filters.component';
 import { By } from '@angular/platform-browser';
@@ -17,6 +17,7 @@ describe('user orders list', () => {
     const getOrders = jest.fn();
 
     const order = {
+        refund: null,
         id: 17,
         status: EnumOrderStatus.Success,
         createdAt: new Date('2026-11-09T12:00:00Z'),
@@ -40,11 +41,38 @@ describe('user orders list', () => {
             providers: [
                 provideRouter([{ path: 'orders', component: OrdersComponent }]),
                 provideNoopAnimations(),
-                { provide: AuthService, useValue: { auth: authenticated } },
+                { provide: AuthService, useValue: { auth: authenticated, token: signal('test') } },
                 { provide: ApiOrdersProducer, useValue: { userOrdersControllerGetOrders: getOrders } },
             ],
         });
     });
+
+    it('refreshes visible pending refunds, then stops after the confirmed result', fakeAsync(() => {
+        const initial = {
+            ...order,
+            refund: { status: EnumRefundStatus.Accepted, amount: 12345, currency: 'RUB', completedAt: null },
+        };
+        const fixture = TestBed.createComponent(OrdersComponent);
+
+        getOrders.mockReturnValue(of({ page: 1, count: 1, items: [initial] }));
+        fixture.detectChanges();
+        fixture.componentInstance.filtersUpdate$.next({ page: 1 });
+        tick(0);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Возврат обрабатывается');
+        getOrders.mockReturnValue(of({
+            page: 1, count: 1,
+            items: [{ ...initial, status: EnumOrderStatus.Refunded, refund: { ...initial.refund, status: EnumRefundStatus.Succeeded } }],
+        }));
+        tick(5000);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Возвращён');
+        const calls = getOrders.mock.calls.length;
+
+        tick(5000);
+        expect(getOrders).toHaveBeenCalledTimes(calls);
+        fixture.destroy();
+    }));
 
     it('restores filters from URL, preserves zero and includes the entire end day', async () => {
         const harness = await RouterTestingHarness.create();

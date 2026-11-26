@@ -7,6 +7,7 @@ import { PaymentCompletionRepository } from '@am-back/db/service/payment/reposit
 import type { ProviderRefund } from '@am-back/db/service/payment/types/payment-provider';
 import { DataSource } from 'typeorm';
 import { testService } from '../../../../test/feature-services';
+import { RefundRepository } from './repositories/refund.repository';
 import { RefundResultService } from './refund-result.service';
 
 
@@ -19,6 +20,7 @@ describe('confirmed refund result', () => {
     const now = new Date('2026-11-20T12:00:00Z');
     const grants = { revokeRefundedOrder: jest.fn() };
     const effects = { enqueue: jest.fn() };
+    const incidents = { hasIncident: jest.fn() };
     const orders = { lockOwner: jest.fn(), lockForPayment: jest.fn(), databaseTime: jest.fn() };
     const refundRepository = { findOne: jest.fn(), save: jest.fn() };
     const orderRepository = { update: jest.fn() };
@@ -70,6 +72,7 @@ describe('confirmed refund result', () => {
             { provide: UserOrderRepository, useValue: orders },
             { provide: PatternGrantsService, useValue: grants },
             { provide: PaymentCompletionRepository, useValue: effects },
+            { provide: RefundRepository, useValue: incidents },
         ]);
     });
 
@@ -95,6 +98,13 @@ describe('confirmed refund result', () => {
         result.amount = 1;
         await expect(service.apply(9, result)).rejects.toThrow('mismatch');
         expect(orderRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('keeps access if a financial incident was recorded between discovery and finalization', async () => {
+        incidents.hasIncident.mockResolvedValueOnce(true);
+        await expect(service.apply(9, result)).rejects.toThrow('manual reconciliation');
+        expect(orderRepository.update).not.toHaveBeenCalled();
+        expect(grants.revokeRefundedOrder).not.toHaveBeenCalled();
     });
 
     it('propagates a revocation failure without writing the final journal or queuing a message', async () => {

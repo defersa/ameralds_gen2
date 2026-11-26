@@ -64,6 +64,18 @@
             </dd>
         </div>
 
+        @if (refundStatus(); as label) {
+            <div class="order-snapshot__line flex flex-wrap items-center gap-x-1" aria-live="polite">
+                <dt>
+                    Возврат:
+                </dt>
+
+                <dd class="m-0">
+                    {{ label }}
+                </dd>
+            </div>
+        }
+
         <div class="order-snapshot__line flex flex-wrap items-center gap-x-1">
             <amstore-icon iconName="price" [size]="24" [color]="appearance().color" aria-hidden="true"/>
 

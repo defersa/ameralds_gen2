@@ -24,6 +24,7 @@ export interface RefundTransition {
 @Check('chk_refund_currency', '"currency" IN (\'RUB\', \'USD\')')
 @Check('chk_refund_status', '"status" IN (\'accepted\', \'processing\', \'unknown\', \'succeeded\', \'failed\')')
 @Check('chk_refund_reason', 'length(trim("reason")) > 0')
+@Check('chk_refund_origin', "(origin = 'application' AND initiated_by IS NOT NULL) OR (origin = 'provider' AND initiated_by IS NULL AND external_id IS NOT NULL AND status <> 'accepted')")
 export class RefundEntity extends BaseModel {
     @Column({ name: 'order_id', type: 'integer' })
     public orderId: number;
@@ -39,12 +40,15 @@ export class RefundEntity extends BaseModel {
     @JoinColumn({ name: 'payment_id' })
     public payment: UserPaymentEntity;
 
-    @Column({ name: 'initiated_by', type: 'integer' })
-    public initiatedBy: number;
+    @Column({ name: 'origin', type: 'varchar', length: 20, default: 'application' })
+    public origin: 'application' | 'provider';
 
-    @ManyToOne(() => UserEntity, { onDelete: 'RESTRICT' })
+    @Column({ name: 'initiated_by', type: 'integer', nullable: true })
+    public initiatedBy: number | null;
+
+    @ManyToOne(() => UserEntity, { onDelete: 'RESTRICT', nullable: true })
     @JoinColumn({ name: 'initiated_by' })
-    public initiator: UserEntity;
+    public initiator: UserEntity | null;
 
     @Column({ type: 'text' })
     public reason: string;

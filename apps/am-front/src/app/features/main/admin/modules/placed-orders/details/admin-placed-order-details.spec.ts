@@ -49,6 +49,27 @@ describe('administrative order details refresh', () => {
         });
     });
 
+    it('shows a partial external incident and blocks a blind second refund', fakeAsync(() => {
+        const order = placedOrder();
+
+        order.refundIncidents = [{
+            id: 11, paymentId: 3, provider: 'mock', externalId: 'dashboard-partial', kind: 'partial_refund',
+            amount: 500, currency: 'RUB', providerStatus: 'succeeded', createdAt: new Date(), lastObservedAt: new Date(),
+        }];
+        order.refundUnavailableReason = 'Требуется ручная проверка';
+        service.details.mockReturnValue(of(order));
+        const fixture = TestBed.createComponent(AdminPlacedOrderDetails);
+
+        fixture.detectChanges();
+        tick(0);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain('Частичный внешний возврат');
+        expect(fixture.nativeElement.textContent).toContain('dashboard-partial');
+        expect(fixture.nativeElement.textContent).toContain('Новый возврат заблокирован');
+        expect(fixture.nativeElement.textContent).not.toContain('Вернуть весь заказ');
+        fixture.destroy();
+    }));
+
     it('polls an accepted or unknown operation until confirmed and never treats acceptance as REFUNDED', fakeAsync(() => {
         const accepted = placedOrder();
 
@@ -62,6 +83,7 @@ describe('administrative order details refresh', () => {
                 paymentId: 3,
                 externalId: null,
                 initiatedBy: 1,
+                origin: 'application',
                 reason: 'Полный возврат',
                 createdAt: new Date(),
                 completedAt: null,

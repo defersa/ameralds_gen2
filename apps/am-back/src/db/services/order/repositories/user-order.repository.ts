@@ -16,9 +16,9 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 		super(UserOrderEntity, dataSource.createEntityManager());
 	}
 
-    /** Возвращает основные поля активных оформленных заказов владельца без связей; суммы фильтруются в минимальных единицах, даты — по createdAt. */
+    /** Возвращает поля активных оформленных заказов владельца с операциями возврата; суммы фильтруются в минимальных единицах, даты — по createdAt. */
     public async findPlacedOrders(userId: number, filters: UserOrderFilters): Promise<{ items: UserOrderEntity[]; page: number; count: number }> {
-        // Выбираем только заказы владельца без OPEN-корзин и неактивных строк; связи и персональные данные не загружаются.
+        // Выбираем только заказы владельца без OPEN-корзин и неактивных строк; связь возвратов читается одним запросом, персональные данные не загружаются.
         const query = this.createQueryBuilder('orders')
             .select([
                 'orders.id',
@@ -36,6 +36,7 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
                 'orders.cancelReason',
                 'orders.appSettingsVersion',
             ])
+            .leftJoinAndSelect('orders.refunds', 'refund')
             .where('orders.user = :userId', { userId })
             .andWhere('orders.state = :state', { state: ModelState.ACTIVE })
             .andWhere('orders.status <> :open', { open: OrderStatus.OPEN });
@@ -84,7 +85,7 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 		});
 	}
 
-	/** Загружает активный оформленный заказ владельца, включая ожидающий оплаты; OPEN-корзины не выдаёт. */
+	/** Загружает активный оформленный заказ владельца с журналом возвратов; чужие заказы и OPEN-корзины не выдаёт. */
 	public findPlacedOrder(userId: number, id: number): Promise<UserOrderEntity | null> {
 		return this.findOne({
 			where: {
@@ -94,6 +95,7 @@ export class UserOrderRepository extends Repository<UserOrderEntity> {
 				state: ModelState.ACTIVE,
 			},
 			relations: {
+                refunds: true,
 				patterns: {
 					pattern: {
 						name: true,

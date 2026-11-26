@@ -22,6 +22,8 @@ import { PaymentVerificationService } from '../payment/payment-verification.serv
 import { PaymentEffectsService } from '../payment/payment-effects.service';
 import { PaymentCompletionRepository } from '../payment/repositories/payment-completion.repository';
 import { PaymentEffectRepository } from '../payment/repositories/payment-effect.repository';
+import { RefundDiscoveryService } from '../refunds/refund-discovery.service';
+import { RefundDiscoveryRepository } from '../refunds/repositories/refund-discovery.repository';
 import { RefundResultService } from '../refunds/refund-result.service';
 import { RefundReservationService } from '../refunds/refund-reservation.service';
 import { RefundProcessingService } from '../refunds/refund-processing.service';
@@ -48,6 +50,8 @@ import { AdminPlacedOrderActionsService } from './admin/admin-placed-order-actio
 		RefundReservationService,
 		RefundProcessingService,
 		RefundRepository,
+        RefundDiscoveryService,
+        RefundDiscoveryRepository,
 		{ provide: PAYMENT_PROVIDER, useClass: MockPaymentProvider },
 		UserCartService,
 		AdminCartService,

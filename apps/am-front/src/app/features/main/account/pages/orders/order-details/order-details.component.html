@@ -67,13 +67,35 @@
                 }
             </div>
 
+            @if (details.refund; as refund) {
+                <p role="status" aria-live="polite">
+                    {{ refundStatus() }}. Сумма: {{ refund.amount / 100 | number:'1.2-2' }} {{ refund.currency }}.
+
+                    @if (refundPending()) {
+                        Доступ к материалам сохраняется до подтверждения возврата.
+                    }
+                </p>
+            }
+
+            @if (refundPending()) {
+                <amstore-button (click)="checkRefund()" [disabled]="refreshRefund.loading()">
+                    {{ refreshRefund.loading() ? 'Проверяем…' : 'Проверить возврат' }}
+                </amstore-button>
+            }
+
+            @if (refreshRefund.errors()) {
+                <p role="alert">
+                    Пока не удалось обновить возврат. Повторите проверку.
+                </p>
+            }
+
             @if (paymentState()?.resolution === 'compensation_required') {
                 <p role="alert">
                     Списание получено по заказу, который нельзя завершить. Оплата сохранена для проверки службой поддержки. Повторно оплачивать не нужно.
                 </p>
             }
 
-            @else if (paymentState()?.orderStatus === 'success') {
+            @else if (paymentState()?.orderStatus === 'success' && !details.refund) {
                 <p role="status">
                     Оплата подтверждена. Купленные материалы доступны в личном кабинете.
                 </p>

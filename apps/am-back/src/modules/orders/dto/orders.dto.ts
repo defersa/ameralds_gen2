@@ -347,7 +347,24 @@ export class PurchasedOrderPatternDto extends BaseEntityDto {
 	public color: boolean;
 }
 
+export class UserOrderRefundDto {
+    @ApiProperty({ enum: ['accepted', 'processing', 'unknown', 'succeeded', 'failed'], enumName: 'EnumRefundStatus' })
+    public status: 'accepted' | 'processing' | 'unknown' | 'succeeded' | 'failed';
+
+    @ApiProperty({ description: 'Сумма полного возврата в минимальных единицах валюты', type: 'integer' })
+    public amount: number;
+
+    @ApiProperty({ enum: ['RUB', 'USD'] })
+    public currency: OrderCurrency;
+
+    @ApiProperty({ type: Date, nullable: true })
+    public completedAt: Date | null;
+}
+
 export class UserOrderDetailsDto extends BaseEntityDto {
+    @ApiProperty({ type: UserOrderRefundDto, nullable: true, description: 'Последняя операция полного возврата без служебных идентификаторов и инициатора' })
+    public refund: UserOrderRefundDto | null;
+
 	@ApiProperty({
 		type: "integer",
 		nullable: true,

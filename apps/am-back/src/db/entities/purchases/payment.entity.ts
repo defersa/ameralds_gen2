@@ -17,6 +17,7 @@ export enum PaymentStatus {
     schema: 'users',
 })
 @Index('idx_payment_order', ['orderId'])
+@Index('idx_payment_refund_discovery', { synchronize: false })
 @Index('idx_payment_reconciliation', ['nextCheckAt'], { where: '"provider" <> \'legacy\'' })
 @Index('uq_payment_idempotency', ['idempotencyKey'], { unique: true })
 @Index('uq_payment_external', ['provider', 'externalId'], {
@@ -41,6 +42,9 @@ export enum PaymentStatus {
     '"provider" = \'legacy\' OR ("order_id" IS NOT NULL AND "status" IS NOT NULL AND "amount" IS NOT NULL AND "currency" IS NOT NULL AND "idempotency_key" IS NOT NULL)',
 )
 export class UserPaymentEntity extends BaseModel {
+    @Column({ name: 'next_refund_check_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+    public nextRefundCheckAt: Date;
+
     @Column({ name: 'resolution', type: 'varchar', length: 40, nullable: true })
     public resolution: 'completed' | 'compensation_required' | null;
 

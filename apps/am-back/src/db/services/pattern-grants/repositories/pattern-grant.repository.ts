@@ -96,8 +96,8 @@ export class PatternGrantRepository extends Repository<UserPatternGrantEntity> {
         });
     }
 
-    /** Фиксирует первый отзыв; повтор сохраняет исходные время, причину, автора и ссылку на возврат. */
-    public async revokeOnce(ids: number[], actorId: number, reason: string, refundReference: string, manager: EntityManager): Promise<void> {
+    /** Фиксирует первый отзыв; null-автор обозначает внешний возврат. Повтор сохраняет исходный аудит. */
+    public async revokeOnce(ids: number[], actorId: number | null, reason: string, refundReference: string, manager: EntityManager): Promise<void> {
         // Обновляем только ещё действующие выбранные основания; блокировка владельца уже удерживается транзакцией.
         await manager.getRepository(UserPatternGrantEntity).update({
             id: In(ids),

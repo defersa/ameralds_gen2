@@ -25,6 +25,7 @@ import { AuthEmailLimitEntity } from './entities/tokens/auth-email-limit.entity'
 import { AppSettingEntity } from './entities/app-setting.entity';
 import { PasswordResetLinkEntity } from './entities/tokens/password-reset-link.entity';
 import { PaymentEffectEntity } from './entities/purchases/payment-effect.entity';
+import { RefundIncidentEntity } from './entities/purchases/refund-incident.entity';
 import { RefundEntity } from './entities/purchases/refund.entity';
 
 
@@ -70,6 +71,7 @@ import { RefundEntity } from './entities/purchases/refund.entity';
                 PaymentRequestEntity,
                 PaymentEffectEntity,
                 RefundEntity,
+                RefundIncidentEntity,
             ],
             // logging: true,
         }),

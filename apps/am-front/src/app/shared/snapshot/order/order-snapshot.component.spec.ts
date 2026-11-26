@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { EnumOrderStatus, UserOrderSummaryDto } from '@am-front/root/api-v2';
+import { EnumOrderStatus, EnumRefundStatus, UserOrderSummaryDto } from '@am-front/root/api-v2';
 import { OrderSnapshotComponent } from './order-snapshot.component';
 
 
@@ -9,6 +9,7 @@ describe('OrderSnapshotComponent', () => {
 
     const order = {
         id: 17,
+        refund: null,
         status: EnumOrderStatus.PendingPayment,
         createdAt: new Date('2026-11-08T10:00:00Z'),
         updatedAt: new Date('2026-11-09T12:00:00Z'),
@@ -83,6 +84,23 @@ describe('OrderSnapshotComponent', () => {
 
         expect(element.textContent).toContain(label);
         expect(fixture.componentInstance.appearance().icon).toBe(icon);
+    });
+
+    it.each([
+        [EnumRefundStatus.Accepted, 'Возврат обрабатывается'],
+        [EnumRefundStatus.Processing, 'Возврат обрабатывается'],
+        [EnumRefundStatus.Unknown, 'ожидаем подтверждение'],
+        [EnumRefundStatus.Succeeded, 'Возвращён'],
+        [EnumRefundStatus.Failed, 'Возврат отклонён'],
+    ])('shows the safe refund state %s without changing the historical amount', (status, label) => {
+        fixture.componentRef.setInput('order', {
+            ...order,
+            status: status === EnumRefundStatus.Succeeded ? EnumOrderStatus.Refunded : EnumOrderStatus.Success,
+            refund: { status, amount: 12345, currency: 'RUB', completedAt: null },
+        });
+        fixture.detectChanges();
+        expect(fixture.nativeElement.textContent).toContain(label);
+        expect(fixture.nativeElement.textContent).toContain('123.45');
     });
 
     it('preserves zero and supports dollars', () => {

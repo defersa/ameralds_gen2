@@ -4,6 +4,8 @@ import { type AdminPlacedOrderDetailsDto, EnumOrderStatus } from '@am-front/root
 /** Создаёт независимый снимок заказа для проверок списка, подтверждения и обновления финансового состояния. */
 export function placedOrder(): AdminPlacedOrderDetailsDto {
     return {
+        refund: null,
+        refundIncidents: [],
         id: 7,
         createdAt: new Date('2026-11-22T12:00:00Z'),
         updatedAt: new Date('2026-11-22T12:00:00Z'),

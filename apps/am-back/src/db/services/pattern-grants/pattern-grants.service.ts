@@ -165,15 +165,17 @@ export class PatternGrantsService {
     /**
      * Отзывает все действующие основания подтверждённо возвращённого пользовательского заказа и
      * пересобирает проекции из оставшихся источников в транзакции вызывающего обработчика.
-     * Инициатор и подтверждение проверяются при принятии возврата; метод не выполняет финансовую операцию.
+     * Инициатор и подтверждение проверяются при принятии возврата; null обозначает внешний возврат без локального администратора.
+     * Метод не выполняет финансовую операцию.
      */
     public async revokeRefundedOrder(
-        userId: number, orderId: number, actorId: number, reason: string, refundReference: string, manager: EntityManager,
+        userId: number, orderId: number, actorId: number | null, reason: string, refundReference: string, manager: EntityManager,
     ): Promise<void> {
         this.assertTransaction(manager);
 
-        if (![userId, orderId, actorId]
+        if (![userId, orderId]
             .every((id) => Number.isSafeInteger(id) && id > 0) ||
+            (actorId !== null && (!Number.isSafeInteger(actorId) || actorId <= 0)) ||
             typeof reason !== 'string' || !reason.trim() || reason.length > 2000 ||
             typeof refundReference !== 'string' || !refundReference.trim() || refundReference.length > 255) {
             invalidGrant();

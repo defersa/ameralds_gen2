@@ -41,7 +41,8 @@ export interface RefundProviderPayment {
 export interface ProviderRefund {
     externalId: string;
     paymentExternalId: string;
-    idempotencyKey: string;
+    /** null для операции, созданной вне приложения, если провайдер не хранит наш ключ. */
+    idempotencyKey: string | null;
     amount: number;
     currency: OrderCurrency;
     status: 'unknown' | 'pending' | 'succeeded' | 'failed';
@@ -70,4 +71,7 @@ export interface PaymentProvider {
 
     /** Находит ранее созданный возврат по ключу; отсутствие результата не доказывает окончательный отказ. */
     findRefundByKey(idempotencyKey: string): Promise<ProviderRefund | null>;
+
+    /** Возвращает все возвраты платежа, включая внешние; адаптер обходит все страницы либо отклоняет запрос целиком. */
+    listRefunds(paymentExternalId: string): Promise<ProviderRefund[]>;
 }

@@ -20,6 +20,8 @@ import { PaymentRepository } from '@am-back/db/service/payment/repositories/paym
 import { PAYMENT_PROVIDER, ProviderPaymentStatus } from '@am-back/db/service/payment/types/payment-provider';
 import { RefundProcessingService } from '@am-back/db/service/refunds/refund-processing.service';
 import { RefundReservationService } from '@am-back/db/service/refunds/refund-reservation.service';
+import { RefundDiscoveryService } from '@am-back/db/service/refunds/refund-discovery.service';
+import { RefundDiscoveryRepository } from '@am-back/db/service/refunds/repositories/refund-discovery.repository';
 import { RefundResultService } from '@am-back/db/service/refunds/refund-result.service';
 import { RefundRepository } from '@am-back/db/service/refunds/repositories/refund.repository';
 import { ConfigService } from '@nestjs/config';
@@ -27,6 +29,8 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { DataSource, IsNull } from 'typeorm';
+import { ExternalRefunds1795000000000 } from '../../../../../database/migrations/1795000000000-external-refunds';
+import { toUserOrderSummary } from '../mappers/order.mapper';
 import { AdminOrderCancellation1794900000000 } from '../../../../../database/migrations/1794900000000-admin-order-cancellation';
 import { AdminPlacedOrderRepository } from '../repositories/admin-placed-order.repository';
 import { UserOrderRepository } from '../repositories/user-order.repository';
@@ -77,6 +81,11 @@ postgres('administrative placed orders on PostgreSQL', () => {
             'ALTER TABLE "users"."user_order_entity" DROP CONSTRAINT "fk_order_cancellation_actor", DROP COLUMN "cancelled_by"',
         );
         await db.transaction((manager) => new AdminOrderCancellation1794900000000().up(manager.queryRunner));
+        // Проверяем миграцию внешних операций на прежней схеме без потери локальных возвратов.
+        await db.query(`DROP TABLE "users"."refund_incident"; DROP TYPE "users"."refund_incident_state_enum";
+            ALTER TABLE "users"."refund" DROP COLUMN origin;
+            ALTER TABLE "users"."user_payment_entity" DROP COLUMN next_refund_check_at`);
+        await db.transaction(manager => new ExternalRefunds1795000000000().up(manager.queryRunner));
     }, 30_000);
 
     beforeEach(async () => {
@@ -117,6 +126,8 @@ postgres('administrative placed orders on PostgreSQL', () => {
                 RefundReservationService,
                 RefundProcessingService,
                 RefundResultService,
+                RefundDiscoveryService,
+                RefundDiscoveryRepository,
                 PatternGrantsService,
                 PatternGrantRepository,
                 UserPatternRepository,
@@ -514,6 +525,138 @@ postgres('administrative placed orders on PostgreSQL', () => {
                 orderId: order.id,
             }),
         ).toBe(2);
+    });
+
+    it('refunds the exact discounted total of multiple patterns and revokes every position atomically', async () => {
+        const first = await db.getRepository(OrderPatternEntity).findOneByOrFail({ order: { id: order.id } });
+        const pattern = await db.getRepository(PatternEntity).save({});
+        const secondSize = await db.getRepository(PatternSizeEntity).save({
+            pattern, size: await db.getRepository(SizeEntity).save({ value: 40 }),
+        });
+
+        first.snapshot = { ...first.snapshot, subtotalAmount: 6500, discountAmount: 500, totalAmount: 6000 };
+        await db.getRepository(OrderPatternEntity).save(first);
+        await db.getRepository(OrderPatternEntity).save({
+            order, pattern, sizes: [secondSize], color: true,
+            snapshot: {
+                ...first.snapshot, patternId: pattern.id,
+                sizes: [{ patternSizeId: secondSize.id, sizeId: secondSize.size.id, value: 40 }],
+                subtotalAmount: 6500, discountAmount: 155, totalAmount: 6345,
+            },
+        });
+        await payOrder();
+        expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id, revokedAt: IsNull() })).toBe(4);
+        const accepted = await actions.refund(actor.id, order.id, 'Все позиции');
+
+        await processing.start(accepted.refunds[0].id);
+        const returned = await view.details(order.id);
+
+        expect(returned.refund.amount).toBe(12345);
+        expect(returned.patterns).toHaveLength(2);
+        expect(returned.totalAmount).toBe(12345);
+        expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id, revokedAt: IsNull() })).toBe(0);
+    });
+
+    it('discovers an external full refund by webhook without a local actor and keeps repeated events idempotent', async () => {
+        const paymentId = await payOrder();
+        const payment = await db.getRepository(UserPaymentEntity).findOneByOrFail({ id: paymentId });
+
+        provider.recordExternalRefund({
+            externalId: 'dashboard-full', paymentExternalId: payment.externalId, idempotencyKey: null,
+            amount: payment.amount, currency: payment.currency, status: 'succeeded',
+        });
+        jest.spyOn(provider, 'verifyWebhook').mockResolvedValue('dashboard-full');
+        const send = jest.spyOn(provider, 'refundPayment');
+
+        await Promise.all([
+            processing.webhook('mock', {}, 'signed'),
+            processing.webhook('mock', {}, 'signed'),
+        ]);
+        const details = await view.details(order.id);
+
+        expect(details.status).toBe(OrderStatus.REFUNDED);
+        expect(details.refunds).toHaveLength(1);
+        expect(details.refunds[0]).toMatchObject({ origin: 'provider', initiatedBy: null, externalId: 'dashboard-full', status: 'succeeded' });
+        expect(details.refund).toMatchObject({ status: 'succeeded', amount: 12345 });
+        expect(send).not.toHaveBeenCalled();
+        expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id, revokedAt: IsNull() })).toBe(0);
+        expect(await db.getRepository(PaymentEffectEntity).countBy({ orderId: order.id, kind: 'refund_email' })).toBe(1);
+        await payments.processPaymentResult(user.id, order.id, paymentId, await provider.getPayment(payment.externalId));
+        expect((await view.details(order.id)).status).toBe(OrderStatus.REFUNDED);
+        expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id, revokedAt: IsNull() })).toBe(0);
+
+        const loaded = await module.get(UserOrderRepository).findPlacedOrder(user.id, order.id);
+        const summary = toUserOrderSummary(loaded);
+
+        expect(summary.refund.status).toBe('succeeded');
+        expect(JSON.stringify(summary)).not.toMatch(/dashboard-full|initiatedBy|idempotencyKey|origin|reason/);
+        expect(await module.get(UserOrderRepository).findPlacedOrder(actor.id, order.id)).toBeNull();
+    });
+
+    it('finds missed external refunds on old payments, preserves access while pending and reconciles later success', async () => {
+        const paymentId = await payOrder();
+        const payment = await db.getRepository(UserPaymentEntity).findOneByOrFail({ id: paymentId });
+        const discovery = module.get(RefundDiscoveryService);
+
+        await db.getRepository(UserPaymentEntity).update(paymentId, { createdAt: new Date('2020-01-01'), nextRefundCheckAt: new Date(0) });
+        provider.recordExternalRefund({
+            externalId: 'dashboard-pending', paymentExternalId: payment.externalId, idempotencyKey: null,
+            amount: payment.amount, currency: payment.currency, status: 'pending',
+        });
+        const send = jest.spyOn(provider, 'refundPayment');
+
+        await discovery.reconcile();
+        const pending = await view.details(order.id);
+
+        expect(pending.status).toBe(OrderStatus.PAID);
+        expect(pending.refund.status).toBe('processing');
+        expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id, revokedAt: IsNull() })).toBe(2);
+        await provider.setRefundResult('dashboard-pending', 'succeeded');
+        await db.getRepository(RefundEntity).update(pending.refunds[0].id, { nextCheckAt: new Date(0) });
+        await processing.reconcile();
+        expect((await view.details(order.id)).status).toBe(OrderStatus.REFUNDED);
+        expect(send).not.toHaveBeenCalled();
+    });
+
+    it('records one partial external refund incident, retains rights and blocks blind full retries', async () => {
+        const paymentId = await payOrder();
+        const payment = await db.getRepository(UserPaymentEntity).findOneByOrFail({ id: paymentId });
+        const discovery = module.get(RefundDiscoveryService);
+        const result = {
+            externalId: 'dashboard-partial', paymentExternalId: payment.externalId, idempotencyKey: null,
+            amount: 500, currency: payment.currency, status: 'succeeded' as const,
+        };
+
+        await Promise.all([discovery.observe('mock', result), discovery.observe('mock', result)]);
+        const details = await view.details(order.id);
+
+        expect(details.status).toBe(OrderStatus.PAID);
+        expect(details.refunds).toHaveLength(0);
+        expect(details.refundIncidents).toHaveLength(1);
+        expect(details.refundIncidents[0]).toMatchObject({ kind: 'partial_refund', amount: 500, externalId: 'dashboard-partial', providerStatus: 'succeeded' });
+        expect(details.refundUnavailableReason).toContain('расхождение');
+        await discovery.observe('mock', { ...result, status: 'pending' });
+        expect((await view.details(order.id)).refundIncidents[0].providerStatus).toBe('succeeded');
+        expect(await db.getRepository(UserPatternGrantEntity).countBy({ orderId: order.id, revokedAt: IsNull() })).toBe(2);
+        await expect(actions.refund(actor.id, order.id, 'Слепой повтор')).rejects.toMatchObject({ status: 400 });
+        await expect(db.transaction(manager => new ExternalRefunds1795000000000().down(manager.queryRunner))).rejects.toThrow('audit');
+    });
+
+    it('recovers the original operation after a failed local commit without repeating provider refund', async () => {
+        await payOrder();
+        const accepted = await actions.refund(actor.id, order.id, 'Сбой после внешнего успеха');
+        const grants = module.get(PatternGrantsService);
+        const revoke = jest.spyOn(grants, 'revokeRefundedOrder').mockRejectedValueOnce(new Error('Local failure'));
+        const send = jest.spyOn(provider, 'refundPayment');
+
+        await processing.start(accepted.refunds[0].id);
+        expect((await view.details(order.id)).status).toBe(OrderStatus.PAID);
+        expect((await view.details(order.id)).refund.status).toBe('unknown');
+        await db.getRepository(RefundEntity).update(accepted.refunds[0].id, { nextCheckAt: new Date(0) });
+        await processing.verify(accepted.refunds[0].id);
+        expect((await view.details(order.id)).status).toBe(OrderStatus.REFUNDED);
+        expect(send).toHaveBeenCalledTimes(1);
+        expect(revoke).toHaveBeenCalledTimes(2);
     });
 
     /** Создаёт оформленный заказ и снимок размера с сохранённой скидкой в одноразовой БД. */

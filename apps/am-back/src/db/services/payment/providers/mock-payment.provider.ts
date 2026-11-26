@@ -235,6 +235,24 @@ export class MockPaymentProvider implements PaymentProvider {
         return { ...refund };
     }
 
+    /** Возвращает полный список операций платежа для обнаружения возвратов вне приложения. */
+    public async listRefunds(paymentExternalId: string): Promise<ProviderRefund[]> {
+        this.ensureEnabled();
+
+        return [...this.refunds.values()]
+            .filter(refund => refund.paymentExternalId === paymentExternalId)
+            .map(refund => ({ ...refund }));
+    }
+
+    /** Добавляет внешний финансовый факт исключительно в тесте; публичного HTTP-управления mock нет. */
+    public recordExternalRefund(refund: ProviderRefund): void {
+        if (this.config.get<string>('NODE_ENV') !== 'test') {
+            throw new Error('External refund fixtures require test environment');
+        }
+
+        this.refunds.set(refund.externalId, { ...refund });
+    }
+
     /** Находит mock-возврат по исходному ключу после потери ответа; нового запроса на возврат не создаёт. */
     public async findRefundByKey(idempotencyKey: string): Promise<ProviderRefund | null> {
         this.ensureEnabled();

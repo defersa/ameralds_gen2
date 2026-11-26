@@ -5,6 +5,7 @@ import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-bu
 import { IconsComponent, type IconSize } from '@am-front/cdk/icons/icons.component';
 import type { IconsName } from '@am-front/cdk/icons/icons.map';
 import { EnumOrderStatus, type OrderCustomerDto, type UserOrderSummaryDto } from '@am-front/root/api-v2';
+import { ORDER_REFUND_STATUS_LABELS } from '@am-front/utils/order-refund-status';
 import { ORDER_STATUS_LABELS } from '@am-front/utils/order-status';
 
 
@@ -60,6 +61,12 @@ export class OrderSnapshotComponent {
     public readonly timezone: InputSignal<string | undefined> = input<string>();
 
     public readonly appearance = computed(() => ORDER_STATUS_APPEARANCE[this.order().status]);
+    public readonly refundStatus = computed(() => {
+        const refund = this.order().refund;
+
+        return refund ? ORDER_REFUND_STATUS_LABELS[refund.status] : null;
+    });
+
     public readonly status = computed(() => ORDER_STATUS_LABELS[this.order().status]);
     public readonly displayDate = computed(() => this.dateField() === 'createdAt'
         ? this.order().createdAt

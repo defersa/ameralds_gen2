@@ -17,6 +17,16 @@
         }
 
         @else if (load.status() === 'success') {
+            @if (refreshRefunds.errors()) {
+                <p role="alert">
+                    Не удалось обновить состояние возвратов.
+                </p>
+
+                <amstore-button (click)="retry()" [disabled]="load.loading()">
+                    Повторить обновление
+                </amstore-button>
+            }
+
             @for (order of orders(); track order.id) {
                 <amstore-order-snapshot [order]="order"/>
             }

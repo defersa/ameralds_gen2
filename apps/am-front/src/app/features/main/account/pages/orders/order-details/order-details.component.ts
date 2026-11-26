@@ -2,7 +2,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { combineLatest, EMPTY, endWith, exhaustMap, filter, map, startWith, Subject, switchMap, take, takeUntil, tap, timer } from 'rxjs';
+import { combineLatest, EMPTY, endWith, exhaustMap, filter, ignoreElements, map, startWith, Subject, switchMap, take, takeUntil, tap, timer } from 'rxjs';
 import { AmstoreButtonComponent } from '@am-front/cdk/buttons/default/amstore-button.component';
 import { IconsComponent } from '@am-front/cdk/icons/icons.component';
 import { EnumOrderStatus, EnumPaymentStatus, PaymentAttemptDto, PaymentStateDto, UserOrderDetailsDto } from '@am-front/root/api-v2';
@@ -12,6 +12,7 @@ import { UserOrdersService } from '@am-front/services/user-orders.service';
 import { PatternOrderPreviewComponent } from '@am-front/shared/details/pattern-order-preview/pattern-order-preview.component';
 import { AmstoreSnapshotPatternComponent } from '@am-front/shared/snapshot/pattern/pattern.component';
 import { createRequestWrapper } from '@am-front/utils/request-wrapper';
+import { isRefundPending, ORDER_REFUND_STATUS_LABELS } from '@am-front/utils/order-refund-status';
 import { ORDER_STATUS_LABELS } from '@am-front/utils/order-status';
 
 
@@ -68,6 +69,14 @@ export class OrderDetailsComponent {
     );
 
     public readonly order = signal<UserOrderDetailsDto | null>(null);
+    public readonly refreshRefund = createRequestWrapper<typeof this.orders.getOrder>(this.orders.getOrder.bind(this.orders));
+    public readonly refundPending = computed(() => isRefundPending(this.order()?.refund));
+    public readonly refundStatus = computed(() => {
+        const refund = this.order()?.refund;
+
+        return refund ? ORDER_REFUND_STATUS_LABELS[refund.status] : null;
+    });
+
     public readonly pendingStatus = EnumOrderStatus.PendingPayment;
 
     public readonly paymentCaptured = computed(() => this.payment()?.status === EnumPaymentStatus.SUCCEEDED ||
@@ -91,6 +100,7 @@ export class OrderDetailsComponent {
                     this.paymentKey = null;
                     this.paymentState.set(null);
                     this.stateRequest.clear();
+                    this.refreshRefund.clear();
                     this.order.set(null);
                     this.load.clear();
 
@@ -110,6 +120,19 @@ export class OrderDetailsComponent {
                                     exhaustMap((index) => {
                                         const current = this.order();
 
+                                        if (current && isRefundPending(current.refund)) {
+                                            if (this.refreshRefund.loading()) {
+                                                return EMPTY;
+                                            }
+
+                                            return this.refreshRefund.request(current.id)
+                                                .pipe(
+                                                    filter(() => this.auth.auth() && revision === this.auth.sessionRevision),
+                                                    tap((order: UserOrderDetailsDto) => this.acceptRefundOrder(order)),
+                                                    ignoreElements(),
+                                                );
+                                        }
+
                                         if (!current || (index > 0 && current.status !== this.pendingStatus) ||
                                             this.stateRequest.loading() || this.showPaymentCheckProgress() || this.paymentState()?.resolution) {
                                             return EMPTY;
@@ -124,6 +147,39 @@ export class OrderDetailsComponent {
                 takeUntilDestroyed(),
             )
             .subscribe((state) => this.acceptPaymentState(state));
+    }
+
+    /** Перечитывает возврат вручную после ошибки или окончания автоматического опроса; смена сессии отменяет ответ. */
+    public checkRefund(): void {
+        const order = this.order();
+        const revision = this.auth.sessionRevision;
+
+        if (!order || !this.auth.auth() || !this.refundPending() || this.refreshRefund.loading()) {
+            return;
+        }
+
+        this.refreshRefund.request(order.id)
+            .pipe(takeUntil(this.contextChanged$))
+            .subscribe(updated => {
+                if (this.auth.auth() && revision === this.auth.sessionRevision) {
+                    this.acceptRefundOrder(updated);
+                }
+            });
+    }
+
+    /** Принимает серверный snapshot текущего заказа и обновляет эффективные права после подтверждённого возврата. */
+    private acceptRefundOrder(order: UserOrderDetailsDto): void {
+        if (order.id !== this.order()?.id || !this.auth.auth()) {
+            return;
+        }
+
+        const wasRefunded = this.order()?.status === EnumOrderStatus.Refunded;
+
+        this.order.set(order);
+
+        if (order.status === EnumOrderStatus.Refunded && !wasRefunded) {
+            this.purchaseSync.purchaseConfirmed();
+        }
     }
 
     /** Проверяет результат вручную с немедленной обратной связью; при уже идущем опросе ждёт его без дублирования запроса. */
@@ -159,7 +215,7 @@ export class OrderDetailsComponent {
         const wasPaid = this.paymentState()?.orderStatus === EnumOrderStatus.Success;
 
         this.paymentState.set(state);
-        this.order.update((order) => order ? { ...order, status: state.orderStatus } : order);
+        this.order.update((order) => order && order.status !== EnumOrderStatus.Refunded ? { ...order, status: state.orderStatus } : order);
 
         if (state.orderStatus === EnumOrderStatus.Success && !wasPaid) {
             this.purchaseSync.purchaseConfirmed();

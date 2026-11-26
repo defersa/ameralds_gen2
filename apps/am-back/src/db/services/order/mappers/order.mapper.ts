@@ -1,3 +1,4 @@
+import type { RefundEntity } from "@am-back/db/entities/purchases/refund.entity";
 import type { CheckoutOrderDto } from "@am-back/modules/orders/dto/checkout.dto";
 import { ModelState } from "@am-back/db/abstract/abstract.model";
 import type { AdminOrderEntity, UserOrderEntity } from "@am-back/db/entities/purchases/order.entity";
@@ -9,9 +10,18 @@ import type { OrderPlacement } from "../types/order-placement";
 import { selectedItemView, toAdminOrder } from "./cart.mapper";
 
 
-/** Возвращает основные поля личного заказа без связей и служебного состояния; неизвестные исторические суммы и даты сохраняет как null. */
+/** Возвращает основные поля личного заказа без служебных данных; включает безопасный статус последнего возврата, неизвестные исторические суммы и даты сохраняет как null. */
 export function toUserOrderSummary(order: UserOrderEntity): UserOrderSummaryDto {
+    const refund = (order.refunds ?? [])
+        .reduce<RefundEntity | null>((latest, current) => !latest || current.id > latest.id ? current : latest, null);
+
 	return {
+        refund: refund ? {
+            status: refund.status,
+            amount: refund.amount,
+            currency: refund.currency,
+            completedAt: refund.completedAt ?? null,
+        } : null,
 		id: order.id,
 		placedAt: order.placedAt ?? null,
 		createdAt: order.createdAt,
